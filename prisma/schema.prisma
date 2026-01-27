@@ -1,0 +1,193 @@
+// Prisma schema for 日雇い管理・賃金計算システム
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ====== 会社マスタ ======
+model Company {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  overtimeUnit    Int      @default(15)        // 残業計算単位（分）: 5, 10, 15, 30
+  roundingMethod  String   @default("floor")   // floor, ceil, round
+  restraintRule   Json?                        // 拘束時間ルール
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  vehicleTypes    VehicleType[]
+  wageRules       WageRule[]
+  workers         Worker[]
+  dailyReports    DailyReport[]
+
+  @@map("companies")
+}
+
+// ====== 車種マスタ ======
+model VehicleType {
+  id           String   @id @default(cuid())
+  companyId    String
+  code         String
+  name         String
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company      Company       @relation(fields: [companyId], references: [id])
+  wageRules    WageRule[]
+  dailyReports DailyReport[]
+
+  @@unique([companyId, code])
+  @@map("vehicle_types")
+}
+
+// ====== 賃金ルールマスタ ======
+model WageRule {
+  id                  String    @id @default(cuid())
+  companyId           String
+  vehicleTypeId       String
+  effectiveFrom       DateTime  @db.Date
+  effectiveTo         DateTime? @db.Date
+
+  // 基本給関連
+  baseDailyWage       Decimal   @db.Decimal(10, 0)
+  baseHours           Decimal   @default(8.00) @db.Decimal(4, 2)
+
+  // 残業単価
+  overtimeRateNormal  Decimal?  @db.Decimal(10, 0)
+  overtimeRateLate    Decimal?  @db.Decimal(10, 0)
+  overtimeRateHoliday Decimal?  @db.Decimal(10, 0)
+
+  // 拘束時間関連
+  restraintStartHour  Int?
+  restraintAllowance  Decimal?  @db.Decimal(10, 0)
+
+  // その他手当
+  allowances          Json      @default("{}")
+
+  // メタ
+  ruleDescription     String?
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  company             Company     @relation(fields: [companyId], references: [id])
+  vehicleType         VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  calculations        WageCalculation[]
+
+  @@map("wage_rules")
+}
+
+// ====== 作業員マスタ ======
+model Worker {
+  id               String   @id @default(cuid())
+  employeeCode     String   @unique
+  name             String
+  nameKana         String?
+  defaultCompanyId String?
+  phone            String?
+  notes            String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  defaultCompany   Company?      @relation(fields: [defaultCompanyId], references: [id])
+  dailyReports     DailyReport[]
+
+  @@map("workers")
+}
+
+// ====== 日報 ======
+model DailyReport {
+  id                String   @id @default(cuid())
+  workDate          DateTime @db.Date
+  workerId          String
+  companyId         String
+  vehicleTypeId     String
+
+  // 時間情報
+  startTime         String   // "HH:mm" 形式
+  endTime           String   // "HH:mm" 形式
+  breakMinutes      Int      @default(60)
+
+  // フラグ
+  isHoliday         Boolean  @default(false)
+  isNightShift      Boolean  @default(false)
+
+  // 手動調整
+  manualAdjustments Json     @default("{}")
+
+  // ステータス
+  status            String   @default("draft") // draft, calculated, confirmed, paid
+  notes             String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdBy         String?
+
+  worker            Worker            @relation(fields: [workerId], references: [id])
+  company           Company           @relation(fields: [companyId], references: [id])
+  vehicleType       VehicleType       @relation(fields: [vehicleTypeId], references: [id])
+  calculations      WageCalculation[]
+
+  @@unique([workDate, workerId])
+  @@map("daily_reports")
+}
+
+// ====== 計算結果履歴 ======
+model WageCalculation {
+  id                    String   @id @default(cuid())
+  dailyReportId         String
+  calculationVersion    Int      @default(1)
+
+  // 適用ルール
+  appliedRuleId         String
+  appliedRuleSnapshot   Json
+
+  // 時間計算結果
+  workMinutes           Int
+  overtimeMinutes       Int      @default(0)
+  nightMinutes          Int      @default(0)
+
+  // 金額計算結果
+  baseWage              Decimal  @db.Decimal(10, 0)
+  overtimeWage          Decimal  @default(0) @db.Decimal(10, 0)
+  nightWage             Decimal  @default(0) @db.Decimal(10, 0)
+  holidayWage           Decimal  @default(0) @db.Decimal(10, 0)
+  restraintAllowance    Decimal  @default(0) @db.Decimal(10, 0)
+  otherAllowances       Decimal  @default(0) @db.Decimal(10, 0)
+  totalWage             Decimal  @db.Decimal(10, 0)
+
+  // 計算詳細
+  calculationLog        Json
+
+  // メタ
+  isCurrent             Boolean  @default(true)
+  calculatedAt          DateTime @default(now())
+  calculatedBy          String?
+
+  dailyReport           DailyReport @relation(fields: [dailyReportId], references: [id])
+  appliedRule           WageRule    @relation(fields: [appliedRuleId], references: [id])
+
+  @@map("wage_calculations")
+}
+
+// ====== ユーザー（認証用） ======
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String
+  role          String   @default("operator") // admin, operator
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}

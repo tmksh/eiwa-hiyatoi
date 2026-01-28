@@ -1,10 +1,8 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20.20.0"
-  COREPACK_ENABLE_STRICT = "0"
-  COREPACK_ENABLE_AUTO_PIN = "0"
-  NETLIFY_USE_YARN = "false"
+  NPM_VERSION = "10.8.2"
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, Coffee, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarDays, Clock, Coffee, Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock data
@@ -52,7 +52,7 @@ const mockRejectedReport = {
   rejectionReason: "退勤時間が実際と異なります。正しい時間を入力してください。",
 };
 
-export default function DriverReportPage() {
+function DriverReportContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const isEditing = !!editId;
@@ -368,5 +368,24 @@ export default function DriverReportPage() {
         </Button>
       </div>
     </DriverLayout>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <DriverLayout>
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
+        <p className="mt-4 text-lg text-muted-foreground">読み込み中...</p>
+      </div>
+    </DriverLayout>
+  );
+}
+
+export default function DriverReportPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DriverReportContent />
+    </Suspense>
   );
 }

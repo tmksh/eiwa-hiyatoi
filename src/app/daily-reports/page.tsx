@@ -49,8 +49,23 @@ import { Plus, Search, CalendarIcon, Pencil, Check, X, AlertCircle } from "lucid
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+// 型定義
+type Report = {
+  id: string;
+  workDate: Date;
+  workerName: string;
+  company: string;
+  vehicleType: string;
+  startTime: string;
+  endTime: string;
+  breakMinutes: number;
+  status: Status;
+  submittedAt: Date | null;
+  rejectionReason?: string;
+};
+
 // Mock data
-const initialMockReports = [
+const initialMockReports: Report[] = [
   {
     id: "1",
     workDate: new Date("2024-01-28"),
@@ -118,7 +133,7 @@ export default function DailyReportsPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [reports, setReports] = useState(initialMockReports);
+  const [reports, setReports] = useState<Report[]>(initialMockReports);
   
   // 却下ダイアログ用
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);

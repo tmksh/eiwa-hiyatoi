@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { DriverLayout } from "@/components/layout/driver-layout";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, Coffee, Send, CheckCircle2 } from "lucide-react";
+import { CalendarDays, Clock, Coffee, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock data
@@ -38,7 +39,24 @@ const mockVehicleTypes = [
   { id: "8", companyId: "3", name: "4t" },
 ];
 
+// Mock: 却下された日報のデータ（実際はAPIから取得）
+const mockRejectedReport = {
+  id: "2",
+  companyId: "1",
+  vehicleId: "2",
+  startTime: "07:00",
+  endTime: "18:00",
+  breakMinutes: "60",
+  isHoliday: false,
+  notes: "",
+  rejectionReason: "退勤時間が実際と異なります。正しい時間を入力してください。",
+};
+
 export default function DriverReportPage() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditing = !!editId;
+
   const today = new Date();
   const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -49,6 +67,22 @@ export default function DriverReportPage() {
   const [notes, setNotes] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+
+  // 編集モードの場合、却下された日報のデータを読み込む
+  useEffect(() => {
+    if (isEditing) {
+      // 実際はAPIから取得
+      setSelectedCompany(mockRejectedReport.companyId);
+      setSelectedVehicle(mockRejectedReport.vehicleId);
+      setStartTime(mockRejectedReport.startTime);
+      setEndTime(mockRejectedReport.endTime);
+      setBreakMinutes(mockRejectedReport.breakMinutes);
+      setIsHoliday(mockRejectedReport.isHoliday);
+      setNotes(mockRejectedReport.notes);
+      setRejectionReason(mockRejectedReport.rejectionReason);
+    }
+  }, [isEditing]);
 
   const availableVehicles = mockVehicleTypes.filter(
     (v) => v.companyId === selectedCompany
@@ -80,7 +114,8 @@ export default function DriverReportPage() {
 
     setIsSubmitting(false);
     setIsSubmitted(true);
-    toast.success("日報を提出しました");
+    setRejectionReason(null);
+    toast.success(isEditing ? "日報を再提出しました" : "日報を提出しました");
   };
 
   if (isSubmitted) {
@@ -142,28 +177,45 @@ export default function DriverReportPage() {
 
   return (
     <DriverLayout>
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 pb-32">
         {/* Date Header */}
         <div className="text-center">
-          <Badge variant="secondary" className="mb-2">
-            <CalendarDays className="mr-1 h-3 w-3" />
-            本日
+          <Badge variant={isEditing ? "destructive" : "secondary"} className="mb-3 text-sm px-4 py-1.5">
+            <CalendarDays className="mr-1.5 h-4 w-4" />
+            {isEditing ? "修正が必要" : "本日"}
           </Badge>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-3xl font-bold">
             {format(today, "M月d日（E）", { locale: ja })}
           </h1>
-          <p className="text-sm text-muted-foreground">の日報を入力</p>
+          <p className="text-base text-muted-foreground mt-1">
+            {isEditing ? "の日報を修正" : "の日報を入力"}
+          </p>
         </div>
 
+        {/* 却下理由の表示 */}
+        {rejectionReason && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-red-800">却下理由</p>
+                  <p className="text-sm text-red-700 mt-1">{rejectionReason}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Form */}
-        <Card>
+        <Card className="border-0 shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">勤務情報</CardTitle>
+            <CardTitle className="text-xl font-bold">勤務情報</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-6">
             {/* Company */}
             <div className="space-y-2">
-              <Label>派遣先</Label>
+              <Label className="text-base font-semibold">派遣先</Label>
               <Select
                 value={selectedCompany}
                 onValueChange={(v) => {
@@ -171,7 +223,7 @@ export default function DriverReportPage() {
                   setSelectedVehicle("");
                 }}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-14 text-base">
                   <SelectValue placeholder="会社を選択" />
                 </SelectTrigger>
                 <SelectContent>
@@ -186,18 +238,18 @@ export default function DriverReportPage() {
 
             {/* Vehicle */}
             <div className="space-y-2">
-              <Label>車種</Label>
+              <Label className="text-base font-semibold">車種</Label>
               <Select
                 value={selectedVehicle}
                 onValueChange={setSelectedVehicle}
                 disabled={!selectedCompany}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-14 text-base">
                   <SelectValue placeholder="車種を選択" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableVehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                    <SelectItem key={vehicle.id} value={vehicle.id} className="text-base">
                       {vehicle.name}トラック
                     </SelectItem>
                   ))}
@@ -208,62 +260,63 @@ export default function DriverReportPage() {
             {/* Time */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-base font-semibold">
+                  <Clock className="h-5 w-5" />
                   出勤
                 </Label>
                 <Input
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="h-12 text-lg"
+                  className="h-14 text-xl font-semibold"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-base font-semibold">
+                  <Clock className="h-5 w-5" />
                   退勤
                 </Label>
                 <Input
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="h-12 text-lg"
+                  className="h-14 text-xl font-semibold"
                 />
               </div>
             </div>
 
             {/* Break */}
             <div className="space-y-2">
-              <Label className="flex items-center gap-1">
-                <Coffee className="h-4 w-4" />
+              <Label className="flex items-center gap-2 text-base font-semibold">
+                <Coffee className="h-5 w-5" />
                 休憩時間
               </Label>
               <Select value={breakMinutes} onValueChange={setBreakMinutes}>
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-14 text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">なし</SelectItem>
-                  <SelectItem value="30">30分</SelectItem>
-                  <SelectItem value="45">45分</SelectItem>
-                  <SelectItem value="60">60分</SelectItem>
-                  <SelectItem value="90">90分</SelectItem>
-                  <SelectItem value="120">120分</SelectItem>
+                  <SelectItem value="0" className="text-base">なし</SelectItem>
+                  <SelectItem value="30" className="text-base">30分</SelectItem>
+                  <SelectItem value="45" className="text-base">45分</SelectItem>
+                  <SelectItem value="60" className="text-base">60分</SelectItem>
+                  <SelectItem value="90" className="text-base">90分</SelectItem>
+                  <SelectItem value="120" className="text-base">120分</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Holiday Flag */}
-            <div className="flex items-center space-x-3 rounded-lg border p-4">
+            <div className="flex items-center space-x-4 rounded-xl border-2 p-5">
               <Checkbox
                 id="isHoliday"
                 checked={isHoliday}
                 onCheckedChange={(checked) => setIsHoliday(checked as boolean)}
+                className="h-6 w-6"
               />
               <Label htmlFor="isHoliday" className="flex-1 cursor-pointer">
-                <span className="font-medium">休日出勤</span>
-                <p className="text-xs text-muted-foreground">
+                <span className="font-bold text-base">休日出勤</span>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   日曜・祝日の場合はチェック
                 </p>
               </Label>
@@ -271,12 +324,12 @@ export default function DriverReportPage() {
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label>備考（任意）</Label>
+              <Label className="text-base font-semibold">備考（任意）</Label>
               <Input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="特記事項があれば入力"
-                className="h-12"
+                className="h-14 text-base"
               />
             </div>
           </CardContent>
@@ -284,13 +337,13 @@ export default function DriverReportPage() {
 
         {/* Summary */}
         {workHours && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="pt-6">
+          <Card className="border-0 shadow-md bg-gradient-to-r from-amber-50 to-amber-100">
+            <CardContent className="py-6">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">実働時間</span>
-                <span className="text-3xl font-bold text-primary">
+                <span className="text-lg font-semibold text-amber-700">実働時間</span>
+                <span className="text-4xl font-bold text-amber-600">
                   {workHours}
-                  <span className="text-lg font-normal">時間</span>
+                  <span className="text-xl font-semibold ml-1">時間</span>
                 </span>
               </div>
             </CardContent>
@@ -300,7 +353,7 @@ export default function DriverReportPage() {
         {/* Submit Button */}
         <Button
           size="lg"
-          className="w-full h-14 text-lg"
+          className={`w-full h-16 text-xl font-bold rounded-xl shadow-lg ${isEditing ? "bg-red-600 hover:bg-red-700" : "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-amber-200/50"}`}
           onClick={handleSubmit}
           disabled={isSubmitting || !selectedCompany || !selectedVehicle}
         >
@@ -308,8 +361,8 @@ export default function DriverReportPage() {
             "送信中..."
           ) : (
             <>
-              <Send className="mr-2 h-5 w-5" />
-              日報を提出
+              <Send className="mr-2 h-6 w-6" />
+              {isEditing ? "修正して再提出" : "日報を提出"}
             </>
           )}
         </Button>

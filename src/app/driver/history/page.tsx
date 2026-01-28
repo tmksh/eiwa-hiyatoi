@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, Status } from "@/components/ui/status-badge";
-import { ChevronLeft, ChevronRight, Calendar, Clock, Banknote } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Clock, Banknote, AlertCircle, Pencil } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 // Mock history data
@@ -22,7 +23,8 @@ const mockHistory = [
     endTime: "19:30",
     workHours: 10.5,
     totalWage: 14750,
-    status: "calculated" as Status,
+    status: "submitted" as Status,
+    rejectionReason: null,
   },
   {
     id: "2",
@@ -33,7 +35,8 @@ const mockHistory = [
     endTime: "18:00",
     workHours: 10,
     totalWage: 14000,
-    status: "confirmed" as Status,
+    status: "rejected" as Status,
+    rejectionReason: "退勤時間が実際と異なります。正しい時間を入力してください。",
   },
   {
     id: "3",
@@ -44,7 +47,8 @@ const mockHistory = [
     endTime: "17:00",
     workHours: 10,
     totalWage: 15000,
-    status: "confirmed" as Status,
+    status: "approved" as Status,
+    rejectionReason: null,
   },
   {
     id: "4",
@@ -55,7 +59,8 @@ const mockHistory = [
     endTime: "17:00",
     workHours: 8,
     totalWage: 11000,
-    status: "paid" as Status,
+    status: "confirmed" as Status,
+    rejectionReason: null,
   },
   {
     id: "5",
@@ -67,6 +72,7 @@ const mockHistory = [
     workHours: 8,
     totalWage: 10000,
     status: "paid" as Status,
+    rejectionReason: null,
   },
   {
     id: "6",
@@ -78,6 +84,7 @@ const mockHistory = [
     workHours: 10.5,
     totalWage: 14750,
     status: "paid" as Status,
+    rejectionReason: null,
   },
   {
     id: "7",
@@ -89,6 +96,7 @@ const mockHistory = [
     workHours: 8,
     totalWage: 11000,
     status: "paid" as Status,
+    rejectionReason: null,
   },
 ];
 
@@ -136,7 +144,7 @@ export default function DriverHistoryPage() {
 
   return (
     <DriverLayout>
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 pb-32">
         {/* Month Navigation */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={prevMonth}>
@@ -256,7 +264,9 @@ export default function DriverHistoryPage() {
             </Card>
           ) : (
             filteredHistory.map((record) => (
-              <Card key={record.id}>
+              <Card key={record.id} className={cn(
+                record.status === "rejected" && "border-red-200 bg-red-50/50"
+              )}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -269,6 +279,26 @@ export default function DriverHistoryPage() {
                     </div>
                     <StatusBadge status={record.status} />
                   </div>
+                  
+                  {/* 却下理由の表示 */}
+                  {record.status === "rejected" && record.rejectionReason && (
+                    <div className="mb-3 p-3 rounded-lg bg-red-100 border border-red-200">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-red-800">却下理由</p>
+                          <p className="text-sm text-red-700">{record.rejectionReason}</p>
+                        </div>
+                      </div>
+                      <Link href={`/driver/report?edit=${record.id}`}>
+                        <Button size="sm" variant="outline" className="mt-2 w-full border-red-300 text-red-700 hover:bg-red-100">
+                          <Pencil className="h-3 w-3 mr-1" />
+                          修正して再提出
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1 text-muted-foreground">
@@ -279,10 +309,12 @@ export default function DriverHistoryPage() {
                         {record.workHours}h
                       </Badge>
                     </div>
-                    <span className="flex items-center gap-1 font-semibold">
-                      <Banknote className="h-4 w-4 text-primary" />
-                      {formatCurrency(record.totalWage)}
-                    </span>
+                    {record.status !== "submitted" && record.status !== "rejected" && (
+                      <span className="flex items-center gap-1 font-semibold">
+                        <Banknote className="h-4 w-4 text-primary" />
+                        {formatCurrency(record.totalWage)}
+                      </span>
+                    )}
                   </div>
                 </CardContent>
               </Card>

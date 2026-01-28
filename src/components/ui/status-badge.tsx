@@ -1,11 +1,23 @@
 import { cn } from "@/lib/utils";
 
-export type Status = "draft" | "calculated" | "confirmed" | "paid" | "error";
+export type Status = "draft" | "submitted" | "approved" | "rejected" | "calculated" | "confirmed" | "paid" | "error";
 
 const statusConfig: Record<Status, { label: string; className: string }> = {
   draft: {
     label: "下書き",
     className: "bg-gray-100 text-gray-700",
+  },
+  submitted: {
+    label: "承認待ち",
+    className: "bg-yellow-100 text-yellow-700",
+  },
+  approved: {
+    label: "承認済",
+    className: "bg-emerald-100 text-emerald-700",
+  },
+  rejected: {
+    label: "却下",
+    className: "bg-red-100 text-red-700",
   },
   calculated: {
     label: "計算済",

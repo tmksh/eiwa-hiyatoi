@@ -7,6 +7,7 @@ import { ja } from "date-fns/locale";
 import { MainLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -35,12 +36,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { StatusBadge, Status } from "@/components/ui/status-badge";
-import { Plus, Search, CalendarIcon, Pencil } from "lucide-react";
+import { Plus, Search, CalendarIcon, Pencil, Check, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Mock data
-const mockReports = [
+const initialMockReports = [
   {
     id: "1",
     workDate: new Date("2024-01-28"),
@@ -50,7 +60,8 @@ const mockReports = [
     startTime: "08:00",
     endTime: "19:30",
     breakMinutes: 60,
-    status: "calculated" as Status,
+    status: "submitted" as Status,
+    submittedAt: new Date("2024-01-28T19:35:00"),
   },
   {
     id: "2",
@@ -61,7 +72,8 @@ const mockReports = [
     startTime: "07:00",
     endTime: "18:00",
     breakMinutes: 60,
-    status: "confirmed" as Status,
+    status: "submitted" as Status,
+    submittedAt: new Date("2024-01-28T18:05:00"),
   },
   {
     id: "3",
@@ -72,7 +84,8 @@ const mockReports = [
     startTime: "06:00",
     endTime: "20:00",
     breakMinutes: 90,
-    status: "draft" as Status,
+    status: "approved" as Status,
+    submittedAt: new Date("2024-01-28T20:10:00"),
   },
   {
     id: "4",
@@ -84,6 +97,20 @@ const mockReports = [
     endTime: "17:30",
     breakMinutes: 60,
     status: "draft" as Status,
+    submittedAt: null,
+  },
+  {
+    id: "5",
+    workDate: new Date("2024-01-28"),
+    workerName: "田中 美咲",
+    company: "C配送センター",
+    vehicleType: "2t",
+    startTime: "09:00",
+    endTime: "18:00",
+    breakMinutes: 60,
+    status: "rejected" as Status,
+    submittedAt: new Date("2024-01-28T18:15:00"),
+    rejectionReason: "休憩時間が実際と異なります",
   },
 ];
 
@@ -91,8 +118,14 @@ export default function DailyReportsPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [reports, setReports] = useState(initialMockReports);
+  
+  // 却下ダイアログ用
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
-  const filteredReports = mockReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.workerName.includes(searchQuery) ||
       report.company.includes(searchQuery);
@@ -100,6 +133,41 @@ export default function DailyReportsPage() {
       statusFilter === "all" || report.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // 承認処理
+  const handleApprove = (reportId: string) => {
+    setReports(prev => prev.map(r => 
+      r.id === reportId ? { ...r, status: "approved" as Status } : r
+    ));
+    toast.success("日報を承認しました");
+  };
+
+  // 却下ダイアログを開く
+  const openRejectDialog = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setRejectionReason("");
+    setRejectDialogOpen(true);
+  };
+
+  // 却下処理
+  const handleReject = () => {
+    if (!selectedReportId || !rejectionReason.trim()) {
+      toast.error("却下理由を入力してください");
+      return;
+    }
+    setReports(prev => prev.map(r => 
+      r.id === selectedReportId 
+        ? { ...r, status: "rejected" as Status, rejectionReason: rejectionReason } 
+        : r
+    ));
+    setRejectDialogOpen(false);
+    setSelectedReportId(null);
+    setRejectionReason("");
+    toast.success("日報を却下しました");
+  };
+
+  // 承認待ち件数
+  const pendingCount = reports.filter(r => r.status === "submitted").length;
 
   return (
     <MainLayout title="日報管理">
@@ -166,10 +234,20 @@ export default function DailyReportsPage() {
                 <SelectContent>
                   <SelectItem value="all">すべて</SelectItem>
                   <SelectItem value="draft">下書き</SelectItem>
+                  <SelectItem value="submitted">承認待ち</SelectItem>
+                  <SelectItem value="approved">承認済</SelectItem>
+                  <SelectItem value="rejected">却下</SelectItem>
                   <SelectItem value="calculated">計算済</SelectItem>
                   <SelectItem value="confirmed">確定</SelectItem>
                 </SelectContent>
               </Select>
+              
+              {pendingCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+                  <AlertCircle className="h-4 w-4" />
+                  承認待ち {pendingCount}件
+                </div>
+              )}
             </div>
 
             {/* Table */}
@@ -184,12 +262,15 @@ export default function DailyReportsPage() {
                     <TableHead>退勤</TableHead>
                     <TableHead>休憩</TableHead>
                     <TableHead>ステータス</TableHead>
-                    <TableHead className="w-[80px]"></TableHead>
+                    <TableHead className="w-[180px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredReports.map((report) => (
-                    <TableRow key={report.id}>
+                    <TableRow key={report.id} className={cn(
+                      report.status === "submitted" && "bg-yellow-50",
+                      report.status === "rejected" && "bg-red-50"
+                    )}>
                       <TableCell className="font-medium">
                         {report.workerName}
                       </TableCell>
@@ -206,11 +287,35 @@ export default function DailyReportsPage() {
                         <StatusBadge status={report.status} />
                       </TableCell>
                       <TableCell>
-                        <Link href={`/daily-reports/${report.id}/edit`}>
-                          <Button variant="ghost" size="icon">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-1">
+                          {report.status === "submitted" && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                                onClick={() => handleApprove(report.id)}
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                承認
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                                onClick={() => openRejectDialog(report.id)}
+                              >
+                                <X className="h-4 w-4 mr-1" />
+                                却下
+                              </Button>
+                            </>
+                          )}
+                          <Link href={`/daily-reports/${report.id}/edit`}>
+                            <Button variant="ghost" size="icon">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -223,30 +328,57 @@ export default function DailyReportsPage() {
               <span>全 {filteredReports.length} 件</span>
               <div className="flex gap-4">
                 <span>
-                  下書き:{" "}
-                  {filteredReports.filter((r) => r.status === "draft").length}件
+                  承認待ち:{" "}
+                  {filteredReports.filter((r) => r.status === "submitted").length}件
                 </span>
                 <span>
-                  計算済:{" "}
-                  {
-                    filteredReports.filter((r) => r.status === "calculated")
-                      .length
-                  }
-                  件
+                  承認済:{" "}
+                  {filteredReports.filter((r) => r.status === "approved").length}件
                 </span>
                 <span>
-                  確定:{" "}
-                  {
-                    filteredReports.filter((r) => r.status === "confirmed")
-                      .length
-                  }
-                  件
+                  却下:{" "}
+                  {filteredReports.filter((r) => r.status === "rejected").length}件
                 </span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* 却下理由入力ダイアログ */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>日報を却下</DialogTitle>
+            <DialogDescription>
+              却下理由を入力してください。運転手に通知されます。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejectionReason">却下理由</Label>
+              <Input
+                id="rejectionReason"
+                placeholder="例: 退勤時間が実際と異なります"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              キャンセル
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleReject}
+              disabled={!rejectionReason.trim()}
+            >
+              却下する
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

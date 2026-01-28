@@ -105,6 +105,8 @@ model Worker {
 }
 
 // ====== 日報 ======
+// status: draft(下書き) → submitted(提出済み) → approved(承認) / rejected(却下)
+//         → calculated(計算済み) → confirmed(確定) → paid(支払済み)
 model DailyReport {
   id                String   @id @default(cuid())
   workDate          DateTime @db.Date
@@ -125,8 +127,14 @@ model DailyReport {
   manualAdjustments Json     @default("{}")
 
   // ステータス
-  status            String   @default("draft") // draft, calculated, confirmed, paid
+  status            String   @default("draft") // draft, submitted, approved, rejected, calculated, confirmed, paid
   notes             String?
+
+  // 承認関連
+  submittedAt       DateTime?              // 提出日時
+  approvedAt        DateTime?              // 承認日時
+  approvedBy        String?                // 承認者ID
+  rejectionReason   String?                // 却下理由
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

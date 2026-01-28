@@ -10,7 +10,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "永和日雇い管理システム",
+  title: "栄和日雇い管理システム",
   description: "日雇い管理・賃金計算システム",
 };
 

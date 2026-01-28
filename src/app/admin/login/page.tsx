@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
           </div>
           <CardTitle className="text-2xl">管理者ログイン</CardTitle>
           <CardDescription>
-            永和日雇い管理システム
+            栄和日雇い管理システム
           </CardDescription>
         </CardHeader>
         <CardContent>

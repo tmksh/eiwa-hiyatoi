@@ -42,7 +42,7 @@ const mockAdminUsers = [
 ];
 
 export default function SettingsPage() {
-  const [companyName, setCompanyName] = useState("永和運輸株式会社");
+  const [companyName, setCompanyName] = useState("栄和清運株式会社");
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [autoCalculate, setAutoCalculate] = useState(false);
   const [backupFrequency, setBackupFrequency] = useState("daily");

@@ -338,7 +338,7 @@ export default function ExportPage() {
                       className="flex items-center justify-between text-sm"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-slate-500" />
                         <span>{history.date}</span>
                       </div>
                       <div className="flex items-center gap-2">

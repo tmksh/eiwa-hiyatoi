@@ -122,8 +122,8 @@ function DriverReportContent() {
     return (
       <DriverLayout>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-10 w-10 text-green-600" />
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+            <CheckCircle2 className="h-10 w-10 text-slate-600" />
           </div>
           <h2 className="mb-2 text-2xl font-bold">提出完了</h2>
           <p className="mb-6 text-muted-foreground">
@@ -194,13 +194,13 @@ function DriverReportContent() {
 
         {/* 却下理由の表示 */}
         {rejectionReason && (
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-slate-200 bg-slate-100">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-slate-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-red-800">却下理由</p>
-                  <p className="text-sm text-red-700 mt-1">{rejectionReason}</p>
+                  <p className="font-medium text-slate-800">却下理由</p>
+                  <p className="text-sm text-slate-700 mt-1">{rejectionReason}</p>
                 </div>
               </div>
             </CardContent>
@@ -337,11 +337,11 @@ function DriverReportContent() {
 
         {/* Summary */}
         {workHours && (
-          <Card className="border-0 shadow-md bg-gradient-to-r from-amber-50 to-amber-100">
+          <Card className="border-0 shadow-md bg-gradient-to-r from-slate-50 to-slate-100">
             <CardContent className="py-6">
               <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold text-amber-700">実働時間</span>
-                <span className="text-4xl font-bold text-amber-600">
+                <span className="text-lg font-semibold text-blue-700">実働時間</span>
+                <span className="text-4xl font-bold text-blue-600">
                   {workHours}
                   <span className="text-xl font-semibold ml-1">時間</span>
                 </span>
@@ -353,7 +353,7 @@ function DriverReportContent() {
         {/* Submit Button */}
         <Button
           size="lg"
-          className={`w-full h-16 text-xl font-bold rounded-xl shadow-lg ${isEditing ? "bg-red-600 hover:bg-red-700" : "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-amber-200/50"}`}
+          className={`w-full h-16 text-xl font-bold rounded-xl shadow-lg ${isEditing ? "bg-slate-600 hover:bg-slate-700" : "bg-slate-800 hover:bg-slate-900 shadow-slate-300/50"}`}
           onClick={handleSubmit}
           disabled={isSubmitting || !selectedCompany || !selectedVehicle}
         >
@@ -375,7 +375,7 @@ function LoadingFallback() {
   return (
     <DriverLayout>
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
+        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
         <p className="mt-4 text-lg text-muted-foreground">読み込み中...</p>
       </div>
     </DriverLayout>

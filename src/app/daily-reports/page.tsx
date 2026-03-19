@@ -258,7 +258,7 @@ export default function DailyReportsPage() {
               </Select>
               
               {pendingCount > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
                   <AlertCircle className="h-4 w-4" />
                   承認待ち {pendingCount}件
                 </div>
@@ -283,8 +283,8 @@ export default function DailyReportsPage() {
                 <TableBody>
                   {filteredReports.map((report) => (
                     <TableRow key={report.id} className={cn(
-                      report.status === "submitted" && "bg-yellow-50",
-                      report.status === "rejected" && "bg-red-50"
+                      report.status === "submitted" && "bg-blue-50",
+                      report.status === "rejected" && "bg-slate-100"
                     )}>
                       <TableCell className="font-medium">
                         {report.workerName}
@@ -308,7 +308,7 @@ export default function DailyReportsPage() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                                className="text-slate-600 hover:text-slate-700 hover:bg-slate-100"
                                 onClick={() => handleApprove(report.id)}
                               >
                                 <Check className="h-4 w-4 mr-1" />
@@ -317,7 +317,7 @@ export default function DailyReportsPage() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                                className="text-slate-600 hover:text-slate-700 hover:bg-slate-200"
                                 onClick={() => openRejectDialog(report.id)}
                               >
                                 <X className="h-4 w-4 mr-1" />

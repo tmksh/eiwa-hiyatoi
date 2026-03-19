@@ -6,14 +6,16 @@ import { Header } from "./header";
 interface MainLayoutProps {
   children: React.ReactNode;
   title?: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
 }
 
-export function MainLayout({ children, title }: MainLayoutProps) {
+export function MainLayout({ children, title, subtitle, actions }: MainLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50/30 via-white to-amber-50/20">
+    <div className="min-h-screen bg-slate-50/50">
       <Sidebar />
-      <div className="pl-72">
-        <Header title={title} />
+      <div className="pl-64">
+        <Header title={title} subtitle={subtitle} actions={actions} />
         <main className="p-6">{children}</main>
       </div>
     </div>

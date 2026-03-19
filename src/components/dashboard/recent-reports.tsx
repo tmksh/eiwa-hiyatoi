@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge, Status } from "@/components/ui/status-badge";
 import { AlertTriangle, ArrowRight, Calculator } from "lucide-react";
 
-// Mock data - will be replaced with actual data
 const recentReports = [
   {
     id: "1",
@@ -59,50 +57,48 @@ function formatCurrency(value: number): string {
 
 export function RecentReports() {
   return (
-    <Card className="bg-white border-0 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center">
-            <Calculator className="h-4 w-4 text-white" />
+    <Card className="border-slate-200/60 shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
+          <div className="h-7 w-7 rounded-md bg-slate-100 flex items-center justify-center">
+            <Calculator className="h-3.5 w-3.5 text-slate-600" />
           </div>
           最近の計算結果
         </CardTitle>
         <Link href="/results">
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1">
+          <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 gap-1 h-7">
             すべて表示
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-1">
           {recentReports.map((report) => (
             <Link
               key={report.id}
               href={`/results/${report.id}`}
-              className="flex items-center justify-between rounded-xl p-3 transition-colors hover:bg-gray-50 group"
+              className="flex items-center justify-between rounded-lg p-2.5 transition-colors hover:bg-slate-50 group"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 bg-gradient-to-br from-gray-100 to-gray-200">
-                  <AvatarFallback className="text-gray-600 font-medium">
-                    {report.workerName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600">
+                  {report.workerName.charAt(0)}
+                </div>
                 <div>
-                  <p className="font-medium text-gray-900">{report.workerName}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-slate-900">{report.workerName}</p>
+                  <p className="text-[11px] text-slate-400">
                     {report.company} / {report.vehicleType}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 {report.hasWarning && (
-                  <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                  <div className="flex items-center gap-1 text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
                     <AlertTriangle className="h-3 w-3" />
-                    <span className="text-xs font-medium">{report.warningMessage}</span>
+                    <span className="text-[11px] font-medium">{report.warningMessage}</span>
                   </div>
                 )}
-                <p className="font-bold tabular-nums text-gray-900">
+                <p className="text-sm font-semibold tabular-nums text-slate-900">
                   {formatCurrency(report.totalWage)}
                 </p>
                 <StatusBadge status={report.status} />

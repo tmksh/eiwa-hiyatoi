@@ -169,15 +169,15 @@ export default function CalculationsPage() {
                 <p className="text-sm text-muted-foreground">対象件数</p>
                 <p className="text-3xl font-bold">{previewData.total}</p>
               </div>
-              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                <p className="text-sm text-green-600">計算可能</p>
-                <p className="text-3xl font-bold text-green-700">
+              <div className="rounded-lg border border-slate-200 bg-slate-100 p-4">
+                <p className="text-sm text-slate-600">計算可能</p>
+                <p className="text-3xl font-bold text-slate-700">
                   {previewData.calculable}
                 </p>
               </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm text-amber-600">エラー（要確認）</p>
-                <p className="text-3xl font-bold text-amber-700">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm text-blue-600">エラー（要確認）</p>
+                <p className="text-3xl font-bold text-blue-700">
                   {previewData.errors}
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function CalculationsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <CheckCircle2 className="h-5 w-5 text-slate-500" />
                 計算完了
               </CardTitle>
             </CardHeader>
@@ -238,7 +238,7 @@ export default function CalculationsPage() {
                 </Badge>
                 <Badge
                   variant="default"
-                  className="text-base px-4 py-2 bg-green-500"
+                  className="text-base px-4 py-2 bg-slate-1000"
                 >
                   成功: {result.success}
                 </Badge>

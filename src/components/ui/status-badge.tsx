@@ -5,35 +5,35 @@ export type Status = "draft" | "submitted" | "approved" | "rejected" | "calculat
 const statusConfig: Record<Status, { label: string; className: string }> = {
   draft: {
     label: "下書き",
-    className: "bg-gray-100 text-gray-700",
+    className: "bg-slate-100 text-slate-600",
   },
   submitted: {
     label: "承認待ち",
-    className: "bg-yellow-100 text-yellow-700",
+    className: "bg-blue-50 text-blue-600",
   },
   approved: {
     label: "承認済",
-    className: "bg-emerald-100 text-emerald-700",
+    className: "bg-slate-100 text-slate-700",
   },
   rejected: {
     label: "却下",
-    className: "bg-red-100 text-red-700",
+    className: "bg-slate-100 text-slate-500",
   },
   calculated: {
     label: "計算済",
-    className: "bg-blue-100 text-blue-700",
+    className: "bg-blue-50 text-blue-600",
   },
   confirmed: {
     label: "確定",
-    className: "bg-green-100 text-green-700",
+    className: "bg-slate-200 text-slate-700",
   },
   paid: {
     label: "支払済",
-    className: "bg-violet-100 text-violet-700",
+    className: "bg-slate-200 text-slate-700",
   },
   error: {
     label: "エラー",
-    className: "bg-red-100 text-red-700",
+    className: "bg-slate-100 text-slate-500",
   },
 };
 

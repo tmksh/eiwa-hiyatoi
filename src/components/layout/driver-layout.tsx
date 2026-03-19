@@ -28,13 +28,13 @@ export function DriverLayout({ children, workerName = "山田 太郎" }: DriverL
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50/50 to-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-amber-100">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="mx-auto max-w-lg px-4">
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 shadow-lg shadow-amber-200/50">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 shadow-lg shadow-slate-300/50">
                 <Truck className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -43,12 +43,12 @@ export function DriverLayout({ children, workerName = "山田 太郎" }: DriverL
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-amber-50 rounded-full px-4 py-2">
-                <User className="h-5 w-5 text-amber-600" />
-                <span className="text-base font-semibold text-amber-700">{workerName}</span>
+              <div className="flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2">
+                <User className="h-5 w-5 text-slate-600" />
+                <span className="text-base font-semibold text-slate-700">{workerName}</span>
               </div>
               <Link href="/driver/login">
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-amber-50">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
                   <LogOut className="h-5 w-5 text-gray-500" />
                 </Button>
               </Link>
@@ -63,7 +63,7 @@ export function DriverLayout({ children, workerName = "山田 太郎" }: DriverL
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-t border-amber-100 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-t border-slate-200 pb-safe">
         <div className="mx-auto max-w-lg">
           <div className="flex">
             {navigation.map((item) => {
@@ -75,14 +75,14 @@ export function DriverLayout({ children, workerName = "山田 太郎" }: DriverL
                   className={cn(
                     "flex flex-1 flex-col items-center gap-2 py-4 text-base font-bold transition-all",
                     isActive
-                      ? "text-amber-600"
-                      : "text-gray-400 hover:text-amber-500"
+                      ? "text-blue-600"
+                      : "text-gray-400 hover:text-blue-500"
                   )}
                 >
                   <div className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-xl transition-all",
-                    isActive 
-                      ? "bg-gradient-to-br from-amber-400 to-amber-500 shadow-lg shadow-amber-200/50" 
+                    isActive
+                      ? "bg-slate-800 shadow-lg shadow-slate-300/50"
                       : "bg-gray-100"
                   )}>
                     <item.icon className={cn(

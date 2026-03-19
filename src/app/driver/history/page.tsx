@@ -195,7 +195,7 @@ export default function DriverHistoryPage() {
                   key={day}
                   className={cn(
                     "py-1 font-medium",
-                    i === 0 && "text-red-500",
+                    i === 0 && "text-slate-500",
                     i === 6 && "text-blue-500"
                   )}
                 >
@@ -265,7 +265,7 @@ export default function DriverHistoryPage() {
           ) : (
             filteredHistory.map((record) => (
               <Card key={record.id} className={cn(
-                record.status === "rejected" && "border-red-200 bg-red-50/50"
+                record.status === "rejected" && "border-slate-200 bg-slate-100/50"
               )}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
@@ -282,16 +282,16 @@ export default function DriverHistoryPage() {
                   
                   {/* 却下理由の表示 */}
                   {record.status === "rejected" && record.rejectionReason && (
-                    <div className="mb-3 p-3 rounded-lg bg-red-100 border border-red-200">
+                    <div className="mb-3 p-3 rounded-lg bg-slate-200 border border-slate-200">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-red-800">却下理由</p>
-                          <p className="text-sm text-red-700">{record.rejectionReason}</p>
+                          <p className="text-sm font-medium text-slate-800">却下理由</p>
+                          <p className="text-sm text-slate-700">{record.rejectionReason}</p>
                         </div>
                       </div>
                       <Link href={`/driver/report?edit=${record.id}`}>
-                        <Button size="sm" variant="outline" className="mt-2 w-full border-red-300 text-red-700 hover:bg-red-100">
+                        <Button size="sm" variant="outline" className="mt-2 w-full border-slate-300 text-slate-700 hover:bg-slate-200">
                           <Pencil className="h-3 w-3 mr-1" />
                           修正して再提出
                         </Button>

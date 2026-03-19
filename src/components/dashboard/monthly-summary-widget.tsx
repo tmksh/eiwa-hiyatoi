@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Wallet, Users, Clock } from "lucide-react";
 
-// Mock data
 const monthlySummary = {
   totalWage: 4850000,
   totalWorkers: 187,
@@ -23,56 +22,53 @@ export function MonthlySummaryWidget() {
   const isPositive = monthlySummary.totalWage >= monthlySummary.lastMonth;
 
   return (
-    <Card className="bg-white border-0 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center">
-            <Wallet className="h-4 w-4 text-white" />
+    <Card className="border-slate-200/60 shadow-none">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
+          <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+            <Wallet className="h-3.5 w-3.5 text-blue-600" />
           </div>
           今月の支給サマリー
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Total Wage */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-100">
-          <p className="text-sm text-emerald-600 font-medium mb-1">総支給額</p>
+        <div className="p-3 rounded-lg bg-slate-50">
+          <p className="text-[11px] text-slate-500 font-medium mb-0.5">総支給額</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">¥{formatCurrency(monthlySummary.totalWage)}</span>
-            <div className={`flex items-center gap-0.5 text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-500'}`}>
-              <TrendingUp className="h-4 w-4" />
+            <span className="text-xl font-bold text-slate-900">¥{formatCurrency(monthlySummary.totalWage)}</span>
+            <div className={`flex items-center gap-0.5 text-[11px] font-medium ${isPositive ? 'text-blue-600' : 'text-slate-500'}`}>
+              <TrendingUp className="h-3 w-3" />
               {isPositive ? '+' : ''}{percentChange}%
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">前月比 ¥{formatCurrency(monthlySummary.totalWage - monthlySummary.lastMonth)}</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 rounded-xl bg-gray-50">
-            <div className="flex items-center gap-1.5 text-gray-500 mb-1">
-              <Users className="h-3.5 w-3.5" />
-              <span className="text-xs">出勤者数</span>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-2.5 rounded-lg border border-slate-100">
+            <div className="flex items-center gap-1 text-slate-400 mb-1">
+              <Users className="h-3 w-3" />
+              <span className="text-[10px]">出勤者</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">{monthlySummary.totalWorkers}<span className="text-sm text-gray-400 ml-0.5">名</span></p>
+            <p className="text-lg font-bold text-slate-900">{monthlySummary.totalWorkers}<span className="text-[11px] text-slate-400 ml-0.5">名</span></p>
           </div>
-          <div className="p-3 rounded-xl bg-gray-50">
-            <div className="flex items-center gap-1.5 text-gray-500 mb-1">
-              <Clock className="h-3.5 w-3.5" />
-              <span className="text-xs">総労働時間</span>
+          <div className="p-2.5 rounded-lg border border-slate-100">
+            <div className="flex items-center gap-1 text-slate-400 mb-1">
+              <Clock className="h-3 w-3" />
+              <span className="text-[10px]">総時間</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(monthlySummary.totalHours)}<span className="text-sm text-gray-400 ml-0.5">h</span></p>
+            <p className="text-lg font-bold text-slate-900">{formatCurrency(monthlySummary.totalHours)}<span className="text-[11px] text-slate-400 ml-0.5">h</span></p>
           </div>
-          <div className="p-3 rounded-xl bg-gray-50">
-            <div className="flex items-center gap-1.5 text-gray-500 mb-1">
-              <Wallet className="h-3.5 w-3.5" />
-              <span className="text-xs">平均支給</span>
+          <div className="p-2.5 rounded-lg border border-slate-100">
+            <div className="flex items-center gap-1 text-slate-400 mb-1">
+              <Wallet className="h-3 w-3" />
+              <span className="text-[10px]">平均</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">¥{formatCurrency(monthlySummary.avgWagePerPerson)}</p>
+            <p className="text-lg font-bold text-slate-900">¥{formatCurrency(monthlySummary.avgWagePerPerson)}</p>
           </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-

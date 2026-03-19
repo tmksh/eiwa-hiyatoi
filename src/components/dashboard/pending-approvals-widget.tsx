@@ -3,11 +3,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, ArrowRight, Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-// Mock data
 const pendingApprovals = [
   {
     id: "1",
@@ -37,50 +34,51 @@ const pendingApprovals = [
 
 export function PendingApprovalsWidget() {
   return (
-    <Card className="bg-white border-0 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center">
-            <Clock className="h-4 w-4 text-white" />
+    <Card className="border-slate-200/60 shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
+          <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+            <Clock className="h-3.5 w-3.5 text-blue-600" />
           </div>
           承認待ち日報
+          <span className="ml-1 h-5 min-w-5 rounded-full bg-blue-100 px-1.5 text-[11px] font-semibold text-blue-700 flex items-center justify-center">
+            {pendingApprovals.length}
+          </span>
         </CardTitle>
         <Link href="/daily-reports?status=submitted">
-          <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 gap-1">
+          <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 gap-1 h-7">
             すべて表示
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {pendingApprovals.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">承認待ちの日報はありません</p>
+          <p className="text-sm text-slate-400 text-center py-4">承認待ちの日報はありません</p>
         ) : (
           pendingApprovals.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-amber-50/50 border border-amber-100"
+              className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 bg-gradient-to-br from-amber-200 to-amber-300">
-                  <AvatarFallback className="text-amber-700 font-medium">
-                    {item.workerName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600">
+                  {item.workerName.charAt(0)}
+                </div>
                 <div>
-                  <p className="font-medium text-gray-900">{item.workerName}</p>
-                  <p className="text-xs text-gray-500">
-                    {item.company} • {item.startTime}〜{item.endTime}
+                  <p className="text-sm font-medium text-slate-900">{item.workerName}</p>
+                  <p className="text-[11px] text-slate-400">
+                    {item.company} / {item.startTime}〜{item.endTime}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">{item.submittedAt}提出</span>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100">
-                  <Check className="h-4 w-4" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-400 mr-1">{item.submittedAt}</span>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50 rounded-md">
+                  <Check className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-100">
-                  <X className="h-4 w-4" />
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-slate-500 hover:bg-slate-100 rounded-md">
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
@@ -90,5 +88,3 @@ export function PendingApprovalsWidget() {
     </Card>
   );
 }
-
-

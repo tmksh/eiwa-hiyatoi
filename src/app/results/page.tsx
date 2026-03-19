@@ -314,7 +314,7 @@ export default function ResultsPage() {
                   {filteredResults.map((result) => (
                     <TableRow
                       key={result.id}
-                      className={cn(result.hasWarning && "bg-amber-50")}
+                      className={cn(result.hasWarning && "bg-blue-50")}
                     >
                       <TableCell>
                         <Checkbox
@@ -328,11 +328,11 @@ export default function ResultsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{result.workerName}</span>
                           {result.hasWarning && (
-                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            <AlertTriangle className="h-4 w-4 text-blue-500" />
                           )}
                         </div>
                         {result.hasWarning && (
-                          <p className="text-xs text-amber-600">
+                          <p className="text-xs text-blue-600">
                             {result.warningMessage}
                           </p>
                         )}

@@ -150,22 +150,22 @@
 
 /* Status Badge Colors */
 .status-draft {
-  @apply bg-gray-100 text-gray-700;
+  @apply bg-slate-100 text-slate-700;
 }
 .status-submitted {
   @apply bg-blue-50 text-blue-700;
 }
 .status-calculated {
-  @apply bg-indigo-50 text-indigo-700;
+  @apply bg-blue-50 text-blue-600;
 }
 .status-confirmed {
-  @apply bg-emerald-50 text-emerald-700;
+  @apply bg-slate-200 text-slate-700;
 }
 .status-paid {
-  @apply bg-violet-50 text-violet-700;
+  @apply bg-slate-200 text-slate-700;
 }
 .status-error {
-  @apply bg-red-50 text-red-700;
+  @apply bg-slate-100 text-slate-500;
 }
 
 /* Scrollbar */

@@ -238,7 +238,7 @@ export default function CalculationsPage() {
                 </Badge>
                 <Badge
                   variant="default"
-                  className="text-base px-4 py-2 bg-slate-1000"
+                  className="text-base px-4 py-2 bg-slate-900"
                 >
                   成功: {result.success}
                 </Badge>

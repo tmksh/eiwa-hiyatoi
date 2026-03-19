@@ -134,7 +134,7 @@ export default function PaidLeavePage() {
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-20 rounded-full bg-slate-100 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${rate >= 80 ? "bg-slate-1000" : rate >= 50 ? "bg-blue-500" : "bg-slate-300"}`}
+                            className={`h-full rounded-full ${rate >= 80 ? "bg-slate-900" : rate >= 50 ? "bg-blue-500" : "bg-slate-300"}`}
                             style={{ width: `${rate}%` }}
                           />
                         </div>

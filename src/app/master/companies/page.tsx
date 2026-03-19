@@ -37,7 +37,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MasterSubnav } from "@/components/layout";
 import { Plus, Pencil, Search } from "lucide-react";
 
 // Mock data - will be replaced with actual data from DB

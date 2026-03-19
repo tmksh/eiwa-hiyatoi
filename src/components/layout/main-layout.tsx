@@ -12,26 +12,35 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, title, subtitle, actions }: MainLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50/50">
       {/* Mobile overlay */}
-      {sidebarOpen && (
+      {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => setMobileOpen(false)}
         />
       )}
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((prev) => !prev)}
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
 
-      <div className="lg:pl-56">
+      <div
+        className="transition-all duration-300"
+        style={{ paddingLeft: collapsed ? "3.5rem" : "16rem" }}
+      >
         <Header
           title={title}
           subtitle={subtitle}
           actions={actions}
-          onMenuToggle={() => setSidebarOpen(true)}
+          onMenuToggle={() => setMobileOpen((prev) => !prev)}
         />
         <main className="p-4 sm:p-6">{children}</main>
       </div>

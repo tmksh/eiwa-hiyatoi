@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { MasterSubnav } from "@/components/layout";
 import { Plus, Pencil, Search } from "lucide-react";
 
 // Mock data
@@ -106,8 +107,9 @@ export default function WorkersPage() {
   );
 
   return (
-    <MainLayout title="作業員マスタ">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

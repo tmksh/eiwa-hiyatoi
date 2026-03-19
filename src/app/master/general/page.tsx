@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout";
+import { MainLayout, MasterSubnav } from "@/components/layout";
 import {
   Search,
   Plus,
@@ -56,8 +56,9 @@ export default function GeneralMasterPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <MainLayout title="各種マスタ管理">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <div>
           <p className="text-sm text-slate-500">供給先・早出・交通費・作業区分等のマスタ一括管理</p>
         </div>

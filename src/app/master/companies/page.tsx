@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout";
+import { MainLayout, MasterSubnav } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { MasterSubnav } from "@/components/layout";
 import { Plus, Pencil, Search } from "lucide-react";
 
 // Mock data - will be replaced with actual data from DB
@@ -91,8 +92,9 @@ export default function CompaniesPage() {
   );
 
   return (
-    <MainLayout title="会社マスタ">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

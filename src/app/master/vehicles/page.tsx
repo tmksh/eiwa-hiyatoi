@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout";
+import { MainLayout, MasterSubnav } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,8 +71,9 @@ export default function VehiclesPage() {
   });
 
   return (
-    <MainLayout title="車種マスタ">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

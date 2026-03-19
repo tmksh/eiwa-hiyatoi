@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MainLayout } from "@/components/layout";
+import { MainLayout, MasterSubnav } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,8 +164,9 @@ export default function WageRulesPage() {
   });
 
   return (
-    <MainLayout title="賃金ルール">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

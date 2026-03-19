@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout";
+import { MainLayout, MasterSubnav } from "@/components/layout";
 import {
   Search,
   Download,
@@ -38,8 +38,9 @@ export default function RateTablesPage() {
   const config = tableConfig[activeTable];
 
   return (
-    <MainLayout title="料額表管理">
+    <MainLayout title="マスタ管理">
       <div className="space-y-6">
+        <MasterSubnav />
         <div>
           <p className="text-sm text-slate-500">健康保険・介護保険・雇用保険・厚生年金料額表</p>
         </div>

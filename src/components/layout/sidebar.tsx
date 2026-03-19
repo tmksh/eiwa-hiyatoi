@@ -5,26 +5,20 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  FileText,
   Calculator,
-  Building2,
   Truck,
-  DollarSign,
   Users,
-  Download,
   Settings,
   ChevronRight,
   ClipboardList,
-  Shield,
   Banknote,
   FileBarChart,
   CalendarCheck,
-  Briefcase,
   Stamp,
   Landmark,
-  Database,
-  BarChart3,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,15 +38,17 @@ const navigation: NavItem[] = [
   { name: "税務", href: "/withholding-tax", icon: Landmark, matchPrefixes: ["/withholding-tax", "/resident-tax"] },
   { name: "有給・労務", href: "/paid-leave", icon: CalendarCheck, matchPrefixes: ["/paid-leave", "/part-time", "/journal"] },
   { name: "帳票・出力", href: "/aggregation", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
-  { name: "設定", href: "/master/workers", icon: Settings, matchPrefixes: ["/master", "/settings", "/data-management", "/data-migration"] },
+  { name: "設定", href: "/settings", icon: Settings, matchPrefixes: ["/settings", "/data-management", "/data-migration", "/master"] },
 ];
 
 interface SidebarProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
   open?: boolean;
   onClose?: () => void;
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (item: NavItem) => {
@@ -66,31 +62,55 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-slate-200/60 bg-white transition-transform duration-300 lg:translate-x-0",
-        open ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200/60 bg-white transition-all duration-300",
+        collapsed ? "w-14" : "w-64",
+        open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
       {/* Logo Header */}
-      <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800">
+      <div className={cn(
+        "flex items-center border-b border-slate-100 transition-all duration-300",
+        collapsed ? "justify-center px-0 py-5" : "justify-between px-5 py-5"
+      )}>
+        {collapsed ? (
+          <button
+            onClick={onToggle}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+            title="メニューを展開"
+          >
             <Truck className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-slate-900">日雇い管理</h1>
-            <p className="text-[11px] text-slate-400">栄和清運株式会社</p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden"
-        >
-          <X className="h-5 w-5" />
-        </button>
+          </button>
+        ) : (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800">
+                <Truck className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold text-slate-900">日雇い管理</h1>
+                <p className="text-[11px] text-slate-400">栄和清運株式会社</p>
+              </div>
+            </div>
+            <button
+              onClick={onToggle}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 hidden lg:block"
+              title="メニューを閉じる"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden"
+              title="メニューを閉じる"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar px-3 py-3">
+      <nav className="flex-1 overflow-y-auto custom-scrollbar px-2 py-3">
         <div className="space-y-0.5">
           {navigation.map((item) => {
             const active = isActive(item);
@@ -98,21 +118,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={onClose}
+                onClick={!collapsed ? onClose : undefined}
+                title={collapsed ? item.name : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                  "flex items-center rounded-lg py-2.5 text-[15px] font-medium transition-colors",
+                  collapsed ? "justify-center px-0" : "gap-3 px-3",
                   active
                     ? "bg-blue-50 text-blue-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
                 <item.icon className={cn(
-                  "h-4 w-4 shrink-0",
+                  "h-5 w-5 shrink-0",
                   active ? "text-blue-600" : "text-slate-400"
                 )} />
-                <span>{item.name}</span>
-                {active && (
-                  <ChevronRight className="ml-auto h-3.5 w-3.5 text-blue-400" />
+                {!collapsed && (
+                  <>
+                    <span>{item.name}</span>
+                    {active && (
+                      <ChevronRight className="ml-auto h-3.5 w-3.5 text-blue-400" />
+                    )}
+                  </>
                 )}
               </Link>
             );
@@ -121,15 +147,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-100 px-3 py-3">
-        <div className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-slate-500">
-          <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center">
+      <div className="border-t border-slate-100 px-2 py-3">
+        <div className={cn(
+          "flex items-center rounded-lg py-2 text-[13px] text-slate-500",
+          collapsed ? "justify-center px-0" : "gap-2.5 px-3"
+        )}>
+          <div className="h-6 w-6 shrink-0 rounded-full bg-slate-100 flex items-center justify-center">
             <Users className="h-3.5 w-3.5 text-slate-400" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-medium text-slate-700 truncate">管理者</p>
-            <p className="text-[11px] text-slate-400 truncate">admin@eiwa.co.jp</p>
-          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-medium text-slate-700 truncate">管理者</p>
+              <p className="text-[11px] text-slate-400 truncate">admin@eiwa.co.jp</p>
+            </div>
+          )}
         </div>
       </div>
     </aside>

@@ -75,7 +75,7 @@ export default function VehiclesPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle>車種一覧</CardTitle>
                 <CardDescription>
@@ -149,7 +149,7 @@ export default function VehiclesPage() {
           </CardHeader>
           <CardContent>
             {/* Filters */}
-            <div className="mb-4 flex flex-wrap items-center gap-4">
+            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -160,7 +160,7 @@ export default function VehiclesPage() {
                 />
               </div>
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="会社で絞り込み" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,35 +175,35 @@ export default function VehiclesPage() {
             </div>
 
             {/* Table */}
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[60px]">順序</TableHead>
-                    <TableHead className="w-[100px]">コード</TableHead>
-                    <TableHead>車種名</TableHead>
-                    <TableHead>会社</TableHead>
-                    <TableHead className="w-[80px]">状態</TableHead>
+                    <TableHead className="w-[60px] whitespace-nowrap">順序</TableHead>
+                    <TableHead className="w-[100px] whitespace-nowrap">コード</TableHead>
+                    <TableHead className="whitespace-nowrap">車種名</TableHead>
+                    <TableHead className="whitespace-nowrap">会社</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredVehicles.map((vehicle) => (
                     <TableRow key={vehicle.id}>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center whitespace-nowrap tabular-nums">
                         {vehicle.displayOrder}
                       </TableCell>
-                      <TableCell className="font-mono">{vehicle.code}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-mono whitespace-nowrap">{vehicle.code}</TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Truck className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{vehicle.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
                         {vehicle.companyName}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant={vehicle.isActive ? "default" : "secondary"}
                         >

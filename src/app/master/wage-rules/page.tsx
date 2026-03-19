@@ -168,7 +168,7 @@ export default function WageRulesPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle>賃金ルール一覧</CardTitle>
                 <CardDescription>
@@ -286,7 +286,7 @@ export default function WageRulesPage() {
           </CardHeader>
           <CardContent>
             {/* Filters */}
-            <div className="mb-4 flex flex-wrap items-center gap-4">
+            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -297,7 +297,7 @@ export default function WageRulesPage() {
                 />
               </div>
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="会社で絞り込み" />
                 </SelectTrigger>
                 <SelectContent>
@@ -312,38 +312,38 @@ export default function WageRulesPage() {
             </div>
 
             {/* Table */}
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>会社</TableHead>
-                    <TableHead>車種</TableHead>
-                    <TableHead className="text-right">基本日給</TableHead>
-                    <TableHead className="text-right">残業単価</TableHead>
-                    <TableHead>適用期間</TableHead>
-                    <TableHead className="w-[80px]">状態</TableHead>
+                    <TableHead className="whitespace-nowrap">会社</TableHead>
+                    <TableHead className="whitespace-nowrap">車種</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">基本日給</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">残業単価</TableHead>
+                    <TableHead className="whitespace-nowrap">適用期間</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRules.map((rule) => (
                     <TableRow key={rule.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium whitespace-nowrap">
                         {rule.companyName}
                       </TableCell>
-                      <TableCell>{rule.vehicleTypeName}</TableCell>
-                      <TableCell className="text-right font-mono">
+                      <TableCell className="whitespace-nowrap">{rule.vehicleTypeName}</TableCell>
+                      <TableCell className="text-right font-mono whitespace-nowrap tabular-nums">
                         {formatCurrency(rule.baseDailyWage)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         <div className="text-sm">
-                          <span className="font-mono">
+                          <span className="font-mono tabular-nums">
                             {formatCurrency(rule.overtimeRateNormal)}
                           </span>
                           <span className="text-muted-foreground">/h</span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
                           {format(rule.effectiveFrom, "yyyy/MM/dd")}〜
@@ -352,7 +352,7 @@ export default function WageRulesPage() {
                             : ""}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant={rule.isActive ? "default" : "secondary"}
                         >

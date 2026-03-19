@@ -92,7 +92,7 @@ export default function GeneralMasterPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -111,35 +111,35 @@ export default function GeneralMasterPage() {
 
         {/* Supplier Table */}
         {activeMaster === "supplier" && (
-          <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">コード</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">名称</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">住所</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">担当者</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">電話番号</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">状態</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">操作</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">コード</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">名称</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">住所</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">担当者</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">電話番号</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">状態</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {supplierData.filter((d) => d.name.includes(searchQuery) || d.code.includes(searchQuery)).map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{row.code}</td>
-                    <td className="px-4 py-3 text-slate-900 font-medium">{row.name}</td>
-                    <td className="px-4 py-3 text-slate-700 text-xs">{row.address}</td>
-                    <td className="px-4 py-3 text-slate-700">{row.contactPerson}</td>
-                    <td className="px-4 py-3 text-slate-700 font-mono text-xs">{row.phone}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">{row.code}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-700 text-xs whitespace-nowrap">{row.address}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.contactPerson}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-700 font-mono text-xs whitespace-nowrap">{row.phone}</td>
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                         row.status === "有効" ? "bg-slate-100 text-slate-700" : "bg-slate-100 text-slate-500"
                       }`}>
                         {row.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3">
                       <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -153,25 +153,25 @@ export default function GeneralMasterPage() {
 
         {/* Early Shift Table */}
         {activeMaster === "earlyShift" && (
-          <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">コード</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">時間帯</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">手当額</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">備考</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">操作</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">コード</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">時間帯</th>
+                  <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">手当額</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">備考</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {earlyShiftData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{row.code}</td>
-                    <td className="px-4 py-3 text-slate-900 font-medium">{row.timeRange}</td>
-                    <td className="px-4 py-3 text-right text-slate-700 font-mono">¥{row.allowance.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">{row.note}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">{row.code}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.timeRange}</td>
+                    <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.allowance.toLocaleString()}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
+                    <td className="px-3 sm:px-4 py-3">
                       <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -185,25 +185,25 @@ export default function GeneralMasterPage() {
 
         {/* Transport Table */}
         {activeMaster === "transport" && (
-          <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">コード</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">路線/方面</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">交通費</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">備考</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">操作</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">コード</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">路線/方面</th>
+                  <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">交通費</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">備考</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {transportData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{row.code}</td>
-                    <td className="px-4 py-3 text-slate-900 font-medium">{row.route}</td>
-                    <td className="px-4 py-3 text-right text-slate-700 font-mono">¥{row.amount.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">{row.note}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">{row.code}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.route}</td>
+                    <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.amount.toLocaleString()}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
+                    <td className="px-3 sm:px-4 py-3">
                       <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -217,29 +217,29 @@ export default function GeneralMasterPage() {
 
         {/* Work Type Table */}
         {activeMaster === "workType" && (
-          <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">コード</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">区分名</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">カテゴリ</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">備考</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">操作</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">コード</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">区分名</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">カテゴリ</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">備考</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {workTypeData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{row.code}</td>
-                    <td className="px-4 py-3 text-slate-900 font-medium">{row.name}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">{row.code}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                         {row.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">{row.note}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
+                    <td className="px-3 sm:px-4 py-3">
                       <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>

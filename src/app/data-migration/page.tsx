@@ -54,7 +54,7 @@ export default function DataMigrationPage() {
 
         {/* Progress Banner */}
         <div className="rounded-xl border border-blue-200/60 bg-gradient-to-r from-blue-50/80 to-white p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-blue-100 p-2">
                 <Database className="h-6 w-6 text-blue-600" />
@@ -126,7 +126,7 @@ export default function DataMigrationPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
           <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
             <Play className="h-4 w-4" />
             未実行分を開始
@@ -142,16 +142,16 @@ export default function DataMigrationPage() {
         </div>
 
         {/* Migration Table */}
-        <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+        <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">移行先テーブル</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">元テーブル</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">レコード数</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">ステータス</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">実行日時</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">エラー</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">移行先テーブル</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">元テーブル</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">レコード数</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ステータス</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">実行日時</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">エラー</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -160,26 +160,26 @@ export default function DataMigrationPage() {
                 const StatusIcon = sc.icon;
                 return (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-900 font-medium">{row.tableName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">
+                    <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         {row.sourceTable}
                         <ArrowRight className="h-3 w-3 text-slate-300" />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700 font-mono">{row.records.toLocaleString()}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">{row.records.toLocaleString()}</td>
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sc.class}`}>
                         <StatusIcon className="h-3 w-3" />
                         {sc.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">{row.migratedAt ?? "—"}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.migratedAt ?? "—"}</td>
+                    <td className="px-3 sm:px-4 py-3 text-right whitespace-nowrap tabular-nums">
                       {row.errors > 0 ? (
                         <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
                           {row.errors}

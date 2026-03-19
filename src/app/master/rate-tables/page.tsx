@@ -74,7 +74,7 @@ export default function RateTablesPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -102,27 +102,27 @@ export default function RateTablesPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+        <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">等級</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">報酬月額</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">標準報酬月額</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">被保険者負担</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">事業主負担</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">合計</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">等級</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">報酬月額</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">標準報酬月額</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">被保険者負担</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">事業主負担</th>
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">合計</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {healthInsuranceRates.map((row) => (
                 <tr key={row.grade} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 text-slate-900 font-medium">{row.grade}</td>
-                  <td className="px-4 py-3 text-slate-700 text-xs">{row.monthly}</td>
-                  <td className="px-4 py-3 text-right text-slate-700 font-mono">¥{row.standard.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-slate-700 font-mono">¥{row.insured.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-slate-700 font-mono">¥{row.employer.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-slate-900 font-mono font-medium">¥{(row.insured + row.employer).toLocaleString()}</td>
+                  <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap tabular-nums">{row.grade}</td>
+                  <td className="px-3 sm:px-4 py-3 text-slate-700 text-xs whitespace-nowrap">{row.monthly}</td>
+                  <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.standard.toLocaleString()}</td>
+                  <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.insured.toLocaleString()}</td>
+                  <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.employer.toLocaleString()}</td>
+                  <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-medium whitespace-nowrap tabular-nums">¥{(row.insured + row.employer).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

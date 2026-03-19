@@ -110,7 +110,7 @@ export default function WorkersPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle>作業員一覧</CardTitle>
                 <CardDescription>
@@ -196,32 +196,32 @@ export default function WorkersPage() {
             </div>
 
             {/* Table */}
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">従業員番号</TableHead>
-                    <TableHead>氏名</TableHead>
-                    <TableHead>フリガナ</TableHead>
-                    <TableHead>主な派遣先</TableHead>
-                    <TableHead>電話番号</TableHead>
-                    <TableHead className="w-[80px]">状態</TableHead>
+                    <TableHead className="w-[100px] whitespace-nowrap">従業員番号</TableHead>
+                    <TableHead className="whitespace-nowrap">氏名</TableHead>
+                    <TableHead className="whitespace-nowrap">フリガナ</TableHead>
+                    <TableHead className="whitespace-nowrap">主な派遣先</TableHead>
+                    <TableHead className="whitespace-nowrap">電話番号</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredWorkers.map((worker) => (
                     <TableRow key={worker.id}>
-                      <TableCell className="font-mono">
+                      <TableCell className="font-mono whitespace-nowrap tabular-nums">
                         {worker.employeeCode}
                       </TableCell>
-                      <TableCell className="font-medium">{worker.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="font-medium whitespace-nowrap">{worker.name}</TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
                         {worker.nameKana}
                       </TableCell>
-                      <TableCell>{worker.defaultCompany}</TableCell>
-                      <TableCell>{worker.phone}</TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">{worker.defaultCompany}</TableCell>
+                      <TableCell className="whitespace-nowrap">{worker.phone}</TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant={worker.isActive ? "default" : "secondary"}
                         >

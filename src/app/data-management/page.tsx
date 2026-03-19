@@ -80,22 +80,22 @@ export default function DataManagementPage() {
         {/* Lock Management */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-700">月別データロック</h3>
-          <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">対象月</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">ステータス</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">ロック日時</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">実行者</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">操作</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">対象月</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ステータス</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ロック日時</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">実行者</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {lockableMonths.map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-slate-900 font-medium">{row.month}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.month}</td>
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                         row.status === "ロック済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"
                       }`}>
@@ -103,9 +103,9 @@ export default function DataManagementPage() {
                         {row.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">{row.lockedAt ?? "—"}</td>
-                    <td className="px-4 py-3 text-slate-700">{row.lockedBy ?? "—"}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.lockedAt ?? "—"}</td>
+                    <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.lockedBy ?? "—"}</td>
+                    <td className="px-3 sm:px-4 py-3">
                       {row.status === "ロック済" ? (
                         <button className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
                           <Unlock className="h-3 w-3" />

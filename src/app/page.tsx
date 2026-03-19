@@ -30,7 +30,7 @@ export default function DashboardPage() {
     <MainLayout title="ダッシュボード" subtitle="日雇い賃金管理システム">
       <div className="space-y-5">
         {/* Quick Actions */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {quickActions.map((action) => (
             <Link
               key={action.name}

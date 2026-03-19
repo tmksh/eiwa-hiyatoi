@@ -95,7 +95,7 @@ export default function CompaniesPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle>会社一覧</CardTitle>
                 <CardDescription>
@@ -185,30 +185,30 @@ export default function CompaniesPage() {
             </div>
 
             {/* Table */}
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">コード</TableHead>
-                    <TableHead>会社名</TableHead>
-                    <TableHead className="w-[120px]">残業単位</TableHead>
-                    <TableHead className="w-[120px]">端数処理</TableHead>
-                    <TableHead className="w-[80px]">状態</TableHead>
+                    <TableHead className="w-[100px] whitespace-nowrap">コード</TableHead>
+                    <TableHead className="whitespace-nowrap">会社名</TableHead>
+                    <TableHead className="w-[120px] whitespace-nowrap">残業単位</TableHead>
+                    <TableHead className="w-[120px] whitespace-nowrap">端数処理</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCompanies.map((company) => (
                     <TableRow key={company.id}>
-                      <TableCell className="font-mono">{company.code}</TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-mono whitespace-nowrap">{company.code}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">
                         {company.name}
                       </TableCell>
-                      <TableCell>{company.overtimeUnit}分</TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap tabular-nums">{company.overtimeUnit}分</TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {roundingMethodLabels[company.roundingMethod]}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant={company.isActive ? "default" : "secondary"}
                         >

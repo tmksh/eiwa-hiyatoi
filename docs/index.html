@@ -3,581 +3,419 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>栄和清運 日報管理システム - 操作マニュアル</title>
+  <title>注文確認書 - 栄和清運 日雇い管理システム開発</title>
   <style>
-    :root {
-      --primary: #f59e0b;
-      --primary-light: #fef3c7;
-      --text: #1f2937;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --bg: #f9fafb;
-    }
-    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
-      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      font-size: 14px;
       line-height: 1.8;
+      color: #333;
+      background: #fff;
+      padding: 40px;
     }
-    
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+    }
+
     .header {
-      background: linear-gradient(135deg, var(--primary), #d97706);
-      color: white;
-      padding: 60px 20px;
       text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 3px double #333;
     }
-    
+
     .header h1 {
-      font-size: 2.5rem;
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 0.3em;
+    }
+
+    .doc-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .doc-info-left {
+      text-align: left;
+    }
+
+    .doc-info-right {
+      text-align: right;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      border-left: 4px solid #333;
+      padding-left: 10px;
+      margin-bottom: 15px;
+    }
+
+    .party-box {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+
+    .party-box h3 {
+      font-size: 14px;
+      color: #666;
       margin-bottom: 10px;
     }
-    
-    .header p {
-      font-size: 1.2rem;
-      opacity: 0.9;
+
+    .party-box p {
+      margin: 5px 0;
     }
-    
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px 20px;
+
+    .placeholder {
+      color: #999;
+      background: #fffde7;
+      padding: 2px 8px;
+      border-radius: 3px;
     }
-    
-    .toc {
-      background: white;
-      border-radius: 12px;
+
+    .subject-box {
+      border: 2px solid #333;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .subject-box h2 {
+      font-size: 18px;
+    }
+
+    .content-list {
+      margin-left: 20px;
+    }
+
+    .content-list li {
+      margin: 8px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    table th,
+    table td {
+      border: 1px solid #333;
+      padding: 12px;
+      text-align: left;
+    }
+
+    table th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+
+    table td.amount {
+      text-align: right;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    table tr.subtotal {
+      background: #f0f0f0;
+    }
+
+    table tr.total {
+      background: #333;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    table tr.total td {
+      border-color: #333;
+    }
+
+    .note-box {
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .note-box h4 {
+      color: #b45309;
+      margin-bottom: 10px;
+    }
+
+    .reference-link {
+      background: #e0f2fe;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .reference-link a {
+      color: #0369a1;
+      word-break: break-all;
+    }
+
+    .confirmation {
+      text-align: center;
+      margin: 40px 0;
+      padding: 20px;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .signature-section {
+      margin-top: 50px;
+    }
+
+    .signature-box {
+      border: 1px solid #ccc;
       padding: 30px;
-      margin-bottom: 40px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-top: 20px;
+      min-height: 150px;
     }
-    
-    .toc h2 {
-      color: var(--primary);
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-    }
-    
-    .toc ul {
-      list-style: none;
-    }
-    
-    .toc li {
+
+    .signature-box p {
       margin: 10px 0;
     }
-    
-    .toc a {
-      color: var(--text);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      padding: 10px 15px;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    
-    .toc a:hover {
-      background: var(--primary-light);
-      color: var(--primary);
-    }
-    
-    .toc .section-num {
-      background: var(--primary);
-      color: white;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
+
+    .seal-space {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-right: 15px;
-      font-size: 0.9rem;
-      font-weight: bold;
-    }
-    
-    .section {
-      background: white;
-      border-radius: 12px;
-      padding: 40px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    
-    .section h2 {
-      color: var(--primary);
-      font-size: 1.8rem;
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-      border-bottom: 3px solid var(--primary-light);
-    }
-    
-    .section h3 {
-      color: var(--text);
-      font-size: 1.3rem;
-      margin: 30px 0 15px;
-    }
-    
-    .section p {
-      margin-bottom: 15px;
-      color: var(--text-muted);
-    }
-    
-    .screenshot {
-      margin: 25px 0;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      border: 1px solid var(--border);
-    }
-    
-    .screenshot img {
-      width: 100%;
-      display: block;
-    }
-    
-    .screenshot-caption {
-      background: var(--bg);
-      padding: 15px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-    
-    .step-list {
-      counter-reset: step;
-      list-style: none;
-      margin: 20px 0;
-    }
-    
-    .step-list li {
-      position: relative;
-      padding: 15px 15px 15px 60px;
-      margin: 15px 0;
-      background: var(--bg);
-      border-radius: 8px;
-    }
-    
-    .step-list li::before {
-      counter-increment: step;
-      content: counter(step);
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--primary);
-      color: white;
-      width: 32px;
-      height: 32px;
+      width: 80px;
+      height: 80px;
+      border: 1px dashed #ccc;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
+      color: #ccc;
+      font-size: 14px;
     }
-    
-    .info-box {
-      background: #e0f2fe;
-      border-left: 4px solid #0284c7;
-      padding: 20px;
-      margin: 20px 0;
-      border-radius: 0 8px 8px 0;
+
+    .footer-note {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #666;
     }
-    
-    .info-box.warning {
-      background: #fef3c7;
-      border-left-color: var(--primary);
+
+    .footer-note p {
+      margin: 5px 0;
     }
-    
-    .info-box.success {
-      background: #dcfce7;
-      border-left-color: #16a34a;
-    }
-    
-    .info-box strong {
-      display: block;
-      margin-bottom: 5px;
-    }
-    
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin: 20px 0;
-    }
-    
-    .feature-card {
-      background: var(--bg);
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    
-    .feature-card .icon {
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-    
-    .feature-card h4 {
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-    
-    .feature-card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-    
-    .url-box {
-      background: #1f2937;
-      color: #10b981;
-      padding: 15px 20px;
-      border-radius: 8px;
-      font-family: monospace;
-      margin: 15px 0;
-      overflow-x: auto;
-    }
-    
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
-    
-    .badge.admin {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-    
-    .badge.driver {
-      background: #dcfce7;
-      color: #16a34a;
-    }
-    
-    footer {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-    
-    @media (max-width: 768px) {
-      .header h1 {
-        font-size: 1.8rem;
+
+    @media print {
+      body {
+        padding: 0;
       }
-      
+
       .section {
-        padding: 25px;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
-      
-      .section h2 {
-        font-size: 1.4rem;
+
+      .signature-section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .confirmation {
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
     }
   </style>
 </head>
 <body>
-  <header class="header">
-    <h1>🚛 栄和清運 日報管理システム</h1>
-    <p>操作マニュアル（初心者向け）</p>
-  </header>
 
-  <div class="container">
-    <!-- 目次 -->
-    <nav class="toc">
-      <h2>📋 目次</h2>
-      <ul>
-        <li>
-          <a href="#overview">
-            <span class="section-num">1</span>
-            システム概要
-          </a>
-        </li>
-        <li>
-          <a href="#driver">
-            <span class="section-num">2</span>
-            運転手向け：日報入力の方法
-          </a>
-        </li>
-        <li>
-          <a href="#admin">
-            <span class="section-num">3</span>
-            管理者向け：ダッシュボードの見方
-          </a>
-        </li>
-        <li>
-          <a href="#approval">
-            <span class="section-num">4</span>
-            管理者向け：日報の承認・却下
-          </a>
-        </li>
-        <li>
-          <a href="#calculation">
-            <span class="section-num">5</span>
-            管理者向け：給与計算
-          </a>
-        </li>
-        <li>
-          <a href="#master">
-            <span class="section-num">6</span>
-            管理者向け：マスタ管理
-          </a>
-        </li>
-      </ul>
-    </nav>
+<div class="container">
 
-    <!-- セクション1: システム概要 -->
-    <section id="overview" class="section">
-      <h2>1. システム概要</h2>
-      
-      <p>このシステムは、日雇い運転手の日報管理と給与計算を効率化するためのWebアプリケーションです。</p>
-      
-      <h3>アクセスURL</h3>
-      
-      <p><span class="badge admin">管理者用</span></p>
-      <div class="url-box">https://eiwa-hiyatoi.netlify.app/</div>
-      
-      <p><span class="badge driver">運転手用</span></p>
-      <div class="url-box">https://eiwa-hiyatoi.netlify.app/driver/report</div>
-      
-      <h3>主な機能</h3>
-      
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="icon">📝</div>
-          <h4>日報入力</h4>
-          <p>運転手がスマホから簡単に日報を入力できます</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">✅</div>
-          <h4>承認ワークフロー</h4>
-          <p>管理者が日報を確認し、承認・却下できます</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">💰</div>
-          <h4>自動給与計算</h4>
-          <p>残業や休日出勤を自動で計算します</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">📊</div>
-          <h4>CSV出力</h4>
-          <p>給与データをExcelで使える形式で出力できます</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- セクション2: 運転手向け -->
-    <section id="driver" class="section">
-      <h2>2. 運転手向け：日報入力の方法</h2>
-      
-      <p>運転手の方は、毎日の勤務終了後にスマートフォンから日報を入力してください。</p>
-      
-      <h3>日報入力画面</h3>
-      
-      <div class="screenshot">
-        <img src="images/driver-report.png" alt="運転手 日報入力画面">
-        <div class="screenshot-caption">図：日報入力画面（スマートフォン表示）</div>
-      </div>
-      
-      <h3>入力手順</h3>
-      
-      <ol class="step-list">
-        <li><strong>派遣先を選択</strong> - 本日勤務した会社を選んでください</li>
-        <li><strong>車種を選択</strong> - 運転したトラックの車種（2t、4t、10t）を選んでください</li>
-        <li><strong>出勤・退勤時間を入力</strong> - 実際に勤務した時間を入力してください</li>
-        <li><strong>休憩時間を選択</strong> - 取得した休憩時間を選んでください</li>
-        <li><strong>休日出勤の場合はチェック</strong> - 日曜・祝日に勤務した場合はチェックを入れてください</li>
-        <li><strong>「日報を提出」ボタンを押す</strong> - 入力内容を確認して提出してください</li>
-      </ol>
-      
-      <div class="info-box warning">
-        <strong>⚠️ 注意</strong>
-        日報は提出後、管理者の承認が必要です。却下された場合は修正して再提出してください。
-      </div>
-      
-      <h3>勤務履歴の確認</h3>
-      
-      <div class="screenshot">
-        <img src="images/driver-history.png" alt="運転手 勤務履歴画面">
-        <div class="screenshot-caption">図：勤務履歴画面</div>
-      </div>
-      
-      <p>画面下部の「勤務履歴」タブから、過去の勤務記録を確認できます。月ごとの出勤日数、総労働時間、総支給額が表示されます。</p>
-    </section>
-
-    <!-- セクション3: 管理者ダッシュボード -->
-    <section id="admin" class="section">
-      <h2>3. 管理者向け：ダッシュボードの見方</h2>
-      
-      <p>管理者としてログインすると、ダッシュボード画面が表示されます。</p>
-      
-      <div class="screenshot">
-        <img src="images/admin-dashboard.png" alt="管理者 ダッシュボード">
-        <div class="screenshot-caption">図：管理者ダッシュボード</div>
-      </div>
-      
-      <h3>ダッシュボードの構成</h3>
-      
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="icon">📝</div>
-          <h4>未入力</h4>
-          <p>本日まだ日報を入力していない運転手の人数</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">⏳</div>
-          <h4>計算待ち</h4>
-          <p>承認済みで給与計算が必要な日報の件数</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">✅</div>
-          <h4>計算完了</h4>
-          <p>給与計算が完了した日報の件数</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">⚠️</div>
-          <h4>要確認</h4>
-          <p>承認待ちや却下などの対応が必要な件数</p>
-        </div>
-      </div>
-      
-      <h3>サイドバーメニュー</h3>
-      
-      <ul class="step-list">
-        <li><strong>ダッシュボード</strong> - 全体の状況を一覧で確認</li>
-        <li><strong>日報管理</strong> - 運転手が提出した日報の確認・承認</li>
-        <li><strong>一括計算</strong> - 承認済み日報の給与を一括計算</li>
-        <li><strong>計算結果</strong> - 計算された給与の確認・修正</li>
-        <li><strong>CSV出力</strong> - 給与データをファイルで出力</li>
-        <li><strong>マスタ管理</strong> - 会社・車種・賃金ルール・作業員の管理</li>
-      </ul>
-    </section>
-
-    <!-- セクション4: 日報の承認・却下 -->
-    <section id="approval" class="section">
-      <h2>4. 管理者向け：日報の承認・却下</h2>
-      
-      <p>運転手が提出した日報は、管理者が確認して承認または却下します。</p>
-      
-      <div class="screenshot">
-        <img src="images/admin-daily-reports.png" alt="日報管理画面">
-        <div class="screenshot-caption">図：日報管理画面</div>
-      </div>
-      
-      <h3>承認・却下の手順</h3>
-      
-      <ol class="step-list">
-        <li>サイドバーから<strong>「日報管理」</strong>をクリック</li>
-        <li>日報一覧から<strong>「承認待ち」</strong>のステータスを確認</li>
-        <li>内容を確認して<strong>「承認」</strong>または<strong>「却下」</strong>ボタンをクリック</li>
-        <li>却下する場合は<strong>却下理由</strong>を入力（運転手に通知されます）</li>
-      </ol>
-      
-      <div class="info-box success">
-        <strong>✅ ポイント</strong>
-        承認された日報のみが給与計算の対象になります。内容に不備がある場合は却下して、運転手に修正を依頼してください。
-      </div>
-      
-      <h3>ステータスの意味</h3>
-      
-      <ul>
-        <li><strong>下書き</strong> - 運転手が入力中（未提出）</li>
-        <li><strong>承認待ち</strong> - 運転手が提出済み、管理者の確認待ち</li>
-        <li><strong>承認済</strong> - 管理者が承認、給与計算可能</li>
-        <li><strong>却下</strong> - 管理者が却下、運転手の修正待ち</li>
-      </ul>
-    </section>
-
-    <!-- セクション5: 給与計算 -->
-    <section id="calculation" class="section">
-      <h2>5. 管理者向け：給与計算</h2>
-      
-      <h3>一括計算</h3>
-      
-      <div class="screenshot">
-        <img src="images/admin-calculations.png" alt="一括計算画面">
-        <div class="screenshot-caption">図：一括計算画面</div>
-      </div>
-      
-      <ol class="step-list">
-        <li>サイドバーから<strong>「一括計算」</strong>をクリック</li>
-        <li>計算対象の<strong>日付</strong>と<strong>会社</strong>を選択</li>
-        <li>対象件数を確認して<strong>「一括計算を実行」</strong>ボタンをクリック</li>
-      </ol>
-      
-      <h3>計算結果の確認</h3>
-      
-      <div class="screenshot">
-        <img src="images/admin-results.png" alt="計算結果画面">
-        <div class="screenshot-caption">図：計算結果画面</div>
-      </div>
-      
-      <p>計算結果画面では、各運転手の給与明細を確認できます。残業時間や合計金額が自動計算されています。</p>
-      
-      <div class="info-box">
-        <strong>💡 ヒント</strong>
-        「拘束14時間超」や「手動調整あり」などの警告マークがついている場合は、内容を確認してください。必要に応じて手動で金額を調整できます。
-      </div>
-    </section>
-
-    <!-- セクション6: マスタ管理 -->
-    <section id="master" class="section">
-      <h2>6. 管理者向け：マスタ管理</h2>
-      
-      <p>システムで使用する基本データ（会社、車種、賃金ルール、作業員）を管理します。</p>
-      
-      <h3>会社マスタ</h3>
-      
-      <div class="screenshot">
-        <img src="images/admin-companies.png" alt="会社マスタ画面">
-        <div class="screenshot-caption">図：会社マスタ画面</div>
-      </div>
-      
-      <p>派遣先の会社情報を管理します。会社ごとに残業の計算単位や端数処理の方法を設定できます。</p>
-      
-      <h3>各マスタの説明</h3>
-      
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="icon">🏢</div>
-          <h4>会社マスタ</h4>
-          <p>派遣先会社の名前、残業単位、端数処理を設定</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">🚚</div>
-          <h4>車種マスタ</h4>
-          <p>車種ごとの基本日給を設定</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">💵</div>
-          <h4>賃金ルール</h4>
-          <p>残業単価、深夜割増などの計算ルールを設定</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">👷</div>
-          <h4>作業員マスタ</h4>
-          <p>運転手の名前、連絡先、ログイン情報を管理</p>
-        </div>
-      </div>
-      
-      <div class="info-box warning">
-        <strong>⚠️ 注意</strong>
-        マスタデータの変更は、過去の計算済み給与には影響しません。変更後の日報から新しいルールが適用されます。
-      </div>
-    </section>
+  <!-- ヘッダー -->
+  <div class="header">
+    <h1>注 文 確 認 書</h1>
   </div>
 
-  <footer>
-    <p>© 2026 栄和清運株式会社 - 日報管理システム</p>
-    <p>お問い合わせ：システム管理者まで</p>
-  </footer>
+  <!-- 文書情報 -->
+  <div class="doc-info">
+    <div class="doc-info-left">
+      <p>注文確認書 No.: <span class="placeholder">TBD</span></p>
+    </div>
+    <div class="doc-info-right">
+      <p>発行日: <span class="placeholder">TBD</span></p>
+    </div>
+  </div>
+
+  <!-- 甲（発注者）情報 -->
+  <div class="section">
+    <div class="party-box">
+      <h3>甲（発注者）</h3>
+      <p>会社名: 栄和清運株式会社</p>
+      <p>住所: <span class="placeholder">TBD</span></p>
+      <p>代表者: <span class="placeholder">TBD</span></p>
+    </div>
+  </div>
+
+  <!-- 乙（請負者）情報 -->
+  <div class="section">
+    <div class="party-box">
+      <h3>乙（請負者）</h3>
+      <p>会社名: 株式会社SHINJIDAI</p>
+      <p>住所: 島根県松江市学園2丁目18-15</p>
+      <p>代表者: 加藤 環</p>
+      <p>Email: corporate@shinjidai.co.jp</p>
+    </div>
+  </div>
+
+  <!-- 件名 -->
+  <div class="subject-box">
+    <h2>栄和清運 日雇い管理システム開発</h2>
+  </div>
+
+  <!-- 開発内容 -->
+  <div class="section">
+    <h3 class="section-title">開発内容</h3>
+    <p>以下の機能を開発・提供いたします。</p>
+    <ol class="content-list">
+      <li>日報入力機能（運転手用スマートフォン対応）</li>
+      <li>承認ワークフロー（管理者による日報の承認・却下）</li>
+      <li>給与自動計算（残業・休日出勤・深夜割増対応）</li>
+      <li>CSV出力機能（給与データのExcel連携）</li>
+      <li>マスタ管理（会社・車種・賃金ルール・作業員）</li>
+    </ol>
+
+    <div class="reference-link">
+      <strong>システムURL:</strong><br>
+      <a href="https://eiwa-hiyatoi.netlify.app/" target="_blank">https://eiwa-hiyatoi.netlify.app/</a>
+    </div>
+  </div>
+
+  <!-- 金額 -->
+  <div class="section">
+    <h3 class="section-title">金額</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th style="width: 150px; text-align: right;">金額</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>データベース設計・マイグレーション</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr>
+          <td>日報入力・勤務履歴機能開発</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr>
+          <td>承認ワークフロー開発</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr>
+          <td>給与自動計算機能開発</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr>
+          <td>CSV出力機能開発</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr>
+          <td>マスタ管理画面開発</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr class="subtotal">
+          <td><strong>小計（税抜）</strong></td>
+          <td class="amount"><strong><span class="placeholder">TBD</span></strong></td>
+        </tr>
+        <tr>
+          <td>消費税（10%）</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+        <tr class="total">
+          <td>合計（税込）</td>
+          <td class="amount"><span class="placeholder">TBD</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 納期 -->
+  <div class="section">
+    <h3 class="section-title">納期</h3>
+    <p>着手日より<strong><span class="placeholder">TBD</span></strong></p>
+    <p>（予定納品日: <span class="placeholder">TBD</span>）</p>
+  </div>
+
+  <!-- 支払条件 -->
+  <div class="section">
+    <h3 class="section-title">支払条件</h3>
+    <p><span class="placeholder">TBD（例：着手前払い / 月末締め翌月末払い 等）</span></p>
+    <ul class="content-list">
+      <li>支払金額: <span class="placeholder">TBD</span></li>
+      <li>支払期限: <span class="placeholder">TBD</span></li>
+    </ul>
+  </div>
+
+  <!-- 注意事項 -->
+  <div class="section">
+    <h3 class="section-title">注意事項</h3>
+    <div class="note-box">
+      <h4>⚠ 仕様変更について</h4>
+      <p>仕様変更が発生した場合は、別途協議の上、納期・金額を調整させていただく場合がございます。</p>
+    </div>
+    <ul class="content-list">
+      <li>本見積はシステム開発費用のみを対象とし、サーバー・インフラ費用は含みません。</li>
+      <li>追加機能の開発については、本システムの運用後に別途協議・お見積りとさせていただきます。</li>
+    </ul>
+  </div>
+
+  <!-- 確認文 -->
+  <div class="confirmation">
+    <p>上記内容にて、甲乙双方合意の上、本注文確認書を締結いたします。</p>
+  </div>
+
+  <!-- 署名欄 -->
+  <div class="signature-section" style="display: flex; gap: 30px;">
+    <div style="flex: 1;">
+      <h3 class="section-title">甲（発注者）</h3>
+      <div class="signature-box">
+        <p>会社名: 栄和清運株式会社</p>
+        <p>代表者: <span class="placeholder">TBD</span></p>
+        <p style="margin-top: 30px; text-align: right;">
+          <span class="seal-space">印</span>
+        </p>
+      </div>
+    </div>
+    <div style="flex: 1;">
+      <h3 class="section-title">乙（請負者）</h3>
+      <div class="signature-box">
+        <p>会社名: 株式会社SHINJIDAI</p>
+        <p>代表者: 加藤 環</p>
+        <p style="margin-top: 30px; text-align: right;">
+          <span class="seal-space">印</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div class="footer-note">
+    <p>※ 本注文確認書は2通作成し、甲乙が各1通を保管するものとします。</p>
+    <p>※ 電子署名による締結の場合、電子データをもって原本とします。</p>
+  </div>
+
+</div>
+
 </body>
 </html>
-

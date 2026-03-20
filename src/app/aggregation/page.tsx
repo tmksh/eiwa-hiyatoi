@@ -24,18 +24,19 @@ import {
   FileDown,
 } from "lucide-react";
 
-const TABS = ["集計", "派遣先別", "帳票出力", "CSV出力", "燃費集計", "稼働分析"] as const;
+const TABS = ["集計", "派遣先別", "燃費集計", "稼働分析"] as const;
 type Tab = (typeof TABS)[number];
 
 type AggView = "personal" | "period" | "vehicle";
 
 const personalData = [
-  { name: "山田 太郎", jan: 285000, feb: 292000, mar: 278000, total: 855000 },
-  { name: "鈴木 一郎", jan: 245000, feb: 251000, mar: 240000, total: 736000 },
-  { name: "佐藤 花子", jan: 320000, feb: 318000, mar: 325000, total: 963000 },
-  { name: "高橋 健二", jan: 268000, feb: 275000, mar: 262000, total: 805000 },
-  { name: "田中 美咲", jan: 198000, feb: 205000, mar: 195000, total: 598000 },
+  { name: "山田 太郎", months: [285000, 292000, 278000, 301000, 315000, 288000, 295000, 310000, 285000, 298000, 305000, 320000] },
+  { name: "鈴木 一郎", months: [245000, 251000, 240000, 258000, 270000, 248000, 255000, 265000, 245000, 252000, 260000, 275000] },
+  { name: "佐藤 花子", months: [320000, 318000, 325000, 335000, 342000, 328000, 330000, 345000, 320000, 332000, 340000, 355000] },
+  { name: "高橋 健二", months: [268000, 275000, 262000, 280000, 290000, 270000, 275000, 285000, 268000, 278000, 285000, 295000] },
+  { name: "田中 美咲", months: [198000, 205000, 195000, 210000, 220000, 200000, 205000, 215000, 198000, 208000, 215000, 225000] },
 ];
+const MONTH_LABELS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
 
 const vehicleData = [
   { type: "2t", count: 8, days: 168, revenue: 2352000, avgDaily: 14000 },
@@ -252,23 +253,26 @@ export default function AggregationPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100 bg-slate-50/50">
-                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
-                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">1月</th>
-                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">2月</th>
-                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">3月</th>
+                        <th className="sticky left-0 z-10 bg-slate-50/90 px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
+                        {MONTH_LABELS.map((m) => (
+                          <th key={m} className="px-3 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">{m}</th>
+                        ))}
                         <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">合計</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {personalData.filter((d) => d.name.includes(searchQuery)).map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                          <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.jan.toLocaleString()}</td>
-                          <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.feb.toLocaleString()}</td>
-                          <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.mar.toLocaleString()}</td>
-                          <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">¥{row.total.toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {personalData.filter((d) => d.name.includes(searchQuery)).map((row, idx) => {
+                        const total = row.months.reduce((s, v) => s + v, 0);
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="sticky left-0 z-10 bg-white px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                            {row.months.map((v, i) => (
+                              <td key={i} className="px-3 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{v.toLocaleString()}</td>
+                            ))}
+                            <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">¥{total.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -473,72 +477,6 @@ export default function AggregationPage() {
 
             <div className="text-sm text-slate-500">
               全 {dispatchView === "summary" ? filteredDispatchSummary.length : filteredDispatchDetail.length} 件
-            </div>
-          </>
-        )}
-
-        {/* 帳票出力 Tab */}
-        {activeTab === "帳票出力" && (
-          <>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-8">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="rounded-lg bg-blue-50 p-3 mb-4">
-                  <FileText className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="text-sm font-medium text-slate-900">帳票出力</h3>
-                <p className="mt-2 text-sm text-slate-500 max-w-md">
-                  帳票テンプレートから各種帳票を出力します
-                </p>
-                <div className="mt-6 flex gap-3">
-                  <Button variant="outline" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    PDF出力
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <FileDown className="h-4 w-4" />
-                    Excel出力
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* CSV出力 Tab */}
-        {activeTab === "CSV出力" && (
-          <>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-8">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="rounded-lg bg-slate-100 p-3 mb-4">
-                  <FileDown className="h-8 w-8 text-slate-600" />
-                </div>
-                <h3 className="text-sm font-medium text-slate-900">CSV出力</h3>
-                <p className="mt-2 text-sm text-slate-500 max-w-md">
-                  各種データをCSV形式で出力します
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    賃金データ
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    勤怠データ
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    派遣先別データ
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    車両データ
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    燃費データ
-                  </Button>
-                </div>
-              </div>
             </div>
           </>
         )}

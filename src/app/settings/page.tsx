@@ -52,6 +52,8 @@ import {
   Building2,
   Clock,
   Train,
+  ChevronLeft,
+  ChevronRight,
   Wrench,
   Search,
   Pencil,
@@ -200,6 +202,23 @@ export default function SettingsPage() {
   const [activeMaster, setActiveMaster] = useState<MasterType>("supplier");
   const [masterSearch, setMasterSearch] = useState("");
 
+  // Master management tab state
+  const [masterMainTab, setMasterMainTab] = useState<"人員管理" | "車両・賃金" | "各種設定">("人員管理");
+  const [personnelSubTab, setPersonnelSubTab] = useState<"workers" | "companies">("workers");
+  const [vehicleWageSubTab, setVehicleWageSubTab] = useState<"vehicles" | "wage-rules">("vehicles");
+  const [settingsSubTab, setSettingsSubTab] = useState<"rate-tables" | "general">("rate-tables");
+
+  // Top-level settings nav
+  const [activeSettings, setActiveSettings] = useState<string | null>(null);
+
+  const settingsNav = [
+    { id: "general",       label: "基本設定",     icon: Building,  description: "会社名・年度・自動計算設定",    color: "text-blue-600",    iconBg: "bg-blue-50" },
+    { id: "notifications", label: "通知",         icon: Bell,      description: "メール通知・エラー通知設定",     color: "text-amber-600",   iconBg: "bg-amber-50" },
+    { id: "users",         label: "ユーザー管理",  icon: Users,     description: "管理者・オペレーター管理",       color: "text-violet-600",  iconBg: "bg-violet-50" },
+    { id: "system",        label: "システム",      icon: Database,  description: "バックアップ・セキュリティ",     color: "text-slate-600",   iconBg: "bg-slate-100" },
+    { id: "master",        label: "マスタ管理",    icon: BookOpen,  description: "作業員・会社・車両・賃金ルール", color: "text-emerald-600", iconBg: "bg-emerald-50" },
+  ] as const;
+
   const handleSave = () => {
     toast.success("設定を保存しました");
   };
@@ -222,34 +241,47 @@ export default function SettingsPage() {
   });
 
   return (
-    <MainLayout title="設定">
+    <MainLayout title="システム設定">
       <div className="space-y-6">
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="general" className="gap-2">
-              <Building className="h-4 w-4" />
-              基本設定
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="h-4 w-4" />
-              通知
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-4 w-4" />
-              ユーザー管理
-            </TabsTrigger>
-            <TabsTrigger value="system" className="gap-2">
-              <Database className="h-4 w-4" />
-              システム
-            </TabsTrigger>
-            <TabsTrigger value="master" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              マスタ管理
-            </TabsTrigger>
-          </TabsList>
+        {/* Card navigation */}
+        {!activeSettings && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {settingsNav.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSettings(item.id)}
+                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${item.iconBg}`}>
+                      <Icon className={`h-6 w-6 ${item.color}`} />
+                    </div>
+                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-slate-800">{item.label}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{item.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {activeSettings && (
+          <>
+            <button
+              onClick={() => setActiveSettings(null)}
+              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              一覧に戻る
+            </button>
 
           {/* General Settings */}
-          <TabsContent value="general">
+          {activeSettings === "general" && (
             <Card>
               <CardHeader>
                 <CardTitle>基本設定</CardTitle>
@@ -278,10 +310,10 @@ export default function SettingsPage() {
                 <Button onClick={handleSave}><Save className="mr-2 h-4 w-4" />保存</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* Notifications */}
-          <TabsContent value="notifications">
+          {activeSettings === "notifications" && (
             <Card>
               <CardHeader>
                 <CardTitle>通知設定</CardTitle>
@@ -314,10 +346,10 @@ export default function SettingsPage() {
                 <Button onClick={handleSave}><Save className="mr-2 h-4 w-4" />保存</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* User Management */}
-          <TabsContent value="users">
+          {activeSettings === "users" && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -357,10 +389,10 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* System Settings */}
-          <TabsContent value="system">
+          {activeSettings === "system" && (
             <div className="grid gap-6">
               <Card>
                 <CardHeader>
@@ -427,34 +459,75 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          )}
 
           {/* Master Management */}
-          <TabsContent value="master">
-            <Tabs defaultValue="workers" className="space-y-4">
-              <TabsList className="flex-wrap h-auto gap-1">
-                <TabsTrigger value="workers" className="gap-1.5">
-                  <Users className="h-3.5 w-3.5" />作業員
-                </TabsTrigger>
-                <TabsTrigger value="companies" className="gap-1.5">
-                  <Building2 className="h-3.5 w-3.5" />会社
-                </TabsTrigger>
-                <TabsTrigger value="vehicles" className="gap-1.5">
-                  <Truck className="h-3.5 w-3.5" />車両
-                </TabsTrigger>
-                <TabsTrigger value="wage-rules" className="gap-1.5">
-                  <DollarSign className="h-3.5 w-3.5" />賃金ルール
-                </TabsTrigger>
-                <TabsTrigger value="rate-tables" className="gap-1.5">
-                  <Table2 className="h-3.5 w-3.5" />運賃表
-                </TabsTrigger>
-                <TabsTrigger value="general" className="gap-1.5">
-                  <BookOpen className="h-3.5 w-3.5" />各種マスタ
-                </TabsTrigger>
-              </TabsList>
+          {activeSettings === "master" && (
+            <div className="space-y-4">
+              {/* Main group tabs */}
+              <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit">
+                {(["人員管理", "車両・賃金", "各種設定"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setMasterMainTab(tab)}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                      masterMainTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sub tabs */}
+              {masterMainTab === "人員管理" && (
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                  {([["workers", "作業員"], ["companies", "会社"]] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setPersonnelSubTab(val)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        personnelSubTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {masterMainTab === "車両・賃金" && (
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                  {([["vehicles", "車両"], ["wage-rules", "賃金ルール"]] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setVehicleWageSubTab(val)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        vehicleWageSubTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {masterMainTab === "各種設定" && (
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                  {([["rate-tables", "運賃表"], ["general", "各種マスタ"]] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setSettingsSubTab(val)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        settingsSubTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Workers */}
-              <TabsContent value="workers">
+              {masterMainTab === "人員管理" && personnelSubTab === "workers" && (
                 <Card>
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -552,10 +625,10 @@ export default function SettingsPage() {
                     <div className="mt-4 text-sm text-muted-foreground">全 {filteredWorkers.length} 件</div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              )}
 
               {/* Companies */}
-              <TabsContent value="companies">
+              {masterMainTab === "人員管理" && personnelSubTab === "companies" && (
                 <Card>
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -654,10 +727,10 @@ export default function SettingsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              )}
 
               {/* Vehicles */}
-              <TabsContent value="vehicles">
+              {masterMainTab === "車両・賃金" && vehicleWageSubTab === "vehicles" && (
                 <Card>
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -763,10 +836,10 @@ export default function SettingsPage() {
                     <div className="mt-4 text-sm text-muted-foreground">全 {filteredVehicles.length} 件</div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              )}
 
               {/* Wage Rules */}
-              <TabsContent value="wage-rules">
+              {masterMainTab === "車両・賃金" && vehicleWageSubTab === "wage-rules" && (
                 <Card>
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -916,10 +989,10 @@ export default function SettingsPage() {
                     <div className="mt-4 text-sm text-muted-foreground">全 {filteredWageRules.length} 件</div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              )}
 
               {/* Rate Tables */}
-              <TabsContent value="rate-tables">
+              {masterMainTab === "各種設定" && settingsSubTab === "rate-tables" && (
                 <div className="space-y-6">
                   <p className="text-sm text-slate-500">健康保険・介護保険・雇用保険・厚生年金料額表</p>
                   <div className="grid gap-4 sm:grid-cols-4">
@@ -994,10 +1067,10 @@ export default function SettingsPage() {
                     </table>
                   </div>
                 </div>
-              </TabsContent>
+              )}
 
               {/* General Masters */}
-              <TabsContent value="general">
+              {masterMainTab === "各種設定" && settingsSubTab === "general" && (
                 <div className="space-y-6">
                   <p className="text-sm text-slate-500">供給先・早出・交通費・作業区分等のマスタ一括管理</p>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -1165,10 +1238,11 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-        </Tabs>
+              )}
+            </div>
+          )}
+          </>
+        )}
       </div>
     </MainLayout>
   );

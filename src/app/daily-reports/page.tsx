@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -45,7 +45,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StatusBadge, Status } from "@/components/ui/status-badge";
-import { Plus, Search, CalendarIcon, Pencil, Check, X, AlertCircle, FileText, ClipboardCheck, Clock, Route, MapPin, Trash2, Weight, Truck, Filter, Download, ChevronLeft, ChevronRight, Users, CalendarDays } from "lucide-react";
+import { Plus, Search, CalendarIcon, Pencil, Check, X, AlertCircle, ClipboardCheck, Clock, Route, MapPin, Trash2, Weight, Truck, Download, ChevronLeft, ChevronRight, Users, CalendarDays, CalendarCheck, CalendarPlus, CalendarMinus, Banknote, BookOpen, ArrowRight, Calculator, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -55,6 +55,7 @@ type Report = {
   workerName: string;
   company: string;
   vehicleType: string;
+  category: string;
   startTime: string;
   endTime: string;
   breakMinutes: number;
@@ -64,19 +65,11 @@ type Report = {
 };
 
 const initialMockReports: Report[] = [
-  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "A運輸株式会社", vehicleType: "4t", startTime: "08:00", endTime: "19:30", breakMinutes: 60, status: "submitted" as Status, submittedAt: new Date("2024-01-28T19:35:00") },
-  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "A運輸株式会社", vehicleType: "2t", startTime: "07:00", endTime: "18:00", breakMinutes: 60, status: "submitted" as Status, submittedAt: new Date("2024-01-28T18:05:00") },
-  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流株式会社", vehicleType: "10t", startTime: "06:00", endTime: "20:00", breakMinutes: 90, status: "approved" as Status, submittedAt: new Date("2024-01-28T20:10:00") },
-  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸株式会社", vehicleType: "4t", startTime: "08:30", endTime: "17:30", breakMinutes: 60, status: "draft" as Status, submittedAt: null },
-  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送センター", vehicleType: "2t", startTime: "09:00", endTime: "18:00", breakMinutes: 60, status: "rejected" as Status, submittedAt: new Date("2024-01-28T18:15:00"), rejectionReason: "休憩時間が実際と異なります" },
-];
-
-const workLogsData = [
-  { id: 1, date: "2024-01-28", worker: "山田 太郎", category: "運搬", start: "08:00", end: "17:00", day: "月" },
-  { id: 2, date: "2024-01-28", worker: "鈴木 一郎", category: "荷揚げ", start: "07:30", end: "16:30", day: "月" },
-  { id: 3, date: "2024-01-28", worker: "佐藤 花子", category: "仕分け", start: "09:00", end: "18:00", day: "月" },
-  { id: 4, date: "2024-01-29", worker: "高橋 健二", category: "運搬", start: "08:00", end: "19:30", day: "火" },
-  { id: 5, date: "2024-01-29", worker: "田中 美咲", category: "検品", start: "07:00", end: "16:00", day: "火" },
+  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "A運輸株式会社", vehicleType: "4t", category: "運搬", startTime: "08:00", endTime: "19:30", breakMinutes: 60, status: "submitted" as Status, submittedAt: new Date("2024-01-28T19:35:00") },
+  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "A運輸株式会社", vehicleType: "2t", category: "荷揚げ", startTime: "07:00", endTime: "18:00", breakMinutes: 60, status: "submitted" as Status, submittedAt: new Date("2024-01-28T18:05:00") },
+  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流株式会社", vehicleType: "10t", category: "仕分け", startTime: "06:00", endTime: "20:00", breakMinutes: 90, status: "approved" as Status, submittedAt: new Date("2024-01-28T20:10:00") },
+  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸株式会社", vehicleType: "4t", category: "運搬", startTime: "08:30", endTime: "17:30", breakMinutes: 60, status: "draft" as Status, submittedAt: null },
+  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送センター", vehicleType: "2t", category: "検品", startTime: "09:00", endTime: "18:00", breakMinutes: 60, status: "rejected" as Status, submittedAt: new Date("2024-01-28T18:15:00"), rejectionReason: "休憩時間が実際と異なります" },
 ];
 
 const rollCallsData = [
@@ -87,8 +80,43 @@ const rollCallsData = [
   { id: 5, date: "2024-01-29", worker: "田中 美咲", checkTime: "16:20", alcohol: "0.00", health: "経過観察", inspector: "管理者A", status: "完了" },
 ];
 
-const TABS = ["日報", "作業日誌", "点呼簿", "運行実績", "週休"] as const;
+const TABS = ["日報", "点呼簿", "運行実績", "週休", "有給休暇", "アルバイト", "仕訳"] as const;
 type Tab = (typeof TABS)[number];
+
+const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
+  "日報":     { icon: ClipboardCheck, description: "日々の勤務・作業記録", color: "text-blue-600",    iconBg: "bg-blue-50" },
+  "点呼簿":   { icon: Check,          description: "出退勤・アルコール検査", color: "text-emerald-600", iconBg: "bg-emerald-50" },
+  "運行実績": { icon: Route,           description: "ルート・輸送重量の記録", color: "text-violet-600",  iconBg: "bg-violet-50" },
+  "週休":     { icon: CalendarDays,    description: "週休・勤務シフト管理",   color: "text-slate-600",   iconBg: "bg-slate-100" },
+  "有給休暇": { icon: CalendarCheck,   description: "有給取得・残日数管理",   color: "text-amber-600",   iconBg: "bg-amber-50" },
+  "アルバイト":{ icon: Users,          description: "アルバイト勤務・給与",   color: "text-pink-600",    iconBg: "bg-pink-50" },
+  "仕訳":     { icon: BookOpen,        description: "給与・社保の仕訳入力",   color: "text-indigo-600",  iconBg: "bg-indigo-50" },
+};
+
+const mockPaidLeave = [
+  { id: 1, name: "山田 太郎", grantDate: "2023/04/01", granted: 20, used: 8, remaining: 12, expiry: "2025/03/31" },
+  { id: 2, name: "鈴木 一郎", grantDate: "2023/10/01", granted: 10, used: 3, remaining: 7, expiry: "2025/09/30" },
+  { id: 3, name: "佐藤 花子", grantDate: "2023/04/01", granted: 20, used: 18, remaining: 2, expiry: "2025/03/31" },
+  { id: 4, name: "高橋 健二", grantDate: "2023/07/01", granted: 11, used: 5, remaining: 6, expiry: "2025/06/30" },
+  { id: 5, name: "田中 美咲", grantDate: "2024/01/01", granted: 10, used: 0, remaining: 10, expiry: "2025/12/31" },
+];
+
+const mockPartTimeWorkers = [
+  { id: 1, name: "木村 翔太", hourlyRate: 1200, workDays: 15, totalHours: 90.0, overtime: 5.0, grossPay: 114000, month: "2024/01", status: "確定" },
+  { id: 2, name: "松本 さくら", hourlyRate: 1150, workDays: 12, totalHours: 72.0, overtime: 0, grossPay: 82800, month: "2024/01", status: "確定" },
+  { id: 3, name: "小林 大輝", hourlyRate: 1300, workDays: 18, totalHours: 108.0, overtime: 8.0, grossPay: 153400, month: "2024/01", status: "未確定" },
+  { id: 4, name: "中村 愛", hourlyRate: 1200, workDays: 10, totalHours: 60.0, overtime: 2.0, grossPay: 75000, month: "2024/01", status: "確定" },
+  { id: 5, name: "加藤 隆", hourlyRate: 1100, workDays: 20, totalHours: 120.0, overtime: 10.0, grossPay: 145750, month: "2024/01", status: "未確定" },
+];
+
+const mockJournals = [
+  { id: 1, date: "2024/01/25", debitAccount: "給料手当", debitAmount: 285000, creditAccount: "預り金（源泉）", creditAmount: 6800, description: "1月分給与 山田太郎", category: "給与" },
+  { id: 2, date: "2024/01/25", debitAccount: "給料手当", debitAmount: 285000, creditAccount: "預り金（社保）", creditAmount: 42180, description: "1月分給与 山田太郎", category: "給与" },
+  { id: 3, date: "2024/01/25", debitAccount: "給料手当", debitAmount: 285000, creditAccount: "預り金（住民税）", creditAmount: 8500, description: "1月分給与 山田太郎", category: "給与" },
+  { id: 4, date: "2024/01/25", debitAccount: "給料手当", debitAmount: 285000, creditAccount: "普通預金", creditAmount: 227520, description: "1月分給与 山田太郎", category: "給与" },
+  { id: 5, date: "2024/02/10", debitAccount: "預り金（源泉）", debitAmount: 30800, creditAccount: "普通預金", creditAmount: 30800, description: "1月分源泉所得税納付", category: "納付" },
+  { id: 6, date: "2024/02/28", debitAccount: "預り金（社保）", debitAmount: 210900, creditAccount: "普通預金", creditAmount: 210900, description: "1月分社会保険料納付", category: "納付" },
+];
 
 const operationData = [
   { id: "1", date: "2026-03-19", driverName: "山田 太郎", vehicleNumber: "品川 100 あ 1234", vehicleType: "4t", routes: [{ destination: "川崎市処理施設", wasteType: "一般廃棄物", weight: 3.2, distance: 28.5 }, { destination: "横浜市リサイクルセンター", wasteType: "産業廃棄物", weight: 2.8, distance: 35.2 }], totalDistance: 63.7, totalWeight: 6.0, trips: 2, startTime: "06:00", endTime: "17:30" },
@@ -113,7 +141,7 @@ const scheduleData = [
 ];
 
 export default function DailyReportsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("日報");
+  const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [date, setDate] = useState<Date>(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -125,6 +153,10 @@ export default function DailyReportsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [operationDate, setOperationDate] = useState("2026-03-19");
   const [currentMonth, setCurrentMonth] = useState("2026年3月");
+  const [paidLeaveSearch, setPaidLeaveSearch] = useState("");
+  const [partTimeSearch, setPartTimeSearch] = useState("");
+  const [journalSearch, setJournalSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch = report.workerName.includes(searchQuery) || report.company.includes(searchQuery);
@@ -132,16 +164,18 @@ export default function DailyReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const filteredWorkLogs = workLogsData.filter((row) => {
-    const matchesSearch = row.worker.includes(searchQuery) || row.category.includes(searchQuery);
-    const matchesDate = !dateFilter || row.date === dateFilter;
-    return matchesSearch && matchesDate;
-  });
-
   const filteredRollCalls = rollCallsData.filter((row) => {
     const matchesSearch = row.worker.includes(searchQuery);
     const matchesDate = !dateFilter || row.date === dateFilter;
     return matchesSearch && matchesDate;
+  });
+
+  const filteredPaidLeave = mockPaidLeave.filter((d) => d.name.includes(paidLeaveSearch));
+  const filteredPartTimeWorkers = mockPartTimeWorkers.filter((w) => w.name.includes(partTimeSearch));
+  const filteredJournals = mockJournals.filter((j) => {
+    const matchesSearch = j.description.includes(journalSearch) || j.debitAccount.includes(journalSearch) || j.creditAccount.includes(journalSearch);
+    const matchesCategory = categoryFilter === "all" || j.category === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
 
   const handleApprove = (reportId: string) => {
@@ -170,24 +204,46 @@ export default function DailyReportsPage() {
   const pendingCount = reports.filter(r => r.status === "submitted").length;
 
   return (
-    <MainLayout title="勤怠・日報">
+    <MainLayout title="勤怠・労務">
       <div className="space-y-6">
-        {/* Tabs */}
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => { setActiveTab(tab); setSearchQuery(""); setDateFilter(""); }}
-              className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-                activeTab === tab
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Card navigation */}
+        {!activeTab && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {TABS.map((tab) => {
+              const meta = TAB_META[tab];
+              const Icon = meta.icon;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => { setActiveTab(tab); setSearchQuery(""); setDateFilter(""); }}
+                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.iconBg}`}>
+                      <Icon className={`h-6 w-6 ${meta.color}`} />
+                    </div>
+                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-slate-800">{tab}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{meta.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Back button */}
+        {activeTab && (
+          <button
+            onClick={() => { setActiveTab(null); setSearchQuery(""); setDateFilter(""); }}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            一覧に戻る
+          </button>
+        )}
 
         {activeTab === "日報" && (
           <Card>
@@ -195,14 +251,16 @@ export default function DailyReportsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle>日報一覧</CardTitle>
-                  <CardDescription>日々の勤務記録を管理します</CardDescription>
+                  <CardDescription>日々の勤務・作業記録を管理します。OCR読取り機能対応</CardDescription>
                 </div>
-                <Link href="/daily-reports/new" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
-                    日報を入力
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Link href="/daily-reports/new" className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto">
+                      <Plus className="mr-2 h-4 w-4" />
+                      日報を入力
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -250,6 +308,7 @@ export default function DailyReportsPage() {
                       <TableHead className="whitespace-nowrap">作業員</TableHead>
                       <TableHead className="whitespace-nowrap">会社</TableHead>
                       <TableHead className="whitespace-nowrap">車種</TableHead>
+                      <TableHead className="whitespace-nowrap">作業区分</TableHead>
                       <TableHead className="whitespace-nowrap">出勤</TableHead>
                       <TableHead className="whitespace-nowrap">退勤</TableHead>
                       <TableHead className="whitespace-nowrap">休憩</TableHead>
@@ -263,6 +322,11 @@ export default function DailyReportsPage() {
                         <TableCell className="font-medium whitespace-nowrap">{report.workerName}</TableCell>
                         <TableCell className="whitespace-nowrap">{report.company}</TableCell>
                         <TableCell className="whitespace-nowrap">{report.vehicleType}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {report.category && (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">{report.category}</span>
+                          )}
+                        </TableCell>
                         <TableCell className="font-mono whitespace-nowrap">{report.startTime}</TableCell>
                         <TableCell className="font-mono whitespace-nowrap">{report.endTime}</TableCell>
                         <TableCell className="whitespace-nowrap">{report.breakMinutes}分</TableCell>
@@ -299,61 +363,6 @@ export default function DailyReportsPage() {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {activeTab === "作業日誌" && (
-          <>
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-slate-500">OCR読取り機能対応</p>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
-                <Plus className="h-4 w-4" />新規作成
-              </button>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="作業者名・作業区分で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                </div>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <FileText className="h-4 w-4" />
-                  <span>全 {filteredWorkLogs.length} 件</span>
-                </div>
-              </div>
-            </div>
-            <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/50">
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">日付</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業者名</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業区分</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">始業</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">終業</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">曜日</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredWorkLogs.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-mono whitespace-nowrap">{row.date}</td>
-                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.worker}</td>
-                      <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">{row.category}</span>
-                      </td>
-                      <td className="px-3 sm:px-4 py-3 text-slate-700 font-mono whitespace-nowrap">{row.start}</td>
-                      <td className="px-3 sm:px-4 py-3 text-slate-700 font-mono whitespace-nowrap">{row.end}</td>
-                      <td className="px-3 sm:px-4 py-3 text-slate-500 whitespace-nowrap">{row.day}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
         )}
 
         {activeTab === "点呼簿" && (
@@ -592,6 +601,207 @@ export default function DailyReportsPage() {
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {activeTab === "有給休暇" && (
+          <>
+            <p className="text-sm text-slate-500">付与・取得・残日数管理</p>
+            <div className="grid gap-4 sm:grid-cols-4">
+              {[
+                { label: "付与合計", value: "71日", icon: CalendarPlus, bg: "bg-blue-50", ic: "text-blue-600" },
+                { label: "取得合計", value: "34日", icon: CalendarMinus, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残日数合計", value: "37日", icon: CalendarCheck, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残2日以下", value: "1名", icon: AlertCircle, bg: "bg-blue-50", ic: "text-blue-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="作業員名で検索..." value={paidLeaveSearch} onChange={(e) => setPaidLeaveSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <CalendarPlus className="h-4 w-4" />一括付与
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["作業員名","付与日","付与日数","取得日数","残日数","有効期限","消化率"].map((h) => (
+                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${h === "付与日数" || h === "取得日数" || h === "残日数" ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredPaidLeave.map((row) => {
+                      const rate = Math.round((row.used / row.granted) * 100);
+                      return (
+                        <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                          <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.grantDate}</td>
+                          <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.granted}</td>
+                          <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.used}</td>
+                          <td className="px-3 sm:px-4 py-3 text-right font-mono font-medium tabular-nums whitespace-nowrap">
+                            <span className={row.remaining <= 2 ? "text-blue-600" : "text-slate-900"}>{row.remaining}</span>
+                          </td>
+                          <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.expiry}</td>
+                          <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-20 rounded-full bg-slate-100 overflow-hidden">
+                                <div className={`h-full rounded-full ${rate >= 80 ? "bg-slate-900" : rate >= 50 ? "bg-blue-500" : "bg-slate-300"}`} style={{ width: `${rate}%` }} />
+                              </div>
+                              <span className="text-xs text-slate-500">{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredPaidLeave.length} 件</div>
+          </>
+        )}
+
+        {activeTab === "アルバイト" && (
+          <>
+            <p className="text-sm text-slate-500">時給制アルバイトの勤怠・賃金管理</p>
+            <div className="grid gap-4 sm:grid-cols-4">
+              {[
+                { label: "登録人数", value: "5名", icon: Users, bg: "bg-blue-50", ic: "text-blue-600" },
+                { label: "総労働時間", value: "450.0h", icon: Clock, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残業時間合計", value: "25.0h", icon: CalendarDays, bg: "bg-blue-50", ic: "text-blue-600" },
+                { label: "賃金合計", value: "¥570,950", icon: Banknote, bg: "bg-slate-100", ic: "text-slate-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="氏名で検索..." value={partTimeSearch} onChange={(e) => setPartTimeSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <Plus className="h-4 w-4" />新規登録
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["氏名","時給","出勤日数","総時間","残業","支給額","対象月","ステータス"].map((h) => (
+                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["時給","出勤日数","総時間","残業","支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredPartTimeWorkers.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.hourlyRate.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.workDays}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.totalHours.toFixed(1)}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.overtime.toFixed(1)}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-medium tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td>
+                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredPartTimeWorkers.length} 件</div>
+          </>
+        )}
+
+        {activeTab === "仕訳" && (
+          <>
+            <p className="text-sm text-slate-500">仕訳・預り金テーブル管理</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { label: "仕訳件数", value: `${mockJournals.length}件`, icon: BookOpen, bg: "bg-blue-50", ic: "text-blue-600" },
+                { label: "借方合計", value: "¥1,381,700", icon: Calculator, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "貸方合計", value: "¥526,700", icon: ArrowRight, bg: "bg-slate-100", ic: "text-slate-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="勘定科目・摘要で検索..." value={journalSearch} onChange={(e) => setJournalSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-slate-400" />
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="all">全カテゴリ</option>
+                  <option value="給与">給与</option>
+                  <option value="納付">納付</option>
+                </select>
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <Plus className="h-4 w-4" />仕訳追加
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["日付","借方科目","借方金額","貸方科目","貸方金額","摘要"].map((h) => (
+                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["借方金額","貸方金額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredJournals.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.date}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.debitAccount}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.debitAmount.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.creditAccount}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.creditAmount.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredJournals.length} 件</div>
           </>
         )}
       </div>

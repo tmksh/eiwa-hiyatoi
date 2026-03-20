@@ -56,6 +56,7 @@ export function StatCard({
   unit,
   subValue,
   icon: Icon,
+  description,
   trend,
   badge,
   tags,

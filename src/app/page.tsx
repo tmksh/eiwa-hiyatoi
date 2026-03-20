@@ -8,7 +8,6 @@ import {
   CompanyBreakdownWidget,
 } from "@/components/dashboard";
 import { FileText, Calculator, CheckCircle, AlertTriangle } from "lucide-react";
-import Link from "next/link";
 
 const stats = {
   draft: 23,
@@ -18,35 +17,15 @@ const stats = {
   warnings: 5,
 };
 
-const quickActions = [
-  { name: "日報入力", href: "/daily-reports/new", icon: FileText, color: "glass-input text-blue-600 hover:bg-white/60" },
-  { name: "一括計算", href: "/calculations", icon: Calculator, color: "glass-input text-slate-600 hover:bg-white/60" },
-  { name: "計算結果", href: "/results", icon: CheckCircle, color: "glass-input text-blue-600 hover:bg-white/60" },
-  { name: "賃金台帳", href: "/wage-ledger", icon: FileText, color: "glass-input text-slate-600 hover:bg-white/60" },
-];
-
 export default function DashboardPage() {
   return (
     <MainLayout title="ダッシュボード" subtitle="日雇い賃金管理システム">
       <div className="space-y-5">
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2">
-          {quickActions.map((action) => (
-            <Link
-              key={action.name}
-              href={action.href}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition-all duration-200 ${action.color}`}
-            >
-              <action.icon className="h-3.5 w-3.5" />
-              {action.name}
-            </Link>
-          ))}
-        </div>
-
         {/* Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="未入力"
+            title="日報 未提出"
+            description="本日分の日報をまだ提出していない作業員数"
             value={stats.draft}
             subValue={`${stats.total}名`}
             icon={FileText}
@@ -55,7 +34,8 @@ export default function DashboardPage() {
             progress={{ current: stats.draft, total: stats.total }}
           />
           <StatCard
-            title="計算待ち"
+            title="賃金 計算待ち"
+            description="日報承認済みで賃金計算がまだ実行されていない件数"
             value={stats.pending}
             unit="件"
             icon={Calculator}
@@ -64,7 +44,8 @@ export default function DashboardPage() {
             progress={{ current: stats.pending, total: stats.total }}
           />
           <StatCard
-            title="計算完了"
+            title="賃金 計算完了"
+            description="当月の賃金計算処理が完了した件数"
             value={stats.completed}
             unit="件"
             icon={CheckCircle}
@@ -76,7 +57,8 @@ export default function DashboardPage() {
             ]}
           />
           <StatCard
-            title="要確認"
+            title="エラー・要確認"
+            description="承認待ち・却下・警告など対応が必要な件数"
             value={stats.warnings}
             unit="件"
             icon={AlertTriangle}

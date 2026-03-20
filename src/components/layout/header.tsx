@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Bell, Menu, Search, User } from "lucide-react";
+import { Bell, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
@@ -38,13 +38,6 @@ export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) 
         <div className="flex items-center gap-1.5">
           <span className="mr-2 text-xs text-slate-400 hidden sm:inline">{today}</span>
 
-          <div className="glass-input rounded-xl px-3 py-1.5 flex items-center gap-2 mr-1 hidden sm:flex">
-            <Search className="h-3.5 w-3.5 text-slate-400" />
-            <span className="text-xs text-slate-400">検索...</span>
-          </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-slate-500 hover:bg-white/50 hover:text-slate-700 sm:hidden">
-            <Search className="h-4 w-4" />
-          </Button>
           <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-xl text-slate-500 hover:bg-white/50 hover:text-slate-700">
             <Bell className="h-4 w-4" />
             <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white/50" />

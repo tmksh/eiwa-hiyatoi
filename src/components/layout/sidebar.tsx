@@ -11,11 +11,8 @@ import {
   Settings,
   ChevronRight,
   ClipboardList,
-  Banknote,
   FileBarChart,
-  CalendarCheck,
   Stamp,
-  Landmark,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -31,14 +28,11 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: "ダッシュボード", href: "/", icon: LayoutDashboard },
-  { name: "勤怠・日報", href: "/daily-reports", icon: ClipboardList, matchPrefixes: ["/daily-reports", "/work-logs", "/roll-calls", "/operation-records", "/weekly-schedule"] },
-  { name: "賃金計算", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/results", "/wage-ledger", "/overtime", "/weekly-overtime"] },
-  { name: "支払・振込", href: "/payment-details", icon: Banknote, matchPrefixes: ["/payment-details", "/transfers", "/denomination", "/period-payment"] },
-  { name: "社保・印紙", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger"] },
-  { name: "税務", href: "/withholding-tax", icon: Landmark, matchPrefixes: ["/withholding-tax", "/resident-tax"] },
-  { name: "有給・労務", href: "/paid-leave", icon: CalendarCheck, matchPrefixes: ["/paid-leave", "/part-time", "/journal"] },
-  { name: "帳票・出力", href: "/aggregation", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
-  { name: "設定", href: "/settings", icon: Settings, matchPrefixes: ["/settings", "/data-management", "/data-migration", "/master"] },
+  { name: "勤怠・労務", href: "/daily-reports", icon: ClipboardList, matchPrefixes: ["/daily-reports", "/work-logs", "/roll-calls", "/operation-records", "/weekly-schedule", "/paid-leave", "/part-time", "/journal"] },
+  { name: "賃金・支払", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/results", "/wage-ledger", "/overtime", "/weekly-overtime", "/payment-details", "/transfers", "/denomination", "/period-payment"] },
+  { name: "社保・税務", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger", "/withholding-tax", "/resident-tax"] },
+  { name: "帳票・出力", href: "/reports", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
+  { name: "システム設定", href: "/settings", icon: Settings, matchPrefixes: ["/settings", "/data-management", "/data-migration", "/master"] },
 ];
 
 interface SidebarProps {

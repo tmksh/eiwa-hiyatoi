@@ -31,7 +31,7 @@ const navigation: NavItem[] = [
   { name: "勤怠・労務", href: "/daily-reports", icon: ClipboardList, matchPrefixes: ["/daily-reports", "/work-logs", "/roll-calls", "/operation-records", "/weekly-schedule", "/paid-leave", "/part-time", "/journal"] },
   { name: "賃金・支払", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/results", "/wage-ledger", "/overtime", "/weekly-overtime", "/payment-details", "/transfers", "/denomination", "/period-payment"] },
   { name: "社保・税務", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger", "/withholding-tax", "/resident-tax"] },
-  { name: "帳票・出力", href: "/reports", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
+  { name: "集計", href: "/reports", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
   { name: "システム設定", href: "/settings", icon: Settings, matchPrefixes: ["/settings", "/data-management", "/data-migration", "/master"] },
 ];
 

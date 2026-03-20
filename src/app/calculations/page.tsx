@@ -58,8 +58,6 @@ import {
   FileOutput,
   Coins,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -124,12 +122,6 @@ const weeklyOvertimeData = [
 const TABS = ["計算処理", "計算結果", "支払処理"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
-  "計算処理": { icon: Calculator,   description: "一括計算・残業・週40h割増",     color: "text-slate-600", iconBg: "bg-slate-100" },
-  "計算結果": { icon: CheckCircle2, description: "計算結果の確認・賃金台帳",      color: "text-slate-600", iconBg: "bg-slate-100" },
-  "支払処理": { icon: Coins,        description: "支払明細・振込・金種・期間払い", color: "text-slate-600", iconBg: "bg-slate-100" },
-};
-
 const CALC_SUBTABS = ["一括計算", "残業計算", "週40h割増"] as const;
 type CalcSubTab = (typeof CALC_SUBTABS)[number];
 
@@ -172,7 +164,7 @@ const periodPaymentData = [
 ];
 
 export default function CalculationsPage() {
-  const [activeTab, setActiveTab] = useState<Tab | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("計算処理");
   const [calcSubTab, setCalcSubTab] = useState<CalcSubTab>("一括計算");
   const [resultSubTab, setResultSubTab] = useState<ResultSubTab>("計算結果");
   const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("支払明細");
@@ -296,43 +288,20 @@ export default function CalculationsPage() {
   return (
     <MainLayout title="賃金・支払">
       <div className="space-y-6">
-        {/* Card navigation */}
-        {!activeTab && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {TABS.map((tab) => {
-              const meta = TAB_META[tab];
-              const Icon = meta.icon;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.iconBg}`}>
-                      <Icon className={`h-6 w-6 ${meta.color}`} />
-                    </div>
-                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-slate-800">{tab}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{meta.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {activeTab && (
-          <button
-            onClick={() => setActiveTab(null)}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            一覧に戻る
-          </button>
-        )}
+        {/* Main Tabs */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
         {/* Sub Tabs */}
         {activeTab === "計算処理" && (

@@ -83,16 +83,6 @@ const rollCallsData = [
 const TABS = ["日報", "点呼簿", "運行実績", "週休", "有給休暇", "アルバイト", "仕訳"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
-  "日報":      { icon: ClipboardCheck, description: "日々の勤務・作業記録",   color: "text-slate-600", iconBg: "bg-slate-100" },
-  "点呼簿":    { icon: Check,          description: "出退勤・アルコール検査", color: "text-slate-600", iconBg: "bg-slate-100" },
-  "運行実績":  { icon: Route,          description: "ルート・輸送重量の記録", color: "text-slate-600", iconBg: "bg-slate-100" },
-  "週休":      { icon: CalendarDays,   description: "週休・勤務シフト管理",   color: "text-slate-600", iconBg: "bg-slate-100" },
-  "有給休暇":  { icon: CalendarCheck,  description: "有給取得・残日数管理",   color: "text-slate-600", iconBg: "bg-slate-100" },
-  "アルバイト":{ icon: Users,          description: "アルバイト勤務・給与",   color: "text-slate-600", iconBg: "bg-slate-100" },
-  "仕訳":      { icon: BookOpen,       description: "給与・社保の仕訳入力",   color: "text-slate-600", iconBg: "bg-slate-100" },
-};
-
 const mockPaidLeave = [
   { id: 1, name: "山田 太郎", grantDate: "2023/04/01", granted: 20, used: 8, remaining: 12, expiry: "2025/03/31" },
   { id: 2, name: "鈴木 一郎", grantDate: "2023/10/01", granted: 10, used: 3, remaining: 7, expiry: "2025/09/30" },
@@ -141,7 +131,7 @@ const scheduleData = [
 ];
 
 export default function DailyReportsPage() {
-  const [activeTab, setActiveTab] = useState<Tab | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("日報");
   const [date, setDate] = useState<Date>(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -206,44 +196,20 @@ export default function DailyReportsPage() {
   return (
     <MainLayout title="勤怠・労務">
       <div className="space-y-6">
-        {/* Card navigation */}
-        {!activeTab && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {TABS.map((tab) => {
-              const meta = TAB_META[tab];
-              const Icon = meta.icon;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => { setActiveTab(tab); setSearchQuery(""); setDateFilter(""); }}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.iconBg}`}>
-                      <Icon className={`h-6 w-6 ${meta.color}`} />
-                    </div>
-                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-slate-800">{tab}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{meta.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Back button */}
-        {activeTab && (
-          <button
-            onClick={() => { setActiveTab(null); setSearchQuery(""); setDateFilter(""); }}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            一覧に戻る
-          </button>
-        )}
+        {/* Tabs */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); setSearchQuery(""); setDateFilter(""); }}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
         {activeTab === "日報" && (
           <Card>

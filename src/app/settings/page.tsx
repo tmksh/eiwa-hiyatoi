@@ -52,8 +52,6 @@ import {
   Building2,
   Clock,
   Train,
-  ChevronLeft,
-  ChevronRight,
   Wrench,
   Search,
   Pencil,
@@ -209,7 +207,7 @@ export default function SettingsPage() {
   const [settingsSubTab, setSettingsSubTab] = useState<"rate-tables" | "general">("rate-tables");
 
   // Top-level settings nav
-  const [activeSettings, setActiveSettings] = useState<string | null>(null);
+  const [activeSettings, setActiveSettings] = useState<string>("general");
 
   const settingsNav = [
     { id: "general",       label: "基本設定",    icon: Building,  description: "会社名・年度・自動計算設定",    color: "text-slate-600", iconBg: "bg-slate-100" },
@@ -243,42 +241,20 @@ export default function SettingsPage() {
   return (
     <MainLayout title="システム設定">
       <div className="space-y-6">
-        {/* Card navigation */}
-        {!activeSettings && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {settingsNav.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSettings(item.id)}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${item.iconBg}`}>
-                      <Icon className={`h-6 w-6 ${item.color}`} />
-                    </div>
-                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-slate-800">{item.label}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{item.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {activeSettings && (
-          <>
+        {/* Tabs */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+          {settingsNav.map((item) => (
             <button
-              onClick={() => setActiveSettings(null)}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+              key={item.id}
+              onClick={() => setActiveSettings(item.id)}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeSettings === item.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
             >
-              <ChevronLeft className="h-4 w-4" />
-              一覧に戻る
+              {item.label}
             </button>
+          ))}
+        </div>
 
           {/* General Settings */}
           {activeSettings === "general" && (
@@ -1241,8 +1217,6 @@ export default function SettingsPage() {
               )}
             </div>
           )}
-          </>
-        )}
       </div>
     </MainLayout>
   );

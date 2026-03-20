@@ -27,8 +27,6 @@ import {
   Wallet,
   AlertTriangle,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
 const stampsData = [
@@ -68,15 +66,6 @@ const collectionLedgerData = [
 const TABS = ["印紙管理", "受払簿", "現金納付", "徴収台帳", "源泉税", "住民税"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
-  "印紙管理": { icon: Stamp,         description: "印紙方式/現金納付の管理", color: "text-slate-600", iconBg: "bg-slate-100" },
-  "受払簿":   { icon: ArrowRightLeft, description: "印紙の受払記録",          color: "text-slate-600", iconBg: "bg-slate-100" },
-  "現金納付": { icon: Banknote,       description: "現金での社保納付管理",    color: "text-slate-600", iconBg: "bg-slate-100" },
-  "徴収台帳": { icon: ClipboardList,  description: "社保・住民税の徴収記録", color: "text-slate-600", iconBg: "bg-slate-100" },
-  "源泉税":   { icon: Calculator,     description: "源泉所得税の計算・管理", color: "text-slate-600", iconBg: "bg-slate-100" },
-  "住民税":   { icon: Landmark,       description: "住民税の特別徴収管理",   color: "text-slate-600", iconBg: "bg-slate-100" },
-};
-
 const withholdingData = [
   { id: 1, name: "山田 太郎", grossPay: 285000, deduction: 6800, netTax: 6800, month: "2024/01", status: "計算済" },
   { id: 2, name: "鈴木 一郎", grossPay: 245000, deduction: 5200, netTax: 5200, month: "2024/01", status: "計算済" },
@@ -94,7 +83,7 @@ const residentData = [
 ];
 
 export default function InsuranceStampsPage() {
-  const [activeTab, setActiveTab] = useState<Tab | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("印紙管理");
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
 
@@ -123,43 +112,20 @@ export default function InsuranceStampsPage() {
   return (
     <MainLayout title="社保・税務">
       <div className="space-y-6">
-        {/* Card navigation */}
-        {!activeTab && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {TABS.map((tab) => {
-              const meta = TAB_META[tab];
-              const Icon = meta.icon;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => { setActiveTab(tab); setSearchQuery(""); setMethodFilter("all"); }}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.iconBg}`}>
-                      <Icon className={`h-6 w-6 ${meta.color}`} />
-                    </div>
-                    <ChevronRight className="h-4 w-4 mt-1 text-slate-300" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-slate-800">{tab}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{meta.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {activeTab && (
-          <button
-            onClick={() => { setActiveTab(null); setSearchQuery(""); setMethodFilter("all"); }}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            一覧に戻る
-          </button>
-        )}
+        {/* Tabs */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); setSearchQuery(""); setMethodFilter("all"); }}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
         {activeTab === "印紙管理" && (
           <>

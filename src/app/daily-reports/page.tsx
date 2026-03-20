@@ -84,13 +84,13 @@ const TABS = ["日報", "点呼簿", "運行実績", "週休", "有給休暇", "
 type Tab = (typeof TABS)[number];
 
 const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
-  "日報":     { icon: ClipboardCheck, description: "日々の勤務・作業記録", color: "text-blue-600",    iconBg: "bg-blue-50" },
-  "点呼簿":   { icon: Check,          description: "出退勤・アルコール検査", color: "text-emerald-600", iconBg: "bg-emerald-50" },
-  "運行実績": { icon: Route,           description: "ルート・輸送重量の記録", color: "text-violet-600",  iconBg: "bg-violet-50" },
-  "週休":     { icon: CalendarDays,    description: "週休・勤務シフト管理",   color: "text-slate-600",   iconBg: "bg-slate-100" },
-  "有給休暇": { icon: CalendarCheck,   description: "有給取得・残日数管理",   color: "text-amber-600",   iconBg: "bg-amber-50" },
-  "アルバイト":{ icon: Users,          description: "アルバイト勤務・給与",   color: "text-pink-600",    iconBg: "bg-pink-50" },
-  "仕訳":     { icon: BookOpen,        description: "給与・社保の仕訳入力",   color: "text-indigo-600",  iconBg: "bg-indigo-50" },
+  "日報":      { icon: ClipboardCheck, description: "日々の勤務・作業記録",   color: "text-slate-600", iconBg: "bg-slate-100" },
+  "点呼簿":    { icon: Check,          description: "出退勤・アルコール検査", color: "text-slate-600", iconBg: "bg-slate-100" },
+  "運行実績":  { icon: Route,          description: "ルート・輸送重量の記録", color: "text-slate-600", iconBg: "bg-slate-100" },
+  "週休":      { icon: CalendarDays,   description: "週休・勤務シフト管理",   color: "text-slate-600", iconBg: "bg-slate-100" },
+  "有給休暇":  { icon: CalendarCheck,  description: "有給取得・残日数管理",   color: "text-slate-600", iconBg: "bg-slate-100" },
+  "アルバイト":{ icon: Users,          description: "アルバイト勤務・給与",   color: "text-slate-600", iconBg: "bg-slate-100" },
+  "仕訳":      { icon: BookOpen,       description: "給与・社保の仕訳入力",   color: "text-slate-600", iconBg: "bg-slate-100" },
 };
 
 const mockPaidLeave = [

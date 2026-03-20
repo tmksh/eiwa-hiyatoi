@@ -125,9 +125,9 @@ const TABS = ["計算処理", "計算結果", "支払処理"] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_META: Record<Tab, { icon: React.ElementType; description: string; color: string; iconBg: string }> = {
-  "計算処理": { icon: Calculator,   description: "一括計算・残業・週40h割増",  color: "text-blue-600",   iconBg: "bg-blue-50" },
-  "計算結果": { icon: CheckCircle2, description: "計算結果の確認・賃金台帳",   color: "text-emerald-600", iconBg: "bg-emerald-50" },
-  "支払処理": { icon: Coins,        description: "支払明細・振込・金種・期間払い", color: "text-amber-600",  iconBg: "bg-amber-50" },
+  "計算処理": { icon: Calculator,   description: "一括計算・残業・週40h割増",     color: "text-slate-600", iconBg: "bg-slate-100" },
+  "計算結果": { icon: CheckCircle2, description: "計算結果の確認・賃金台帳",      color: "text-slate-600", iconBg: "bg-slate-100" },
+  "支払処理": { icon: Coins,        description: "支払明細・振込・金種・期間払い", color: "text-slate-600", iconBg: "bg-slate-100" },
 };
 
 const CALC_SUBTABS = ["一括計算", "残業計算", "週40h割増"] as const;

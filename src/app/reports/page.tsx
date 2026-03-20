@@ -24,8 +24,8 @@ const reportCategories = [
     title: "給与関連帳票",
     icon: Banknote,
     description: "給与明細・賃金台帳・一覧表",
-    color: "text-blue-600",
-    iconBg: "bg-blue-50",
+    color: "text-slate-600",
+    iconBg: "bg-slate-100",
     reports: [
       { name: "給与明細書", description: "個人別月次給与明細のPDF出力", icon: Receipt, status: "対応済" },
       { name: "賃金台帳", description: "法定賃金台帳の出力", icon: ClipboardList, status: "対応済" },
@@ -36,8 +36,8 @@ const reportCategories = [
     title: "社会保険帳票",
     icon: ClipboardList,
     description: "社保印紙台帳・受払簿・徴収台帳",
-    color: "text-emerald-600",
-    iconBg: "bg-emerald-50",
+    color: "text-slate-600",
+    iconBg: "bg-slate-100",
     reports: [
       { name: "社保印紙台帳", description: "印紙貼付実績一覧", icon: FileText, status: "対応済" },
       { name: "印紙受払簿", description: "印紙受払記録の出力", icon: FileText, status: "対応済" },
@@ -48,8 +48,8 @@ const reportCategories = [
     title: "税務帳票",
     icon: FileText,
     description: "源泉徴収票・納付書・住民税通知",
-    color: "text-rose-600",
-    iconBg: "bg-rose-50",
+    color: "text-slate-600",
+    iconBg: "bg-slate-100",
     reports: [
       { name: "源泉徴収票", description: "年末調整後の源泉徴収票", icon: Receipt, status: "対応済" },
       { name: "源泉税納付書", description: "源泉所得税の納付書出力", icon: FileText, status: "準備中" },
@@ -60,8 +60,8 @@ const reportCategories = [
     title: "集計帳票",
     icon: BarChart2,
     description: "個人別・派遣先別・年間集計",
-    color: "text-violet-600",
-    iconBg: "bg-violet-50",
+    color: "text-slate-600",
+    iconBg: "bg-slate-100",
     reports: [
       { name: "個人別月別集計", description: "個人ごとの月別実績集計", icon: Users, status: "対応済" },
       { name: "派遣先別集計", description: "派遣先ごとの賃金集計", icon: Building2, status: "対応済" },

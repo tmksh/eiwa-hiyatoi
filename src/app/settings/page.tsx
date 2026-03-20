@@ -212,11 +212,11 @@ export default function SettingsPage() {
   const [activeSettings, setActiveSettings] = useState<string | null>(null);
 
   const settingsNav = [
-    { id: "general",       label: "基本設定",     icon: Building,  description: "会社名・年度・自動計算設定",    color: "text-blue-600",    iconBg: "bg-blue-50" },
-    { id: "notifications", label: "通知",         icon: Bell,      description: "メール通知・エラー通知設定",     color: "text-amber-600",   iconBg: "bg-amber-50" },
-    { id: "users",         label: "ユーザー管理",  icon: Users,     description: "管理者・オペレーター管理",       color: "text-violet-600",  iconBg: "bg-violet-50" },
-    { id: "system",        label: "システム",      icon: Database,  description: "バックアップ・セキュリティ",     color: "text-slate-600",   iconBg: "bg-slate-100" },
-    { id: "master",        label: "マスタ管理",    icon: BookOpen,  description: "作業員・会社・車両・賃金ルール", color: "text-emerald-600", iconBg: "bg-emerald-50" },
+    { id: "general",       label: "基本設定",    icon: Building,  description: "会社名・年度・自動計算設定",    color: "text-slate-600", iconBg: "bg-slate-100" },
+    { id: "notifications", label: "通知",        icon: Bell,      description: "メール通知・エラー通知設定",    color: "text-slate-600", iconBg: "bg-slate-100" },
+    { id: "users",         label: "ユーザー管理", icon: Users,     description: "管理者・オペレーター管理",      color: "text-slate-600", iconBg: "bg-slate-100" },
+    { id: "system",        label: "システム",     icon: Database,  description: "バックアップ・セキュリティ",    color: "text-slate-600", iconBg: "bg-slate-100" },
+    { id: "master",        label: "マスタ管理",   icon: BookOpen,  description: "作業員・会社・車両・賃金ルール", color: "text-slate-600", iconBg: "bg-slate-100" },
   ] as const;
 
   const handleSave = () => {

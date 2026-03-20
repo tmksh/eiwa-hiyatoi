@@ -388,42 +388,58 @@ export default function CalculationsPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader><CardTitle>対象データ</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">対象件数</p>
-                    <p className="text-3xl font-bold">{previewData.total}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-slate-200/60 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-slate-100 p-2">
+                    <FileText className="h-5 w-5 text-slate-600" />
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-100 p-4">
-                    <p className="text-sm text-slate-600">計算可能</p>
-                    <p className="text-3xl font-bold text-slate-700">{previewData.calculable}</p>
-                  </div>
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <p className="text-sm text-blue-600">エラー（要確認）</p>
-                    <p className="text-3xl font-bold text-blue-700">{previewData.errors}</p>
+                  <div>
+                    <p className="text-xs text-slate-500">対象件数</p>
+                    <p className="text-xl font-semibold text-slate-900">{previewData.total}<span className="text-sm font-normal ml-1">件</span></p>
                   </div>
                 </div>
-                <div className="mt-6">
-                  <Button size="lg" onClick={handleCalculate} disabled={isCalculating} className="w-full sm:w-auto">
-                    {isCalculating ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" />計算中... {progress}%</>
-                    ) : (
-                      <><Calculator className="mr-2 h-5 w-5" />一括計算を実行</>
-                    )}
-                  </Button>
-                </div>
-                {isCalculating && (
-                  <div className="mt-4">
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{Math.floor((progress / 100) * previewData.calculable)} / {previewData.calculable} 件処理中</p>
+              </div>
+              <div className="rounded-xl border border-slate-200/60 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-slate-100 p-2">
+                    <CheckCircle className="h-5 w-5 text-slate-600" />
                   </div>
+                  <div>
+                    <p className="text-xs text-slate-500">計算可能</p>
+                    <p className="text-xl font-semibold text-slate-900">{previewData.calculable}<span className="text-sm font-normal ml-1">件</span></p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-blue-100 p-2">
+                    <AlertTriangle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">エラー（要確認）</p>
+                    <p className="text-xl font-semibold text-blue-700">{previewData.errors}<span className="text-sm font-normal ml-1">件</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button size="lg" onClick={handleCalculate} disabled={isCalculating} className="w-full sm:w-auto">
+                {isCalculating ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" />計算中... {progress}%</>
+                ) : (
+                  <><Calculator className="mr-2 h-5 w-5" />一括計算を実行</>
                 )}
-              </CardContent>
-            </Card>
+              </Button>
+              {isCalculating && (
+                <div className="flex-1">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{Math.floor((progress / 100) * previewData.calculable)} / {previewData.calculable} 件処理中</p>
+                </div>
+              )}
+            </div>
 
             {calcResult && (
               <Card>

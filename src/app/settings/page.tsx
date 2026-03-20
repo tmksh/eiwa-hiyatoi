@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const settingsNav = [
     { id: "general",       label: "基本設定",    icon: Building,  description: "会社名・年度・自動計算設定" },
     { id: "notifications", label: "通知",        icon: Bell,      description: "メール通知・エラー通知設定" },
-    { id: "users",         label: "ユーザー管理", icon: Users,     description: "管理者・オペレーター管理" },
+    { id: "users",         label: "ユーザー管理", icon: Users,     description: "管理者・従業員管理" },
     { id: "system",        label: "システム",     icon: Database,  description: "バックアップ・セキュリティ" },
   ] as const;
 
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                        {user.role === "admin" ? "管理者" : "オペレーター"}
+                        {user.role === "admin" ? "管理者" : "従業員"}
                       </Badge>
                       <Badge variant={user.isActive ? "outline" : "secondary"}>
                         {user.isActive ? "有効" : "無効"}

@@ -4,3 +4,6 @@ export { PendingApprovalsWidget } from "./pending-approvals-widget";
 export { MonthlySummaryWidget } from "./monthly-summary-widget";
 export { CalendarWidget } from "./calendar-widget";
 export { CompanyBreakdownWidget } from "./company-breakdown-widget";
+export { MonthlyWageChartWidget } from "./monthly-wage-chart-widget";
+export { CompanyDonutChartWidget } from "./company-donut-chart-widget";
+export { DailyReportChartWidget } from "./daily-report-chart-widget";

@@ -439,8 +439,8 @@ export default function DailyReportsPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100">
-                        {["日付","ドライバー","車両","車種","便数","走行距離","処理量","時間",""].map((h) => (
-                          <th key={h} className="pb-3 text-left font-medium text-slate-500 text-xs whitespace-nowrap">{h}</th>
+                        {(["日付","ドライバー","車両","車種","便数","走行距離","処理量","時間",""] as const).map((h) => (
+                          <th key={h} className={`px-3 pb-3 font-medium text-slate-500 text-xs whitespace-nowrap ${["便数","走行距離","処理量"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -448,15 +448,15 @@ export default function DailyReportsPage() {
                       {operationData.map((record) => (
                         <>
                           <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer" onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
-                            <td className="py-3 text-slate-700 whitespace-nowrap">{record.date}</td>
-                            <td className="py-3 font-medium text-slate-900 whitespace-nowrap">{record.driverName}</td>
-                            <td className="py-3 text-slate-600 text-xs whitespace-nowrap">{record.vehicleNumber}</td>
-                            <td className="py-3 whitespace-nowrap"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{record.vehicleType}</span></td>
-                            <td className="py-3 text-right tabular-nums text-slate-700 whitespace-nowrap">{record.trips}</td>
-                            <td className="py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalDistance} km</td>
-                            <td className="py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalWeight} t</td>
-                            <td className="py-3 text-slate-600 text-xs whitespace-nowrap">{record.startTime}〜{record.endTime}</td>
-                            <td className="py-3"><Button variant="ghost" size="sm" className="h-7 text-xs text-slate-500">詳細</Button></td>
+                            <td className="px-3 py-3 text-slate-700 whitespace-nowrap">{record.date}</td>
+                            <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{record.driverName}</td>
+                            <td className="px-3 py-3 text-slate-600 text-xs whitespace-nowrap">{record.vehicleNumber}</td>
+                            <td className="px-3 py-3 whitespace-nowrap"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{record.vehicleType}</span></td>
+                            <td className="px-3 py-3 text-right tabular-nums text-slate-700 whitespace-nowrap">{record.trips}</td>
+                            <td className="px-3 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalDistance} km</td>
+                            <td className="px-3 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalWeight} t</td>
+                            <td className="px-3 py-3 text-slate-600 text-xs whitespace-nowrap">{record.startTime}〜{record.endTime}</td>
+                            <td className="px-3 py-3"><Button variant="ghost" size="sm" className="h-7 text-xs text-slate-500">詳細</Button></td>
                           </tr>
                           {expandedId === record.id && (
                             <tr key={`${record.id}-detail`}>

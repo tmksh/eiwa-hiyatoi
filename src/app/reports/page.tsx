@@ -25,7 +25,7 @@ import {
 const TABS = ["集計", "派遣先別", "燃費集計", "稼働分析"] as const;
 type Tab = (typeof TABS)[number];
 
-type AggView = "personal" | "period" | "vehicle";
+type AggView = "personal" | "weekly" | "vehicle";
 
 const personalData = [
   { name: "山田 太郎", months: [285000, 292000, 278000, 301000, 315000, 288000, 295000, 310000, 285000, 298000, 305000, 320000] },
@@ -35,6 +35,15 @@ const personalData = [
   { name: "田中 美咲", months: [198000, 205000, 195000, 210000, 220000, 200000, 205000, 215000, 198000, 208000, 215000, 225000] },
 ];
 const MONTH_LABELS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+const DAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"] as const;
+const weeklyData = [
+  { name: "山田 太郎", days: [14000, 14000, 14000, 14000, 14000, 0, 0] },
+  { name: "鈴木 一郎", days: [12500, 12500, 12500, 12500, 12500, 0, 0] },
+  { name: "佐藤 花子", days: [16000, 16000, 16000, 16000, 16000, 8000, 0] },
+  { name: "高橋 健二", days: [13500, 13500, 13500, 13500, 13500, 0, 0] },
+  { name: "田中 美咲", days: [10000, 10000, 10000, 10000, 10000, 0, 0] },
+];
 
 const vehicleData = [
   { type: "2t", count: 8, days: 168, revenue: 2352000, avgDaily: 14000 },
@@ -221,11 +230,11 @@ export default function ReportsPage() {
                   個人別月別
                 </button>
                 <button
-                  onClick={() => setView("period")}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${view === "period" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
+                  onClick={() => setView("weekly")}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${view === "weekly" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
                 >
                   <Calendar className="h-3.5 w-3.5" />
-                  期間別
+                  週別
                 </button>
                 <button
                   onClick={() => setView("vehicle")}
@@ -235,10 +244,6 @@ export default function ReportsPage() {
                   車種別
                 </button>
               </div>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <Filter className="h-4 w-4" />
-                期間指定
-              </button>
               <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                 <Download className="h-4 w-4" />
                 エクスポート
@@ -277,16 +282,34 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {view === "period" && (
-              <div className="rounded-xl border border-slate-200/60 bg-white p-8">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="rounded-lg bg-blue-50 p-3 mb-4">
-                    <Calendar className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-900">指定期間別集計</h3>
-                  <p className="mt-2 text-sm text-slate-500 max-w-md">
-                    開始日と終了日を指定して、期間内の賃金・保険料を集計します。上部の「期間指定」ボタンから期間を選択してください。
-                  </p>
+            {view === "weekly" && (
+              <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/50">
+                        <th className="sticky left-0 z-10 bg-slate-50/90 px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
+                        {DAY_LABELS.map((d) => (
+                          <th key={d} className={`px-3 py-3 text-right text-xs font-medium whitespace-nowrap ${d === "土" ? "text-blue-500" : d === "日" ? "text-red-400" : "text-slate-500"}`}>{d}</th>
+                        ))}
+                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">週合計</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {weeklyData.filter((d) => d.name.includes(searchQuery)).map((row, idx) => {
+                        const total = row.days.reduce((s, v) => s + v, 0);
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="sticky left-0 z-10 bg-white px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                            {row.days.map((v, i) => (
+                              <td key={i} className={`px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap ${v === 0 ? "text-slate-300" : "text-slate-700"}`}>{v === 0 ? "—" : `¥${v.toLocaleString()}`}</td>
+                            ))}
+                            <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">¥{total.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}

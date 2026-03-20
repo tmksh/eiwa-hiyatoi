@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Calculator,
   Truck,
-  Users,
   Settings,
   ChevronRight,
   ClipboardList,
@@ -30,8 +29,8 @@ const navigation: NavItem[] = [
   { name: "ダッシュボード", href: "/", icon: LayoutDashboard },
   { name: "勤怠・労務", href: "/daily-reports", icon: ClipboardList, matchPrefixes: ["/daily-reports", "/work-logs", "/roll-calls", "/operation-records", "/weekly-schedule", "/paid-leave", "/part-time", "/journal"] },
   { name: "賃金・支払", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/results", "/wage-ledger", "/overtime", "/weekly-overtime", "/payment-details", "/transfers", "/denomination", "/period-payment"] },
-  { name: "社保・税務", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger", "/withholding-tax", "/resident-tax"] },
   { name: "集計", href: "/reports", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
+  { name: "マスタ設定", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger", "/withholding-tax", "/resident-tax"] },
   { name: "システム設定", href: "/settings", icon: Settings, matchPrefixes: ["/settings", "/data-management", "/data-migration", "/master"] },
 ];
 
@@ -143,17 +142,13 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
       {/* Footer */}
       <div className="border-t border-white/30 px-2 py-3">
         <div className={cn(
-          "flex items-center rounded-xl py-2 text-[13px] text-slate-500",
-          collapsed ? "justify-center px-0" : "gap-2.5 px-3"
+          "flex items-center rounded-xl py-2 text-[11px] text-slate-400",
+          collapsed ? "justify-center px-0" : "px-3"
         )}>
-          <div className="h-7 w-7 shrink-0 rounded-full bg-slate-600/10 flex items-center justify-center">
-            <Users className="h-3.5 w-3.5 text-slate-500" />
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-medium text-slate-700 truncate">管理者</p>
-              <p className="text-[11px] text-slate-400 truncate">admin@eiwa.co.jp</p>
-            </div>
+          {collapsed ? (
+            <span className="text-[10px]">v1.0</span>
+          ) : (
+            <span>日雇い管理システム v1.0.0</span>
           )}
         </div>
       </div>

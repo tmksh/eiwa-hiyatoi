@@ -42,8 +42,14 @@ export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) 
             <Bell className="h-4 w-4" />
             <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white/50" />
           </Button>
-          <div className="ml-1.5 h-8 w-8 rounded-full bg-slate-600/80 flex items-center justify-center ring-2 ring-white/40 shadow-sm">
-            <User className="h-3.5 w-3.5 text-white" />
+          <div className="ml-1.5 flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-slate-600/80 flex items-center justify-center ring-2 ring-white/40 shadow-sm">
+              <User className="h-3.5 w-3.5 text-white" />
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-xs font-medium text-slate-700 leading-tight">管理者</p>
+              <p className="text-[11px] text-slate-400 leading-tight">admin@eiwa.co.jp</p>
+            </div>
           </div>
 
           {actions && <div className="ml-3 flex items-center gap-2 max-sm:hidden">{actions}</div>}

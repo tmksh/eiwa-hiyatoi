@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { FileText, Receipt, LogOut, User, HardHat } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText, Receipt, User, HardHat } from "lucide-react";
 
 const navigation = [
   {
@@ -41,16 +40,9 @@ export function EmployeeLayout({ children, workerName = "山田 太郎" }: Emplo
                 <p className="text-xs text-gray-500">栄和清運株式会社</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-slate-100 rounded-full px-3 py-1.5">
-                <User className="h-4 w-4 text-slate-600" />
-                <span className="text-sm font-semibold text-slate-700">{workerName}</span>
-              </div>
-              <Link href="/employee/login">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-100">
-                  <LogOut className="h-4 w-4 text-gray-500" />
-                </Button>
-              </Link>
+            <div className="flex items-center gap-1.5 bg-slate-100 rounded-full px-3 py-1.5">
+              <User className="h-4 w-4 text-slate-600" />
+              <span className="text-sm font-semibold text-slate-700">{workerName}</span>
             </div>
           </div>
         </div>

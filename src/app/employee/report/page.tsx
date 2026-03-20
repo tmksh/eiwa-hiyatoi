@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, Coffee, Send, CheckCircle2, AlertCircle, Loader2, History } from "lucide-react";
+import { CalendarDays, Clock, Coffee, Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -280,29 +280,30 @@ function EmployeeReportContent() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-base font-semibold">
-                  <Clock className="h-4 w-4" />
-                  出勤
-                </Label>
+            <div className="rounded-xl border-2 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 w-14 shrink-0">
+                  <Clock className="h-4 w-4 text-slate-500" />
+                  <span className="text-sm font-semibold text-slate-700">出勤</span>
+                </div>
                 <Input
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="h-12 text-xl font-semibold"
+                  className="h-12 text-xl font-semibold flex-1"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-base font-semibold">
-                  <Clock className="h-4 w-4" />
-                  退勤
-                </Label>
+              <div className="border-t border-slate-100" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 w-14 shrink-0">
+                  <Clock className="h-4 w-4 text-slate-500" />
+                  <span className="text-sm font-semibold text-slate-700">退勤</span>
+                </div>
                 <Input
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="h-12 text-xl font-semibold"
+                  className="h-12 text-xl font-semibold flex-1"
                 />
               </div>
             </div>

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { FileText, History, LogOut, User, Truck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText, History, User, Truck } from "lucide-react";
 
 const navigation = [
   {
@@ -42,17 +41,10 @@ export function DriverLayout({ children, workerName = "山田 太郎" }: DriverL
                 <p className="text-sm text-gray-500">栄和清運株式会社</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2">
+            <div className="flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2">
                 <User className="h-5 w-5 text-slate-600" />
                 <span className="text-base font-semibold text-slate-700">{workerName}</span>
               </div>
-              <Link href="/driver/login">
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
-                  <LogOut className="h-5 w-5 text-gray-500" />
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
       </header>

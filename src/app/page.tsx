@@ -235,9 +235,10 @@ export default function DashboardPage() {
               <div
                 key={widget.id}
                 className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 hover:bg-slate-100/60 hover:border-slate-200 transition-colors cursor-pointer"
-                onClick={() =>
-                  setDraft((prev) => ({ ...prev, [widget.id]: !prev[widget.id] }))
-                }
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest("button")) return;
+                  setDraft((prev) => ({ ...prev, [widget.id]: !prev[widget.id] }));
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shrink-0">

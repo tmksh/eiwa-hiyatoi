@@ -19,10 +19,10 @@ const stats = {
 };
 
 const quickActions = [
-  { name: "日報入力", href: "/daily-reports/new", icon: FileText, color: "bg-blue-50 text-blue-600 hover:bg-blue-100" },
-  { name: "一括計算", href: "/calculations", icon: Calculator, color: "bg-slate-100 text-slate-600 hover:bg-slate-200" },
-  { name: "計算結果", href: "/results", icon: CheckCircle, color: "bg-blue-50 text-blue-600 hover:bg-blue-100" },
-  { name: "賃金台帳", href: "/wage-ledger", icon: FileText, color: "bg-slate-100 text-slate-600 hover:bg-slate-200" },
+  { name: "日報入力", href: "/daily-reports/new", icon: FileText, color: "glass-input text-blue-600 hover:bg-white/60" },
+  { name: "一括計算", href: "/calculations", icon: Calculator, color: "glass-input text-slate-600 hover:bg-white/60" },
+  { name: "計算結果", href: "/results", icon: CheckCircle, color: "glass-input text-blue-600 hover:bg-white/60" },
+  { name: "賃金台帳", href: "/wage-ledger", icon: FileText, color: "glass-input text-slate-600 hover:bg-white/60" },
 ];
 
 export default function DashboardPage() {
@@ -35,7 +35,7 @@ export default function DashboardPage() {
             <Link
               key={action.name}
               href={action.href}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors ${action.color}`}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition-all duration-200 ${action.color}`}
             >
               <action.icon className="h-3.5 w-3.5" />
               {action.name}

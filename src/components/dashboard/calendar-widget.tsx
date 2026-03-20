@@ -42,7 +42,7 @@ export function CalendarWidget() {
   const workDaysThisMonth = days.filter(day => workDays.includes(format(day, "yyyy-MM-dd"))).length;
 
   return (
-    <Card className="border-slate-200/60 shadow-none">
+    <Card className="shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
@@ -66,7 +66,7 @@ export function CalendarWidget() {
       </CardHeader>
       <CardContent>
         {/* Summary */}
-        <div className="mb-3 p-2.5 rounded-lg bg-slate-50 flex items-center justify-between">
+        <div className="mb-3 p-2.5 rounded-xl bg-white/40 border border-white/30 flex items-center justify-between">
           <span className="text-xs text-slate-500">今月の出勤日数</span>
           <span className="text-lg font-bold text-slate-900">{workDaysThisMonth}<span className="text-xs text-slate-400 ml-0.5">日</span></span>
         </div>

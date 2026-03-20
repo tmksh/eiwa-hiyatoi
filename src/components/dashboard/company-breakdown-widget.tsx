@@ -21,7 +21,7 @@ function formatCurrency(value: number): string {
 
 export function CompanyBreakdownWidget() {
   return (
-    <Card className="border-slate-200/60 shadow-none">
+    <Card className="shadow-none">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
           <div className="h-7 w-7 rounded-md bg-slate-100 flex items-center justify-center">
@@ -43,7 +43,7 @@ export function CompanyBreakdownWidget() {
                 </div>
                 <span className="font-semibold text-slate-900 tabular-nums">¥{formatCurrency(company.amount)}</span>
               </div>
-              <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-slate-200/40 rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full", company.color)}
                   style={{ width: `${percentage}%` }}
@@ -53,7 +53,7 @@ export function CompanyBreakdownWidget() {
           );
         })}
 
-        <div className="pt-2.5 mt-2.5 border-t border-slate-100">
+        <div className="pt-2.5 mt-2.5 border-t border-white/30">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">合計</span>
             <span className="text-sm font-bold text-slate-900">¥{formatCurrency(total)}</span>

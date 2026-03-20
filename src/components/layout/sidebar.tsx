@@ -62,20 +62,20 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200/60 bg-white transition-all duration-300",
+        "fixed inset-y-0 left-0 z-50 flex flex-col glass-sidebar transition-all duration-300",
         collapsed ? "w-14" : "w-64",
         open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
       {/* Logo Header */}
       <div className={cn(
-        "flex items-center border-b border-slate-100 transition-all duration-300",
+        "flex items-center border-b border-white/30 transition-all duration-300",
         collapsed ? "justify-center px-0 py-5" : "justify-between px-5 py-5"
       )}>
         {collapsed ? (
           <button
             onClick={onToggle}
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700/90 hover:bg-slate-600/90 transition-colors shadow-lg shadow-slate-400/20"
             title="メニューを展開"
           >
             <Truck className="h-5 w-5 text-white" />
@@ -83,11 +83,11 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
         ) : (
           <>
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700/90 shadow-lg shadow-slate-400/20">
                 <Truck className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-slate-900">日雇い管理</h1>
+                <h1 className="text-sm font-bold text-slate-800">日雇い管理</h1>
                 <p className="text-[11px] text-slate-400">栄和清運株式会社</p>
               </div>
             </div>
@@ -121,22 +121,22 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
                 onClick={!collapsed ? onClose : undefined}
                 title={collapsed ? item.name : undefined}
                 className={cn(
-                  "flex items-center rounded-lg py-2.5 text-[15px] font-medium transition-colors",
+                  "flex items-center rounded-xl py-2.5 text-[15px] font-medium transition-all duration-200",
                   collapsed ? "justify-center px-0" : "gap-3 px-3",
                   active
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-slate-700/90 text-white shadow-md shadow-slate-400/20"
+                    : "text-slate-600 hover:bg-white/50 hover:text-slate-900"
                 )}
               >
                 <item.icon className={cn(
                   "h-5 w-5 shrink-0",
-                  active ? "text-blue-600" : "text-slate-400"
+                  active ? "text-white" : "text-slate-400"
                 )} />
                 {!collapsed && (
                   <>
                     <span>{item.name}</span>
                     {active && (
-                      <ChevronRight className="ml-auto h-3.5 w-3.5 text-blue-400" />
+                      <ChevronRight className="ml-auto h-3.5 w-3.5 text-white/70" />
                     )}
                   </>
                 )}
@@ -147,13 +147,13 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-100 px-2 py-3">
+      <div className="border-t border-white/30 px-2 py-3">
         <div className={cn(
-          "flex items-center rounded-lg py-2 text-[13px] text-slate-500",
+          "flex items-center rounded-xl py-2 text-[13px] text-slate-500",
           collapsed ? "justify-center px-0" : "gap-2.5 px-3"
         )}>
-          <div className="h-6 w-6 shrink-0 rounded-full bg-slate-100 flex items-center justify-center">
-            <Users className="h-3.5 w-3.5 text-slate-400" />
+          <div className="h-7 w-7 shrink-0 rounded-full bg-slate-600/10 flex items-center justify-center">
+            <Users className="h-3.5 w-3.5 text-slate-500" />
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">

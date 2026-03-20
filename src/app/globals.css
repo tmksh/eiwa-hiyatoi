@@ -148,24 +148,71 @@
   }
 }
 
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.app-bg {
+  background: linear-gradient(135deg, #e8ecf4 0%, #dfe4ed 25%, #e6e9f0 50%, #edf0f5 75%, #e8ecf4 100%);
+  min-height: 100vh;
+}
+
 /* Status Badge Colors */
 .status-draft {
-  @apply bg-slate-100 text-slate-700;
+  @apply bg-slate-100/80 text-slate-700;
 }
 .status-submitted {
-  @apply bg-blue-50 text-blue-700;
+  @apply bg-blue-50/80 text-blue-700;
 }
 .status-calculated {
-  @apply bg-blue-50 text-blue-600;
+  @apply bg-blue-50/80 text-blue-600;
 }
 .status-confirmed {
-  @apply bg-slate-200 text-slate-700;
+  @apply bg-slate-200/80 text-slate-700;
 }
 .status-paid {
-  @apply bg-slate-200 text-slate-700;
+  @apply bg-slate-200/80 text-slate-700;
 }
 .status-error {
-  @apply bg-slate-100 text-slate-500;
+  @apply bg-slate-100/80 text-slate-500;
 }
 
 /* Scrollbar */
@@ -176,9 +223,9 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: oklch(0.85 0 0);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.75 0 0);
+  background: rgba(0, 0, 0, 0.18);
 }

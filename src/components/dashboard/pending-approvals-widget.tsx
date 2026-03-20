@@ -34,7 +34,7 @@ const pendingApprovals = [
 
 export function PendingApprovalsWidget() {
   return (
-    <Card className="border-slate-200/60 shadow-none">
+    <Card className="shadow-none">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-900">
           <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
@@ -59,10 +59,10 @@ export function PendingApprovalsWidget() {
           pendingApprovals.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+              className="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/30 hover:bg-white/60 transition-all duration-200"
             >
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600">
+                <div className="h-8 w-8 rounded-full bg-slate-500/10 flex items-center justify-center text-sm font-medium text-slate-600">
                   {item.workerName.charAt(0)}
                 </div>
                 <div>

@@ -16,7 +16,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen app-bg">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div

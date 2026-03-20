@@ -16,21 +16,21 @@ export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) 
   const today = format(new Date(), "yyyy年M月d日（E）", { locale: ja });
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 glass-header">
       <div className="flex h-14 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3">
           {/* Mobile hamburger */}
           <button
             onClick={onMenuToggle}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+            className="rounded-xl p-1.5 text-slate-500 hover:bg-white/50 hover:text-slate-700 lg:hidden transition-colors"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           {title && (
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 truncate">{title}</h1>
-              {subtitle && <p className="text-xs text-slate-500 truncate hidden sm:block">{subtitle}</p>}
+              <h1 className="text-base sm:text-lg font-bold text-slate-800 truncate">{title}</h1>
+              {subtitle && <p className="text-xs text-slate-400 truncate hidden sm:block">{subtitle}</p>}
             </div>
           )}
         </div>
@@ -38,14 +38,18 @@ export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) 
         <div className="flex items-center gap-1.5">
           <span className="mr-2 text-xs text-slate-400 hidden sm:inline">{today}</span>
 
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+          <div className="glass-input rounded-xl px-3 py-1.5 flex items-center gap-2 mr-1 hidden sm:flex">
+            <Search className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-xs text-slate-400">検索...</span>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-slate-500 hover:bg-white/50 hover:text-slate-700 sm:hidden">
             <Search className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+          <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-xl text-slate-500 hover:bg-white/50 hover:text-slate-700">
             <Bell className="h-4 w-4" />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue-500" />
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white/50" />
           </Button>
-          <div className="ml-1.5 h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center">
+          <div className="ml-1.5 h-8 w-8 rounded-full bg-slate-600/80 flex items-center justify-center ring-2 ring-white/40 shadow-sm">
             <User className="h-3.5 w-3.5 text-white" />
           </div>
 

@@ -29,11 +29,11 @@ interface StatCardProps {
 }
 
 const iconBg = {
-  default: "bg-slate-100 text-slate-600",
-  primary: "bg-blue-50 text-blue-600",
-  success: "bg-slate-100 text-slate-600",
-  warning: "bg-blue-50 text-blue-600",
-  error: "bg-slate-200 text-slate-600",
+  default: "bg-slate-500/10 text-slate-600",
+  primary: "bg-blue-500/10 text-blue-600",
+  success: "bg-emerald-500/10 text-emerald-600",
+  warning: "bg-amber-500/10 text-amber-600",
+  error: "bg-red-500/10 text-red-600",
 };
 
 const progressColors = {
@@ -63,10 +63,10 @@ export function StatCard({
   variant = "default",
 }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-slate-200/60 bg-white p-5 transition-shadow hover:shadow-sm">
+    <div className="glass-card rounded-2xl p-5 transition-all duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", iconBg[variant])}>
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", iconBg[variant])}>
           <Icon className="h-5 w-5" />
         </div>
 
@@ -103,7 +103,7 @@ export function StatCard({
       {/* Progress Bar */}
       {progress && (
         <div className="mt-3">
-          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-slate-200/50 rounded-full overflow-hidden">
             <div
               className={cn("h-full rounded-full transition-all", progressColors[variant])}
               style={{ width: `${Math.min((progress.current / progress.total) * 100, 100)}%` }}

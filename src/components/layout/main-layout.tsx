@@ -33,8 +33,9 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
       />
 
       <div
-        className="transition-all duration-300"
-        style={{ paddingLeft: collapsed ? "3.5rem" : "16rem" }}
+        className={`transition-all duration-300 ${
+          collapsed ? "lg:pl-14" : "lg:pl-64"
+        }`}
       >
         <Header
           title={title}

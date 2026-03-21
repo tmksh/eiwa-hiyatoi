@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>注文確認書 - 栄和清運 日雇い管理システム開発</title>
+  <title>注文確認書 - 栄和清運 日雇い管理システム修繕</title>
   <style>
     * {
       margin: 0;
@@ -126,8 +126,13 @@
       font-weight: bold;
     }
 
+    table th.amount,
     table td.amount {
       text-align: right;
+      width: 200px;
+    }
+
+    table td.amount {
       font-family: "Helvetica Neue", Arial, sans-serif;
     }
 
@@ -214,6 +219,100 @@
       margin: 5px 0;
     }
 
+    /* SP対応 */
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 16px;
+        font-size: 13px;
+      }
+
+      .header {
+        margin-bottom: 24px;
+        padding-bottom: 14px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+        letter-spacing: 0.15em;
+      }
+
+      .doc-info {
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 20px;
+      }
+
+      .doc-info-right {
+        text-align: left;
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      .party-box {
+        padding: 14px;
+      }
+
+      .subject-box {
+        padding: 14px;
+        margin-bottom: 20px;
+      }
+
+      .subject-box h2 {
+        font-size: 16px;
+      }
+
+      table th,
+      table td {
+        padding: 8px 6px;
+        font-size: 12px;
+      }
+
+      table th:last-child,
+      table td:last-child {
+        width: auto;
+        min-width: 90px;
+      }
+
+      .content-list {
+        margin-left: 16px;
+      }
+
+      .signature-section.sp-stack {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .confirmation {
+        margin: 24px 0;
+        padding: 14px;
+      }
+
+      .signature-box {
+        padding: 20px;
+        min-height: 120px;
+      }
+
+      .seal-space {
+        width: 60px;
+        height: 60px;
+        font-size: 12px;
+      }
+
+      .footer-note {
+        margin-top: 24px;
+      }
+
+      .note-box {
+        padding: 12px;
+      }
+
+      .reference-link {
+        padding: 12px;
+      }
+    }
+
     @media print {
       body {
         padding: 0;
@@ -278,13 +377,13 @@
 
   <!-- 件名 -->
   <div class="subject-box">
-    <h2>栄和清運 日雇い管理システム開発</h2>
+    <h2>栄和清運 日雇い管理システム修繕</h2>
   </div>
 
-  <!-- 開発内容 -->
+  <!-- 修繕内容 -->
   <div class="section">
-    <h3 class="section-title">開発内容</h3>
-    <p>以下の機能を開発・提供いたします。</p>
+    <h3 class="section-title">修繕内容</h3>
+    <p>以下の機能を修繕・提供いたします。</p>
     <ol class="content-list">
       <li>日報入力機能（運転手用スマートフォン対応）</li>
       <li>承認ワークフロー（管理者による日報の承認・却下）</li>
@@ -306,12 +405,12 @@
       <thead>
         <tr>
           <th>項目</th>
-          <th style="width: 200px; text-align: right;">金額</th>
+          <th class="amount">金額</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>① コア業務機能開発<br><small>（従業員管理・勤怠・給与・社保税務・支払・マスタ等）</small></td>
+          <td>① コア業務機能修繕<br><small>（従業員管理・勤怠・給与・社保税務・支払・マスタ等）</small></td>
           <td class="amount">¥4,700,000</td>
         </tr>
         <tr>
@@ -319,7 +418,7 @@
           <td class="amount">¥2,400,000</td>
         </tr>
         <tr>
-          <td>③ SaaS基盤機能開発<br><small>（マルチテナント・認証認可・ロール権限・テナント管理）</small></td>
+          <td>③ SaaS基盤機能修繕<br><small>（マルチテナント・認証認可・ロール権限・テナント管理）</small></td>
           <td class="amount">¥2,150,000</td>
         </tr>
         <tr>
@@ -360,10 +459,10 @@
   <!-- 支払条件 -->
   <div class="section">
     <h3 class="section-title">支払条件</h3>
-    <p>着手前払い（開発着手前に全額お支払い）</p>
+    <p>着手前払い（修繕着手前に全額お支払い）</p>
     <ul class="content-list">
       <li>支払金額: ¥12,925,000（税込）</li>
-      <li>支払期限: 開発着手前</li>
+      <li>支払期限: 修繕着手前</li>
     </ul>
   </div>
 
@@ -375,8 +474,8 @@
       <p>仕様変更が発生した場合は、別途協議の上、納期・金額を調整させていただく場合がございます。</p>
     </div>
     <ul class="content-list">
-      <li>本見積はシステム開発費用のみを対象とし、サーバー・インフラ費用は含みません。</li>
-      <li>追加機能の開発については、本システムの運用後に別途協議・お見積りとさせていただきます。</li>
+      <li>本見積はシステム修繕費用のみを対象とし、サーバー・インフラ費用は含みません。</li>
+      <li>追加機能の修繕については、本システムの運用後に別途協議・お見積りとさせていただきます。</li>
     </ul>
   </div>
 
@@ -386,7 +485,7 @@
   </div>
 
   <!-- 署名欄 -->
-  <div class="signature-section" style="display: flex; gap: 30px;">
+  <div class="signature-section sp-stack" style="display: flex; gap: 30px;">
     <div style="flex: 1;">
       <h3 class="section-title">甲（発注者）</h3>
       <div class="signature-box">

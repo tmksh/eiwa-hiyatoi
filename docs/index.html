@@ -318,6 +318,10 @@
         padding: 0;
       }
 
+      .print-btn {
+        display: none;
+      }
+
       .section {
         page-break-inside: avoid;
         break-inside: avoid;
@@ -336,6 +340,12 @@
   </style>
 </head>
 <body>
+
+<div class="print-btn" style="position:fixed; top:16px; right:16px; z-index:999;">
+  <button onclick="window.print()" style="background:#c0392b; color:#fff; border:none; padding:10px 20px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    🖨 PDFとして保存
+  </button>
+</div>
 
 <div class="container">
 

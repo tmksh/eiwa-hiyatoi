@@ -350,10 +350,15 @@
 </head>
 <body>
 
-<div class="print-btn" style="position:fixed; top:16px; right:16px; z-index:999;">
-  <button onclick="window.print()" style="background:#c0392b; color:#fff; border:none; padding:10px 20px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+<div class="print-btn" style="position:fixed; top=16px; right:16px; z-index:999; text-align:right;">
+  <button onclick="window.print()" style="background:#1a1a1a; color:#fff; border:none; padding:10px 20px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
     🖨 PDFとして保存
   </button>
+  <div style="margin-top:6px; font-size:11px; color:#666; line-height:1.5;">
+    ※ 印刷ダイアログで<br>
+    「<strong>ヘッダーとフッター</strong>」の<br>
+    チェックを外してください
+  </div>
 </div>
 
 <div class="container">
@@ -436,7 +441,7 @@
     </ul>
 
     <div class="reference-link" style="margin-top:16px;">
-      <strong>システムURL:</strong><br>
+      <strong>テスト環境URL:</strong><br>
       <a href="https://eiwa-hiyatoi.netlify.app/" target="_blank">https://eiwa-hiyatoi.netlify.app/</a>
     </div>
   </div>

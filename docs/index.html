@@ -124,6 +124,8 @@
     table th {
       background: #f5f5f5;
       font-weight: bold;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     table th.amount,
@@ -138,16 +140,23 @@
 
     table tr.subtotal {
       background: #f0f0f0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     table tr.total {
-      background: #333;
+      background: #c0392b;
       color: #fff;
       font-weight: bold;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     table tr.total td {
-      border-color: #333;
+      border-color: #c0392b;
+      color: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     .note-box {

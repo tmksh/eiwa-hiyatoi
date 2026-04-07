@@ -1111,7 +1111,7 @@ export default function InsuranceStampsPage() {
               {([["all", "全員"], ["hiyatoi", "日雇い"], ["furikomi", "振り込み（継続雇用）"]] as const).map(([val, label]) => (
                 <button
                   key={val}
-                  onClick={() => { setPersonnelSubTab(val); setExpandedWorker(null); }}
+                  onClick={() => { setPersonnelSubTab(val); setEditingWorker(null); }}
                   className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                     personnelSubTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
@@ -1436,7 +1436,7 @@ export default function InsuranceStampsPage() {
               </Card>
             )}
 
-            {vehicleWageSubTab === "wage-rules" && (
+            {vehicleWageSubTab === "wage-rules" && (<>
               <Card>
                 <CardHeader>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1772,7 +1772,7 @@ export default function InsuranceStampsPage() {
                   </Dialog>
                 );
               })()}
-            )}
+            </>)}
           </div>
         )}
 

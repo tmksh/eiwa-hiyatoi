@@ -74,7 +74,7 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
                 <Truck className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-slate-800">日雇い管理</h1>
+                <h1 className="text-sm font-bold text-slate-800">賃金管理</h1>
                 <p className="text-[11px] text-slate-400">栄和清運株式会社</p>
               </div>
             </div>
@@ -142,7 +142,7 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
           {collapsed ? (
             <span className="text-[10px]">v1.0</span>
           ) : (
-            <span>日雇い管理システム v1.0.0</span>
+            <span>賃金管理システム v1.0.0</span>
           )}
         </div>
       </div>

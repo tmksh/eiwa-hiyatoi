@@ -184,53 +184,63 @@ function formatDecimal(value: number): string {
 }
 
 // --- 集計・分析 types & data ---
-type AggView = "personal" | "weekly" | "vehicle" | "dispatch";
+type AggView = "personal" | "vehicle" | "dispatch";
 
 type PersonalRow = {
-  name: string; affiliation: string; overtimePay: number; grossPay: number;
-  deductions: number; netPay: number; months: number[]; workDays: number;
-  overtimeHours: number; healthInsurance: number; pensionInsurance: number;
+  employeeCode: string; name: string; affiliation: string;
+  workDays: number; totalWorkHours: string; overtimeHoursStr: string;
+  basePay: number; additionalPay: number; otherLeaveAllowance: number;
+  accidentFreeAllowance: number; earlyAllowance: number;
+  overtimePay: number; overtimeSettlement: number; transportAllowance: number;
+  otherAllowance: number; grossPay: number;
+  socialInsuranceTotal: number; healthInsurance: number; pensionInsurance: number;
   employmentInsurance: number; incomeTax: number; residentTax: number;
+  deductions: number; netPay: number;
+  months: number[]; workDaysNum: number; overtimeHours: number;
 };
 const MONTH_LABELS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
-const DAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"] as const;
-const personalData: PersonalRow[] = [
-  { name: "守屋 繁巳",   affiliation: "新運転東京高円寺支部", overtimePay: 0,    grossPay: 16465, deductions: 8025,  netPay: 8440,  workDays: 1, overtimeHours: 0,   healthInsurance: 2244, pensionInsurance: 4026, employmentInsurance: 90,  incomeTax: 255, residentTax: 1410, months: [0,0,16465,0,0,0,0,0,0,0,0,0] },
-  { name: "山口 周郎",   affiliation: "新運転東京高円寺支部", overtimePay: 0,    grossPay: 17900, deductions: 7812,  netPay: 10088, workDays: 1, overtimeHours: 0,   healthInsurance: 2618, pensionInsurance: 4026, employmentInsurance: 98,  incomeTax: 310, residentTax: 760,  months: [0,0,17900,0,0,0,0,0,0,0,0,0] },
-  { name: "奥田 桂一郎", affiliation: "新運転東京高円寺支部", overtimePay: 5150, grossPay: 22850, deductions: 11826, netPay: 11024, workDays: 1, overtimeHours: 2.5, healthInsurance: 3332, pensionInsurance: 5124, employmentInsurance: 125, incomeTax: 565, residentTax: 2680, months: [0,0,22850,0,0,0,0,0,0,0,0,0] },
-  { name: "岡村 義一",   affiliation: "新運転東京高円寺支部", overtimePay: 4120, grossPay: 21820, deductions: 11971, netPay: 9849,  workDays: 1, overtimeHours: 2.0, healthInsurance: 3332, pensionInsurance: 5124, employmentInsurance: 120, incomeTax: 485, residentTax: 2910, months: [0,0,21820,0,0,0,0,0,0,0,0,0] },
-  { name: "伴 悦巳",     affiliation: "新運転東京高円寺支部", overtimePay: 0,    grossPay: 17700, deductions: 10486, netPay: 7214,  workDays: 1, overtimeHours: 0,   healthInsurance: 3154, pensionInsurance: 4850, employmentInsurance: 97,  incomeTax: 235, residentTax: 2150, months: [0,0,17700,0,0,0,0,0,0,0,0,0] },
-  { name: "寺久保 順一", affiliation: "クリーン労働組合",     overtimePay: 4168, grossPay: 17308, deductions: 5604,  netPay: 11704, workDays: 1, overtimeHours: 2.0, healthInsurance: 2023, pensionInsurance: 3111, employmentInsurance: 95,  incomeTax: 375, residentTax: 0,    months: [0,0,17308,0,0,0,0,0,0,0,0,0] },
-  { name: "金野 拓海",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 18000, deductions: 9609,  netPay: 8391,  workDays: 1, overtimeHours: 0,   healthInsurance: 2559, pensionInsurance: 4575, employmentInsurance: 90,  incomeTax: 275, residentTax: 2110, months: [0,0,18000,0,0,0,0,0,0,0,0,0] },
-  { name: "宮本 幸治",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 7515,  netPay: 5685,  workDays: 1, overtimeHours: 0,   healthInsurance: 2281, pensionInsurance: 3457, employmentInsurance: 72,  incomeTax: 155, residentTax: 1550, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "片岡 廉吉郎", affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 7063,  netPay: 6137,  workDays: 1, overtimeHours: 0,   healthInsurance: 2142, pensionInsurance: 3294, employmentInsurance: 72,  incomeTax: 165, residentTax: 1390, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "横山 郁生",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 18132, deductions: 10072, netPay: 8060,  workDays: 1, overtimeHours: 0,   healthInsurance: 2797, pensionInsurance: 4301, employmentInsurance: 99,  incomeTax: 285, residentTax: 2590, months: [0,0,18132,0,0,0,0,0,0,0,0,0] },
-  { name: "松田 弘",     affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 6029,  netPay: 7171,  workDays: 1, overtimeHours: 0,   healthInsurance: 1934, pensionInsurance: 2928, employmentInsurance: 72,  incomeTax: 185, residentTax: 910,  months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "宍戸 謙一",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 15175, deductions: 8185,  netPay: 6990,  workDays: 1, overtimeHours: 0,   healthInsurance: 2449, pensionInsurance: 3752, employmentInsurance: 74,  incomeTax: 210, residentTax: 1700, months: [0,0,15175,0,0,0,0,0,0,0,0,0] },
-  { name: "後藤田 伸志", affiliation: "クリーン労働組合",     overtimePay: 975,  grossPay: 14400, deductions: 7432,  netPay: 6968,  workDays: 1, overtimeHours: 0.5, healthInsurance: 2440, pensionInsurance: 3305, employmentInsurance: 72,  incomeTax: 195, residentTax: 1420, months: [0,0,14400,0,0,0,0,0,0,0,0,0] },
-  { name: "山田 裕一",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 16670, deductions: 8471,  netPay: 8199,  workDays: 1, overtimeHours: 0,   healthInsurance: 2975, pensionInsurance: 4575, employmentInsurance: 91,  incomeTax: 230, residentTax: 600,  months: [0,0,16670,0,0,0,0,0,0,0,0,0] },
-  { name: "多胡 弘",     affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 6531,  netPay: 6669,  workDays: 1, overtimeHours: 0,   healthInsurance: 2023, pensionInsurance: 3111, employmentInsurance: 72,  incomeTax: 175, residentTax: 1150, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "紅粉 浩幸",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 15150, deductions: 8120,  netPay: 7030,  workDays: 1, overtimeHours: 0,   healthInsurance: 2449, pensionInsurance: 3752, employmentInsurance: 74,  incomeTax: 205, residentTax: 1640, months: [0,0,15150,0,0,0,0,0,0,0,0,0] },
-  { name: "木松 憲義",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 16500, deductions: 8729,  netPay: 7771,  workDays: 1, overtimeHours: 0,   healthInsurance: 2618, pensionInsurance: 4026, employmentInsurance: 90,  incomeTax: 235, residentTax: 1760, months: [0,0,16500,0,0,0,0,0,0,0,0,0] },
-  { name: "實右 健太郎", affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 6983,  netPay: 6217,  workDays: 1, overtimeHours: 0,   healthInsurance: 2142, pensionInsurance: 3294, employmentInsurance: 72,  incomeTax: 165, residentTax: 1310, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "松中 義博",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 7083,  netPay: 6117,  workDays: 1, overtimeHours: 0,   healthInsurance: 2142, pensionInsurance: 3294, employmentInsurance: 72,  incomeTax: 165, residentTax: 1410, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "茂木 享夫",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 16500, deductions: 6924,  netPay: 9576,  workDays: 1, overtimeHours: 0,   healthInsurance: 2023, pensionInsurance: 3026, employmentInsurance: 75,  incomeTax: 400, residentTax: 1400, months: [0,0,16500,0,0,0,0,0,0,0,0,0] },
-  { name: "奥村 剛平",   affiliation: "クリーン労働組合",     overtimePay: 632,  grossPay: 17632, deductions: 8466,  netPay: 9166,  workDays: 1, overtimeHours: 0.5, healthInsurance: 2244, pensionInsurance: 4026, employmentInsurance: 96,  incomeTax: 310, residentTax: 1790, months: [0,0,17632,0,0,0,0,0,0,0,0,0] },
-  { name: "安田 晶平",   affiliation: "クリーン労働組合",     overtimePay: 315,  grossPay: 17316, deductions: 9208,  netPay: 8108,  workDays: 1, overtimeHours: 0.5, healthInsurance: 2397, pensionInsurance: 4301, employmentInsurance: 95,  incomeTax: 265, residentTax: 2150, months: [0,0,17316,0,0,0,0,0,0,0,0,0] },
-  { name: "矢野 巨介",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 18396, deductions: 9165,  netPay: 9231,  workDays: 1, overtimeHours: 0,   healthInsurance: 2618, pensionInsurance: 4026, employmentInsurance: 101, incomeTax: 340, residentTax: 2080, months: [0,0,18396,0,0,0,0,0,0,0,0,0] },
-  { name: "菊池 修平",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13200, deductions: 7962,  netPay: 5238,  workDays: 1, overtimeHours: 0,   healthInsurance: 2691, pensionInsurance: 3759, employmentInsurance: 72,  incomeTax: 150, residentTax: 1290, months: [0,0,13200,0,0,0,0,0,0,0,0,0] },
-  { name: "武田 俊也",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 16500, deductions: 8729,  netPay: 7771,  workDays: 1, overtimeHours: 0,   healthInsurance: 2618, pensionInsurance: 4026, employmentInsurance: 90,  incomeTax: 235, residentTax: 1760, months: [0,0,16500,0,0,0,0,0,0,0,0,0] },
-  { name: "松本 好史",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 16500, deductions: 8770,  netPay: 7730,  workDays: 1, overtimeHours: 0,   healthInsurance: 2244, pensionInsurance: 4026, employmentInsurance: 90,  incomeTax: 250, residentTax: 2160, months: [0,0,16500,0,0,0,0,0,0,0,0,0] },
-  { name: "濱口 剛仁",   affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 14820, deductions: 5286,  netPay: 9534,  workDays: 1, overtimeHours: 0,   healthInsurance: 1428, pensionInsurance: 2562, employmentInsurance: 81,  incomeTax: 390, residentTax: 825,  months: [0,0,14820,0,0,0,0,0,0,0,0,0] },
-  { name: "三浦 瑞",     affiliation: "クリーン労働組合",     overtimePay: 0,    grossPay: 13700, deductions: 6679,  netPay: 7021,  workDays: 1, overtimeHours: 0,   healthInsurance: 2023, pensionInsurance: 3111, employmentInsurance: 75,  incomeTax: 190, residentTax: 1280, months: [0,0,13700,0,0,0,0,0,0,0,0,0] },
+const _rawPersonal = [
+  { code:"1004",name:"守屋 繁巳",aff:"新運転東京高円寺支部",base:15360,addPay:1105,accFree:0,early:240,ot:0,otSettle:465,transport:400,otherAllow:0,gross:16465,hi:2244,pen:4026,emp:90,tax:255,res:1410,net:8440,ded:8025 },
+  { code:"1109",name:"山口 周郎",aff:"新運転東京高円寺支部",base:15360,addPay:2540,accFree:2140,early:0,ot:0,otSettle:0,transport:400,otherAllow:0,gross:17900,hi:2618,pen:4026,emp:98,tax:310,res:760,net:10088,ded:7812 },
+  { code:"1127",name:"奥田 桂一郎",aff:"新運転東京高円寺支部",base:15360,addPay:7490,accFree:1940,early:0,ot:5150,otSettle:0,transport:400,otherAllow:0,gross:22850,hi:3332,pen:5124,emp:125,tax:565,res:2680,net:11024,ded:11826 },
+  { code:"1159",name:"岡村 義一",aff:"新運転東京高円寺支部",base:15360,addPay:6460,accFree:1940,early:0,ot:4120,otSettle:0,transport:400,otherAllow:0,gross:21820,hi:3332,pen:5124,emp:120,tax:485,res:2910,net:9849,ded:11971 },
+  { code:"1180",name:"伴 悦巳",aff:"新運転東京高円寺支部",base:15360,addPay:2340,accFree:1940,early:0,ot:0,otSettle:0,transport:400,otherAllow:0,gross:17700,hi:3154,pen:4850,emp:97,tax:235,res:2150,net:7214,ded:10486 },
+  { code:"1512",name:"寺久保 順一",aff:"クリーン労働組合",base:10900,addPay:6408,accFree:1800,early:0,ot:4108,otSettle:0,transport:500,otherAllow:0,gross:17308,hi:2023,pen:3111,emp:95,tax:375,res:0,net:11704,ded:5604 },
+  { code:"1514",name:"金野 拓海",aff:"クリーン労働組合",base:10600,addPay:7400,accFree:500,early:0,ot:0,otSettle:0,transport:500,otherAllow:6400,gross:18000,hi:2559,pen:4575,emp:90,tax:275,res:2110,net:8391,ded:9609 },
+  { code:"1526",name:"宮本 幸治",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2281,pen:3457,emp:72,tax:155,res:1550,net:5685,ded:7515 },
+  { code:"1527",name:"片岡 廉吉郎",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2142,pen:3294,emp:72,tax:165,res:1390,net:6137,ded:7063 },
+  { code:"1534",name:"横山 郁生",aff:"クリーン労働組合",base:10600,addPay:7532,accFree:0,early:0,ot:0,otSettle:632,transport:500,otherAllow:6400,gross:18132,hi:2797,pen:4301,emp:99,tax:285,res:2590,net:8060,ded:10072 },
+  { code:"1541",name:"松田 弘",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1380,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:1934,pen:2928,emp:72,tax:185,res:910,net:7171,ded:6029 },
+  { code:"1546",name:"宍戸 謙一",aff:"クリーン労働組合",base:10900,addPay:4275,accFree:1800,early:0,ot:975,otSettle:0,transport:500,otherAllow:1000,gross:15175,hi:2449,pen:3752,emp:74,tax:210,res:1700,net:6990,ded:8185 },
+  { code:"1547",name:"後藤田 伸志",aff:"クリーン労働組合",base:10600,addPay:3800,accFree:0,early:0,ot:975,otSettle:0,transport:500,otherAllow:3300,gross:14400,hi:2440,pen:3305,emp:72,tax:195,res:1420,net:6968,ded:7432 },
+  { code:"1551",name:"山田 裕一",aff:"クリーン労働組合",base:16670,addPay:0,accFree:0,early:0,ot:0,otSettle:0,transport:0,otherAllow:0,gross:16670,hi:2975,pen:4575,emp:91,tax:230,res:600,net:8199,ded:8471 },
+  { code:"1557",name:"多胡 弘",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2023,pen:3111,emp:72,tax:175,res:1150,net:6669,ded:6531 },
+  { code:"1564",name:"紅粉 浩幸",aff:"クリーン労働組合",base:10900,addPay:4250,accFree:1800,early:0,ot:0,otSettle:1950,transport:500,otherAllow:0,gross:15150,hi:2449,pen:3752,emp:74,tax:205,res:1640,net:7030,ded:8120 },
+  { code:"1566",name:"木松 憲義",aff:"クリーン労働組合",base:10600,addPay:5900,accFree:0,early:0,ot:0,otSettle:0,transport:500,otherAllow:5400,gross:16500,hi:2618,pen:4026,emp:90,tax:235,res:1760,net:7771,ded:8729 },
+  { code:"1574",name:"實右 健太郎",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2142,pen:3294,emp:72,tax:165,res:1310,net:6217,ded:6983 },
+  { code:"1606",name:"松中 義博",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2142,pen:3294,emp:72,tax:165,res:1410,net:6117,ded:7083 },
+  { code:"1613",name:"茂木 享夫",aff:"クリーン労働組合",base:10600,addPay:5900,accFree:0,early:0,ot:0,otSettle:0,transport:500,otherAllow:5400,gross:16500,hi:2023,pen:3026,emp:75,tax:400,res:1400,net:9576,ded:6924 },
+  { code:"1623",name:"奥村 剛平",aff:"クリーン労働組合",base:10600,addPay:7032,accFree:0,early:0,ot:632,otSettle:0,transport:500,otherAllow:5900,gross:17632,hi:2244,pen:4026,emp:96,tax:310,res:1790,net:9166,ded:8466 },
+  { code:"1650",name:"安田 晶平",aff:"クリーン労働組合",base:10600,addPay:6716,accFree:0,early:0,ot:316,otSettle:0,transport:500,otherAllow:5900,gross:17316,hi:2397,pen:4301,emp:95,tax:265,res:2150,net:8108,ded:9208 },
+  { code:"1653",name:"矢野 巨介",aff:"クリーン労働組合",base:10600,addPay:7796,accFree:0,early:0,ot:1896,otSettle:0,transport:500,otherAllow:5400,gross:18396,hi:2618,pen:4026,emp:101,tax:340,res:2080,net:9231,ded:9165 },
+  { code:"1659",name:"菊池 修平",aff:"クリーン労働組合",base:10900,addPay:2300,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:0,gross:13200,hi:2691,pen:3759,emp:72,tax:150,res:1290,net:5238,ded:7962 },
+  { code:"1661",name:"武田 俊也",aff:"クリーン労働組合",base:10600,addPay:5900,accFree:0,early:0,ot:0,otSettle:0,transport:500,otherAllow:5400,gross:16500,hi:2618,pen:4026,emp:90,tax:235,res:1760,net:7771,ded:8729 },
+  { code:"1682",name:"松本 好史",aff:"クリーン労働組合",base:10600,addPay:5900,accFree:0,early:0,ot:0,otSettle:0,transport:500,otherAllow:5400,gross:16500,hi:2244,pen:4026,emp:90,tax:250,res:2160,net:7730,ded:8770 },
+  { code:"1701",name:"濱口 剛仁",aff:"クリーン労働組合",base:10900,addPay:3920,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:1620,gross:14820,hi:1428,pen:2562,emp:81,tax:390,res:825,net:9534,ded:5286 },
+  { code:"1725",name:"三浦 瑞",aff:"クリーン労働組合",base:10900,addPay:2800,accFree:1800,early:0,ot:0,otSettle:0,transport:500,otherAllow:500,gross:13700,hi:2023,pen:3111,emp:75,tax:190,res:1280,net:7021,ded:6679 },
 ];
-const weeklyData = [
-  { name: "山田 太郎", days: [14000, 14000, 14000, 14000, 14000, 0, 0] },
-  { name: "鈴木 一郎", days: [12500, 12500, 12500, 12500, 12500, 0, 0] },
-  { name: "佐藤 花子", days: [16000, 16000, 16000, 16000, 16000, 8000, 0] },
-  { name: "高橋 健二", days: [13500, 13500, 13500, 13500, 13500, 0, 0] },
-  { name: "田中 美咲", days: [10000, 10000, 10000, 10000, 10000, 0, 0] },
-];
+const personalData: PersonalRow[] = _rawPersonal.map(r => ({
+  employeeCode: r.code, name: r.name, affiliation: r.aff,
+  workDays: 1, totalWorkHours: "7:00", overtimeHoursStr: "0:00",
+  basePay: r.base, additionalPay: r.addPay, otherLeaveAllowance: 0,
+  accidentFreeAllowance: r.accFree, earlyAllowance: r.early,
+  overtimePay: r.ot, overtimeSettlement: r.otSettle, transportAllowance: r.transport,
+  otherAllowance: r.otherAllow, grossPay: r.gross,
+  socialInsuranceTotal: r.hi + r.pen + r.emp,
+  healthInsurance: r.hi, pensionInsurance: r.pen, employmentInsurance: r.emp,
+  incomeTax: r.tax, residentTax: r.res, deductions: r.ded, netPay: r.net,
+  months: [0,0,r.gross,0,0,0,0,0,0,0,0,0], workDaysNum: 1, overtimeHours: 0,
+}));
 type VehicleRow = {
   type: string; count: number; basicWage: number; holidayPay: number; safetyBonus: number;
   earlyPay: number; overtime: number; unpaidOvertime: number; unpaidOtherPay: number;
@@ -294,6 +304,8 @@ export default function CalculationsPage() {
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
   const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("支払明細");
   const [date, setDate] = useState<Date>(new Date());
+  const [periodFrom, setPeriodFrom] = useState("");
+  const [periodTo, setPeriodTo] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -312,6 +324,8 @@ export default function CalculationsPage() {
 
   // 集計・分析 states
   const [aggSearchQuery, setAggSearchQuery] = useState("");
+  const [aggPeriodFrom, setAggPeriodFrom] = useState("");
+  const [aggPeriodTo, setAggPeriodTo] = useState("");
   const [view, setView] = useState<AggView>("personal");
   const [selectedPerson, setSelectedPerson] = useState<PersonalRow | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleRow | null>(null);
@@ -363,7 +377,10 @@ export default function CalculationsPage() {
   const filteredResults = mockResults.filter((result) => {
     const matchesSearch = result.workerName.includes(searchQuery) || result.company.includes(searchQuery);
     const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const d = result.workDate;
+    const matchesFrom = !periodFrom || d >= new Date(periodFrom);
+    const matchesTo = !periodTo || d <= new Date(periodTo + "T23:59:59");
+    return matchesSearch && matchesStatus && matchesFrom && matchesTo;
   });
 
   const totalAmount = filteredResults.reduce((sum, r) => sum + r.totalWage, 0);
@@ -509,6 +526,16 @@ export default function CalculationsPage() {
                     <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
                   </PopoverContent>
                 </Popover>
+                <div className="flex items-center gap-1.5">
+                  <Input type="date" className="w-[140px] text-sm" value={periodFrom} onChange={(e) => setPeriodFrom(e.target.value)} />
+                  <span className="text-xs text-slate-400">〜</span>
+                  <Input type="date" className="w-[140px] text-sm" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
+                  {(periodFrom || periodTo) && (
+                    <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setPeriodFrom(""); setPeriodTo(""); }}>
+                      解除
+                    </Button>
+                  )}
+                </div>
                 <div className="relative flex-1 min-w-0 sm:max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input placeholder="作業員名・会社名で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
@@ -1026,7 +1053,7 @@ export default function CalculationsPage() {
             <div className="rounded-xl border border-slate-200/60 bg-white p-5">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-50 p-2"><Users className="h-5 w-5 text-blue-600" /></div>
-                <div><p className="text-sm text-slate-500">対象人数</p><p className="text-2xl font-semibold text-slate-900">28名</p></div>
+                <div><p className="text-sm text-slate-500">対象人数</p><p className="text-2xl font-semibold text-slate-900">{personalData.length}名</p></div>
               </div>
             </div>
             <div className="rounded-xl border border-slate-200/60 bg-white p-5">
@@ -1044,13 +1071,21 @@ export default function CalculationsPage() {
           </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="検索..." value={aggSearchQuery} onChange={(e) => setAggSearchQuery(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type="text" placeholder="作業員の名前で検索..." value={aggSearchQuery} onChange={(e) => setAggSearchQuery(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Input type="month" className="w-[150px] text-sm bg-white text-slate-900 [color-scheme:light]" value={aggPeriodFrom} onChange={(e) => setAggPeriodFrom(e.target.value)} />
+              <span className="text-xs text-slate-400">〜</span>
+              <Input type="month" className="w-[150px] text-sm bg-white text-slate-900 [color-scheme:light]" value={aggPeriodTo} onChange={(e) => setAggPeriodTo(e.target.value)} />
+              {(aggPeriodFrom || aggPeriodTo) && (
+                <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setAggPeriodFrom(""); setAggPeriodTo(""); }}>解除</Button>
+              )}
             </div>
             <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden">
-              {(["personal","dispatch","vehicle","weekly"] as AggView[]).map((v) => (
+              {(["personal","dispatch","vehicle"] as AggView[]).map((v) => (
                 <button key={v} onClick={() => setView(v)} className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${view === v ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}>
-                  {v === "personal" ? <><Users className="h-3.5 w-3.5" />個人別月別</> : v === "dispatch" ? <><Building2 className="h-3.5 w-3.5" />派遣先別</> : v === "vehicle" ? <><TruckIcon className="h-3.5 w-3.5" />車種別</> : <><CalendarLucide className="h-3.5 w-3.5" />週別</>}
+                  {v === "personal" ? <><Users className="h-3.5 w-3.5" />個人別月別</> : v === "dispatch" ? <><Building2 className="h-3.5 w-3.5" />供給元別</> : <><TruckIcon className="h-3.5 w-3.5" />車種別</>}
                 </button>
               ))}
             </div>
@@ -1061,48 +1096,39 @@ export default function CalculationsPage() {
             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["名前","所属元","残業手当","総支給額","差引支給額"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["残業手当","総支給額","差引支給額"].includes(h)?"text-right":"text-left"}`}>{h}</th>)}</tr></thead>
+                  <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["従業員CD","名前","所属元","本給","付加給","残業手当","交通費","総支給額","社保計","所得税","住民税","差引支給額"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["従業員CD","名前","所属元"].includes(h)?"text-left":"text-right"}`}>{h}</th>)}</tr></thead>
                   <tbody className="divide-y divide-slate-100">
-                    {personalData.filter(d=>d.name.includes(aggSearchQuery)||d.affiliation.includes(aggSearchQuery)).map((row,idx)=>(
+                    {personalData.filter(d=>d.name.includes(aggSearchQuery)).map((row,idx)=>(
                       <tr key={idx} className="hover:bg-blue-50/40 transition-colors cursor-pointer" onClick={()=>setSelectedPerson(row)}>
+                        <td className="px-3 sm:px-4 py-3 text-slate-400 font-mono text-xs whitespace-nowrap">{row.employeeCode}</td>
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-600 whitespace-nowrap">{row.affiliation}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.overtimePay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-600 whitespace-nowrap text-xs">{row.affiliation}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.basePay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.additionalPay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.overtimePay > 0 ? `¥${row.overtimePay.toLocaleString()}` : "—"}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.transportAllowance > 0 ? `¥${row.transportAllowance.toLocaleString()}` : "—"}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums font-semibold text-slate-900 whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-red-600 whitespace-nowrap text-xs">¥{row.socialInsuranceTotal.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-600 whitespace-nowrap text-xs">¥{row.incomeTax.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-600 whitespace-nowrap text-xs">{row.residentTax > 0 ? `¥${row.residentTax.toLocaleString()}` : "—"}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-blue-700 font-semibold whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot><tr className="border-t-2 border-slate-200 bg-slate-50">
-                    <td className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap">合計</td><td></td>
-                    <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{personalData.filter(d=>d.name.includes(aggSearchQuery)||d.affiliation.includes(aggSearchQuery)).reduce((s,r)=>s+r.overtimePay,0).toLocaleString()}</td>
-                    <td className="px-3 sm:px-4 py-3 text-right text-xs font-bold text-slate-900 font-mono tabular-nums whitespace-nowrap">¥{personalData.filter(d=>d.name.includes(aggSearchQuery)||d.affiliation.includes(aggSearchQuery)).reduce((s,r)=>s+r.grossPay,0).toLocaleString()}</td>
-                    <td className="px-3 sm:px-4 py-3 text-right text-xs font-bold text-blue-700 font-mono tabular-nums whitespace-nowrap">¥{personalData.filter(d=>d.name.includes(aggSearchQuery)||d.affiliation.includes(aggSearchQuery)).reduce((s,r)=>s+r.netPay,0).toLocaleString()}</td>
+                    {(() => { const fd = personalData.filter(d=>d.name.includes(aggSearchQuery)); return (<>
+                      <td className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap" colSpan={3}>合計 ({fd.length}名)</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.basePay,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.additionalPay,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.overtimePay,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.transportAllowance,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-bold text-slate-900 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.grossPay,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-red-600 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.socialInsuranceTotal,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-600 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.incomeTax,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-slate-600 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.residentTax,0).toLocaleString()}</td>
+                      <td className="px-3 sm:px-4 py-3 text-right text-xs font-bold text-blue-700 font-mono tabular-nums whitespace-nowrap">¥{fd.reduce((s,r)=>s+r.netPay,0).toLocaleString()}</td>
+                    </>); })()}
                   </tr></tfoot>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {view === "weekly" && (
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="border-b border-slate-100 bg-slate-50/50">
-                    <th className="sticky left-0 z-10 bg-slate-50/90 px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
-                    {DAY_LABELS.map(d=><th key={d} className={`px-3 py-3 text-right text-xs font-medium whitespace-nowrap ${d==="土"?"text-blue-500":d==="日"?"text-red-400":"text-slate-500"}`}>{d}</th>)}
-                    <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">週合計</th>
-                  </tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {weeklyData.filter(d=>d.name.includes(aggSearchQuery)).map((row,idx)=>{
-                      const total = row.days.reduce((s,v)=>s+v,0);
-                      return (<tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="sticky left-0 z-10 bg-white px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        {row.days.map((v,i)=><td key={i} className={`px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap ${v===0?"text-slate-300":"text-slate-700"}`}>{v===0?"—":`¥${v.toLocaleString()}`}</td>)}
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">¥{total.toLocaleString()}</td>
-                      </tr>);
-                    })}
-                  </tbody>
                 </table>
               </div>
             </div>
@@ -1112,15 +1138,19 @@ export default function CalculationsPage() {
             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["車種","基本給","残業","総支給額","差引支給額","社保会社"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${h==="車種"?"text-left":"text-right"}`}>{h}</th>)}</tr></thead>
+                  <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["車種","人数","基本給","無事故手当","残業","総支給額","社保","所得税","差引支給額","社保会社"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${h==="車種"?"text-left":"text-right"}`}>{h}</th>)}</tr></thead>
                   <tbody className="divide-y divide-slate-100">
                     {vehicleData.map((row,idx)=>{
                       const r = vehicleEdits[row.type] ?? row;
                       return (<tr key={idx} className="hover:bg-blue-50/40 transition-colors cursor-pointer" onClick={()=>setSelectedVehicle(r)}>
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{r.type}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{r.count}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{r.basicWage.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{r.overtime>0?`¥${r.overtime.toLocaleString()}`:"—"}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{r.safetyBonus > 0 ? `¥${r.safetyBonus.toLocaleString()}` : "—"}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{r.overtime > 0 ? `¥${r.overtime.toLocaleString()}` : "—"}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono font-semibold tabular-nums text-slate-900 whitespace-nowrap">¥{r.grossPay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-red-600 whitespace-nowrap text-xs">¥{r.socialInsurance.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-600 whitespace-nowrap text-xs">¥{r.incomeTax.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono font-semibold tabular-nums text-blue-700 whitespace-nowrap">¥{r.netPay.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{r.companyInsurance.toLocaleString()}</td>
                       </tr>);
@@ -1134,7 +1164,7 @@ export default function CalculationsPage() {
           {view === "dispatch" && (
             <>
               <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-slate-200/60 bg-white p-5"><div className="flex items-center gap-3"><div className="rounded-lg bg-blue-50 p-2"><Building2 className="h-5 w-5 text-blue-600" /></div><div><p className="text-sm text-slate-500">派遣先数</p><p className="text-2xl font-semibold text-slate-900">{mockDispatchData.length}</p></div></div></div>
+                <div className="rounded-xl border border-slate-200/60 bg-white p-5"><div className="flex items-center gap-3"><div className="rounded-lg bg-blue-50 p-2"><Building2 className="h-5 w-5 text-blue-600" /></div><div><p className="text-sm text-slate-500">供給元数</p><p className="text-2xl font-semibold text-slate-900">{mockDispatchData.length}</p></div></div></div>
                 <div className="rounded-xl border border-slate-200/60 bg-white p-5"><div className="flex items-center gap-3"><div className="rounded-lg bg-slate-100 p-2"><Users className="h-5 w-5 text-slate-600" /></div><div><p className="text-sm text-slate-500">配置人数</p><p className="text-2xl font-semibold text-slate-900">{dispatchTotalWorkers}名</p></div></div></div>
                 <div className="rounded-xl border border-slate-200/60 bg-white p-5"><div className="flex items-center gap-3"><div className="rounded-lg bg-blue-50 p-2"><TruckIcon className="h-5 w-5 text-blue-600" /></div><div><p className="text-sm text-slate-500">総稼働日数</p><p className="text-2xl font-semibold text-slate-900">28日</p></div></div></div>
                 <div className="rounded-xl border border-slate-200/60 bg-white p-5"><div className="flex items-center gap-3"><div className="rounded-lg bg-slate-100 p-2"><Banknote className="h-5 w-5 text-slate-600" /></div><div><p className="text-sm text-slate-500">賃金総額</p><p className="text-2xl font-semibold text-slate-900">¥{(dispatchTotalWage/10000).toFixed(0)}万</p></div></div></div>
@@ -1142,17 +1172,17 @@ export default function CalculationsPage() {
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
                 <div className="relative flex-1 max-w-xs">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="派遣先・氏名で検索..." value={dispatchSearch} onChange={(e)=>setDispatchSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                  <input type="text" placeholder="供給元・氏名で検索..." value={dispatchSearch} onChange={(e)=>setDispatchSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
                 </div>
                 <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden">
-                  <button onClick={()=>setDispatchView("summary")} className={`px-3 py-2 text-sm font-medium transition-colors ${dispatchView==="summary"?"bg-blue-50 text-blue-700":"text-slate-600 hover:bg-slate-50"}`}>派遣先別</button>
+                  <button onClick={()=>setDispatchView("summary")} className={`px-3 py-2 text-sm font-medium transition-colors ${dispatchView==="summary"?"bg-blue-50 text-blue-700":"text-slate-600 hover:bg-slate-50"}`}>供給元別</button>
                   <button onClick={()=>setDispatchView("detail")} className={`px-3 py-2 text-sm font-medium transition-colors ${dispatchView==="detail"?"bg-blue-50 text-blue-700":"text-slate-600 hover:bg-slate-50"}`}>個人別</button>
                 </div>
               </div>
               {dispatchView === "summary" && (
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto"><table className="w-full text-sm">
-                    <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["派遣先","人数","延べ日数","平均日当","賃金合計","対象月"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["人数","延べ日数","平均日当","賃金合計"].includes(h)?"text-right":"text-left"}`}>{h}</th>)}</tr></thead>
+                    <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["供給元","人数","延べ日数","平均日当","賃金合計","対象月"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["人数","延べ日数","平均日当","賃金合計"].includes(h)?"text-right":"text-left"}`}>{h}</th>)}</tr></thead>
                     <tbody className="divide-y divide-slate-100">{filteredDispatchSummary.map(row=><tr key={row.id} className="hover:bg-slate-50/50 transition-colors"><td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.destination}</td><td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.workerCount}</td><td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.workDays}</td><td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.avgDailyRate.toLocaleString()}</td><td className="px-3 sm:px-4 py-3 text-right font-mono font-medium tabular-nums text-slate-900 whitespace-nowrap">¥{row.totalWage.toLocaleString()}</td><td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td></tr>)}</tbody>
                   </table></div>
                 </div>
@@ -1160,7 +1190,7 @@ export default function CalculationsPage() {
               {dispatchView === "detail" && (
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto"><table className="w-full text-sm">
-                    <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["作業員名","派遣先","車種","日数","日当","合計"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["日数","日当","合計"].includes(h)?"text-right":"text-left"}`}>{h}</th>)}</tr></thead>
+                    <thead><tr className="border-b border-slate-100 bg-slate-50/50">{["作業員名","供給元","車種","日数","日当","合計"].map(h=><th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["日数","日当","合計"].includes(h)?"text-right":"text-left"}`}>{h}</th>)}</tr></thead>
                     <tbody className="divide-y divide-slate-100">{filteredDispatchDetail.map((row,idx)=><tr key={idx} className="hover:bg-slate-50/50 transition-colors"><td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td><td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.destination}</td><td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.vehicleType}</td><td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.days}</td><td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.dailyRate.toLocaleString()}</td><td className="px-3 sm:px-4 py-3 text-right font-mono font-medium tabular-nums text-slate-900 whitespace-nowrap">¥{row.total.toLocaleString()}</td></tr>)}</tbody>
                   </table></div>
                 </div>
@@ -1233,34 +1263,51 @@ export default function CalculationsPage() {
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-semibold text-slate-900">{selectedVehicle?.type} — 賃金詳細</DialogTitle>
+              <DialogTitle className="text-base font-semibold text-slate-900">{selectedVehicle?.type} — 車種別賃金詳細</DialogTitle>
               {!editingVehicle && <button onClick={()=>setEditingVehicle(selectedVehicle?{...selectedVehicle}:null)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors mr-6"><Pencil className="h-3.5 w-3.5" />編集</button>}
             </div>
           </DialogHeader>
           {selectedVehicle && !editingVehicle && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg bg-slate-50 p-3"><p className="text-xs text-slate-500 mb-1">人数</p><p className="text-sm font-medium text-slate-900">{selectedVehicle.count}名</p></div>
+                <div className="rounded-lg bg-slate-50 p-3"><p className="text-xs text-slate-500 mb-1">総支給額</p><p className="text-sm font-semibold text-slate-900">¥{selectedVehicle.grossPay.toLocaleString()}</p></div>
                 <div className="rounded-lg bg-blue-50 p-3"><p className="text-xs text-slate-500 mb-1">差引支給額</p><p className="text-sm font-bold text-blue-700">¥{selectedVehicle.netPay.toLocaleString()}</p></div>
               </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-                <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
-                  <tr><td className="px-4 py-2.5 text-slate-600">基本給</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-900">¥{selectedVehicle.basicWage.toLocaleString()}</td></tr>
-                  <tr><td className="px-4 py-2.5 text-slate-600">無事故手当</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-900">{selectedVehicle.safetyBonus>0?`¥${selectedVehicle.safetyBonus.toLocaleString()}`:"—"}</td></tr>
-                  <tr><td className="px-4 py-2.5 text-slate-600">残業</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-900">{selectedVehicle.overtime>0?`¥${selectedVehicle.overtime.toLocaleString()}`:"—"}</td></tr>
-                  <tr><td className="px-4 py-2.5 text-slate-600">交通費</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-900">¥{selectedVehicle.transport.toLocaleString()}</td></tr>
-                  <tr className="bg-slate-50"><td className="px-4 py-2.5 text-slate-700 font-medium">総支給額</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-900 font-semibold">¥{selectedVehicle.grossPay.toLocaleString()}</td></tr>
-                  <tr className="bg-red-50/40"><td className="px-4 py-2.5 text-slate-600 pl-6 text-xs">└ 社保（本人）</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedVehicle.socialInsurance.toLocaleString()}</td></tr>
-                  <tr className="bg-red-50/40"><td className="px-4 py-2.5 text-slate-600 pl-6 text-xs">└ 源泉税</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedVehicle.incomeTax.toLocaleString()}</td></tr>
-                  <tr className="border-t-2 border-slate-200 bg-blue-50/30"><td className="px-4 py-3 text-slate-900 font-semibold">差引支給額</td><td className="px-4 py-3 text-right font-mono tabular-nums text-blue-700 font-bold text-base">¥{selectedVehicle.netPay.toLocaleString()}</td></tr>
-                  <tr className="bg-slate-50"><td className="px-4 py-2.5 text-slate-600">社保会社負担</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-700">¥{selectedVehicle.companyInsurance.toLocaleString()}</td></tr>
-                </tbody></table>
+              <div>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">支給内訳</p>
+                <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                  <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">基本給</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">¥{selectedVehicle.basicWage.toLocaleString()}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">休日手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.holidayPay > 0 ? `¥${selectedVehicle.holidayPay.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">無事故手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.safetyBonus > 0 ? `¥${selectedVehicle.safetyBonus.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">早出手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.earlyPay > 0 ? `¥${selectedVehicle.earlyPay.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">残業手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.overtime > 0 ? `¥${selectedVehicle.overtime.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">残業精算額（未払残業）</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.unpaidOvertime > 0 ? `¥${selectedVehicle.unpaidOvertime.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">その他手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.unpaidOtherPay > 0 ? `¥${selectedVehicle.unpaidOtherPay.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">交通費</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedVehicle.transport > 0 ? `¥${selectedVehicle.transport.toLocaleString()}` : "—"}</td></tr>
+                    <tr className="bg-slate-50"><td className="px-4 py-2 text-slate-700 font-medium text-xs">総支給額</td><td className="px-4 py-2 text-right font-mono tabular-nums font-semibold text-slate-900 text-xs">¥{selectedVehicle.grossPay.toLocaleString()}</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">控除内訳</p>
+                <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                  <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
+                    <tr className="bg-red-50/40"><td className="px-4 py-2 text-slate-600 text-xs">社保（本人）</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedVehicle.socialInsurance.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/40"><td className="px-4 py-2 text-slate-600 text-xs">所得税</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedVehicle.incomeTax.toLocaleString()}</td></tr>
+                    {selectedVehicle.otherDeduct > 0 && <tr className="bg-red-50/40"><td className="px-4 py-2 text-slate-600 text-xs">その他控除</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedVehicle.otherDeduct.toLocaleString()}</td></tr>}
+                    <tr className="bg-red-50/60"><td className="px-4 py-2 text-slate-600 text-xs font-medium">控除合計</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-700 font-semibold text-xs">−¥{(selectedVehicle.socialInsurance + selectedVehicle.incomeTax + selectedVehicle.otherDeduct).toLocaleString()}</td></tr>
+                    <tr className="border-t-2 border-slate-200 bg-blue-50/30"><td className="px-4 py-2.5 text-slate-900 font-semibold text-sm">差引支給額</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-blue-700 font-bold text-sm">¥{selectedVehicle.netPay.toLocaleString()}</td></tr>
+                    <tr className="bg-slate-50"><td className="px-4 py-2 text-slate-600 text-xs">社保会社負担</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-700 text-xs">¥{selectedVehicle.companyInsurance.toLocaleString()}</td></tr>
+                  </tbody></table>
+                </div>
               </div>
             </div>
           )}
           {editingVehicle && (
             <div className="space-y-4">
-              {(([["基本給","basicWage"],["無事故手当","safetyBonus"],["残業","overtime"],["交通費","transport"],["総支給額","grossPay"],["社保（本人）","socialInsurance"],["源泉税","incomeTax"],["差引支給額","netPay"],["社保会社負担","companyInsurance"]] as [string, keyof VehicleRow][]).map(([label,field])=>(
+              {(([["基本給","basicWage"],["休日手当","holidayPay"],["無事故手当","safetyBonus"],["早出手当","earlyPay"],["残業","overtime"],["残業精算額","unpaidOvertime"],["その他手当","unpaidOtherPay"],["交通費","transport"],["総支給額","grossPay"],["社保（本人）","socialInsurance"],["所得税","incomeTax"],["差引支給額","netPay"],["社保会社負担","companyInsurance"]] as [string, keyof VehicleRow][]).map(([label,field])=>(
                 <div key={field} className="flex items-center gap-3">
                   <label className="w-40 text-sm text-slate-600 flex-shrink-0">{label}</label>
                   <div className="flex-1 relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span><input type="number" value={editingVehicle[field] as number} onChange={(e)=>setEditingVehicle(prev=>prev?{...prev,[field]:Number(e.target.value)}:null)} className="w-full rounded-lg border border-slate-200 py-2 pl-7 pr-3 text-sm text-slate-900 text-right font-mono focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" /></div>
@@ -1277,26 +1324,43 @@ export default function CalculationsPage() {
 
       {/* 個人別詳細ポップアップ */}
       <Dialog open={!!selectedPerson} onOpenChange={()=>setSelectedPerson(null)}>
-        <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="text-base font-semibold text-slate-900">{selectedPerson?.name} — 個人別賃金詳細</DialogTitle></DialogHeader>
           {selectedPerson && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">従業員CD</p><p className="text-xs font-medium text-slate-900 font-mono">{selectedPerson.employeeCode}</p></div>
                 <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">所属元</p><p className="text-xs font-medium text-slate-900 leading-tight">{selectedPerson.affiliation}</p></div>
-                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">出勤日数</p><p className="text-xs font-medium text-slate-900">{selectedPerson.workDays}日</p></div>
-                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">残業時間</p><p className="text-xs font-medium text-slate-900">{selectedPerson.overtimeHours}h</p></div>
+                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">稼働日数</p><p className="text-xs font-medium text-slate-900">{selectedPerson.workDays}日</p></div>
+                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500 mb-0.5">総労働時間</p><p className="text-xs font-medium text-slate-900">{selectedPerson.totalWorkHours}</p></div>
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">支給・控除</p>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">支給内訳</p>
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
-                    <tr><td className="px-4 py-2 text-slate-600 text-xs">残業手当</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">{selectedPerson.overtimePay>0?`¥${selectedPerson.overtimePay.toLocaleString()}`:"—"}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">本給（基本給）</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">¥{selectedPerson.basePay.toLocaleString()}</td></tr>
+                    <tr><td className="px-4 py-2 text-slate-600 text-xs">付加給</td><td className="px-4 py-2 text-right font-mono tabular-nums text-slate-900 text-xs">¥{selectedPerson.additionalPay.toLocaleString()}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 他控除 休日手当</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.otherLeaveAllowance > 0 ? `¥${selectedPerson.otherLeaveAllowance.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 無事故手当</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.accidentFreeAllowance > 0 ? `¥${selectedPerson.accidentFreeAllowance.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 早出手当</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.earlyAllowance > 0 ? `¥${selectedPerson.earlyAllowance.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 残業手当</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.overtimePay > 0 ? `¥${selectedPerson.overtimePay.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 残業精算額（前月/当月分）</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.overtimeSettlement > 0 ? `¥${selectedPerson.overtimeSettlement.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 交通費</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.transportAllowance > 0 ? `¥${selectedPerson.transportAllowance.toLocaleString()}` : "—"}</td></tr>
+                    <tr><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ その他手当</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-slate-700 text-xs">{selectedPerson.otherAllowance > 0 ? `¥${selectedPerson.otherAllowance.toLocaleString()}` : "—"}</td></tr>
                     <tr className="bg-slate-50/50"><td className="px-4 py-2 text-slate-700 font-medium text-xs">総支給額</td><td className="px-4 py-2 text-right font-mono tabular-nums font-semibold text-slate-900 text-xs">¥{selectedPerson.grossPay.toLocaleString()}</td></tr>
-                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 健康保険</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.healthInsurance.toLocaleString()}</td></tr>
-                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 厚生年金</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.pensionInsurance.toLocaleString()}</td></tr>
-                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 雇用保険</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.employmentInsurance.toLocaleString()}</td></tr>
-                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 源泉税</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.incomeTax.toLocaleString()}</td></tr>
-                    {selectedPerson.residentTax>0&&<tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 住民税</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.residentTax.toLocaleString()}</td></tr>}
+                  </tbody></table>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">控除内訳（社保・税）</p>
+                <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                  <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
+                    <tr className="bg-red-50/40"><td className="px-4 py-2 text-slate-600 text-xs font-medium">社保険料 小計</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-700 font-semibold text-xs">−¥{selectedPerson.socialInsuranceTotal.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/20"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 健康保険料</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.healthInsurance.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/20"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 厚生年金</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.pensionInsurance.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/20"><td className="px-4 py-1.5 text-slate-500 pl-6 text-xs">└ 雇用保険料</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.employmentInsurance.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-600 text-xs">所得税</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">−¥{selectedPerson.incomeTax.toLocaleString()}</td></tr>
+                    <tr className="bg-red-50/40"><td className="px-4 py-1.5 text-slate-600 text-xs">住民税</td><td className="px-4 py-1.5 text-right font-mono tabular-nums text-red-600 text-xs">{selectedPerson.residentTax > 0 ? `−¥${selectedPerson.residentTax.toLocaleString()}` : "—"}</td></tr>
                     <tr className="bg-red-50/60"><td className="px-4 py-2 text-slate-600 text-xs font-medium">控除合計</td><td className="px-4 py-2 text-right font-mono tabular-nums text-red-700 font-semibold text-xs">−¥{selectedPerson.deductions.toLocaleString()}</td></tr>
                     <tr className="border-t-2 border-slate-200 bg-blue-50/30"><td className="px-4 py-2.5 text-slate-900 font-semibold text-sm">差引支給額</td><td className="px-4 py-2.5 text-right font-mono tabular-nums text-blue-700 font-bold text-sm">¥{selectedPerson.netPay.toLocaleString()}</td></tr>
                   </tbody></table>

@@ -94,8 +94,11 @@ const mockCompanies = [
   { id: "3", name: "C配送センター" },
 ];
 
+type Worker = typeof mockWorkers[0];
+
 export default function WorkersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredWorkers = mockWorkers.filter(
@@ -230,7 +233,7 @@ export default function WorkersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingWorker(worker)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -247,6 +250,63 @@ export default function WorkersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={!!editingWorker} onOpenChange={(open) => !open && setEditingWorker(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>作業員を編集</DialogTitle>
+            <DialogDescription>
+              {editingWorker?.name} の情報を編集します
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-empcode">従業員番号</Label>
+              <Input id="edit-empcode" defaultValue={editingWorker?.employeeCode} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-wname">氏名</Label>
+                <Input id="edit-wname" defaultValue={editingWorker?.name} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-wkana">フリガナ</Label>
+                <Input id="edit-wkana" defaultValue={editingWorker?.nameKana} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>主な派遣先</Label>
+              <Select defaultValue={editingWorker?.defaultCompany}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {mockCompanies.map((company) => (
+                    <SelectItem key={company.id} value={company.name}>{company.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-phone">電話番号</Label>
+              <Input id="edit-phone" defaultValue={editingWorker?.phone} />
+            </div>
+            <div className="grid gap-2">
+              <Label>状態</Label>
+              <Select defaultValue={editingWorker?.isActive ? "active" : "inactive"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">有効</SelectItem>
+                  <SelectItem value="inactive">無効</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingWorker(null)}>キャンセル</Button>
+            <Button onClick={() => setEditingWorker(null)}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

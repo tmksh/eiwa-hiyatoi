@@ -11,6 +11,17 @@ import {
   Train,
   Wrench,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type MasterType = "supplier" | "earlyShift" | "transport" | "workType";
 
@@ -49,9 +60,16 @@ const workTypeData = [
   { id: 4, code: "WT04", name: "運転業務", category: "運転", note: "長距離運搬" },
 ];
 
+type EditTarget =
+  | { type: "supplier"; data: typeof supplierData[0] }
+  | { type: "earlyShift"; data: typeof earlyShiftData[0] }
+  | { type: "transport"; data: typeof transportData[0] }
+  | { type: "workType"; data: typeof workTypeData[0] };
+
 export default function GeneralMasterPage() {
   const [activeMaster, setActiveMaster] = useState<MasterType>("supplier");
   const [searchQuery, setSearchQuery] = useState("");
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
 
   return (
     <MainLayout title="マスタ管理">
@@ -139,7 +157,7 @@ export default function GeneralMasterPage() {
                       </span>
                     </td>
                     <td className="px-3 sm:px-4 py-3">
-                      <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <button onClick={() => setEditTarget({ type: "supplier", data: row })} className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
                     </td>
@@ -171,7 +189,7 @@ export default function GeneralMasterPage() {
                     <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.allowance.toLocaleString()}</td>
                     <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
                     <td className="px-3 sm:px-4 py-3">
-                      <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <button onClick={() => setEditTarget({ type: "earlyShift", data: row })} className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
                     </td>
@@ -203,7 +221,7 @@ export default function GeneralMasterPage() {
                     <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.amount.toLocaleString()}</td>
                     <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
                     <td className="px-3 sm:px-4 py-3">
-                      <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <button onClick={() => setEditTarget({ type: "transport", data: row })} className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
                     </td>
@@ -239,7 +257,7 @@ export default function GeneralMasterPage() {
                     </td>
                     <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs">{row.note}</td>
                     <td className="px-3 sm:px-4 py-3">
-                      <button className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <button onClick={() => setEditTarget({ type: "workType", data: row })} className="rounded-md p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <Pencil className="h-4 w-4" />
                       </button>
                     </td>
@@ -250,6 +268,67 @@ export default function GeneralMasterPage() {
           </div>
         )}
       </div>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editTarget?.type === "supplier"   && "供給先を編集"}
+              {editTarget?.type === "earlyShift" && "早出設定を編集"}
+              {editTarget?.type === "transport"  && "交通費を編集"}
+              {editTarget?.type === "workType"   && "作業区分を編集"}
+            </DialogTitle>
+            <DialogDescription>各項目を編集して保存してください</DialogDescription>
+          </DialogHeader>
+
+          {editTarget?.type === "supplier" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2"><Label>コード</Label><Input defaultValue={editTarget.data.code} /></div>
+                <div className="grid gap-2"><Label>名称</Label><Input defaultValue={editTarget.data.name} /></div>
+              </div>
+              <div className="grid gap-2"><Label>住所</Label><Input defaultValue={editTarget.data.address} /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2"><Label>担当者</Label><Input defaultValue={editTarget.data.contactPerson} /></div>
+                <div className="grid gap-2"><Label>電話番号</Label><Input defaultValue={editTarget.data.phone} /></div>
+              </div>
+            </div>
+          )}
+
+          {editTarget?.type === "earlyShift" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2"><Label>コード</Label><Input defaultValue={editTarget.data.code} /></div>
+              <div className="grid gap-2"><Label>時間帯</Label><Input defaultValue={editTarget.data.timeRange} /></div>
+              <div className="grid gap-2"><Label>手当額（円）</Label><Input type="number" defaultValue={editTarget.data.allowance} /></div>
+              <div className="grid gap-2"><Label>備考</Label><Input defaultValue={editTarget.data.note} /></div>
+            </div>
+          )}
+
+          {editTarget?.type === "transport" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2"><Label>コード</Label><Input defaultValue={editTarget.data.code} /></div>
+              <div className="grid gap-2"><Label>路線/方面</Label><Input defaultValue={editTarget.data.route} /></div>
+              <div className="grid gap-2"><Label>交通費（円）</Label><Input type="number" defaultValue={editTarget.data.amount} /></div>
+              <div className="grid gap-2"><Label>備考</Label><Input defaultValue={editTarget.data.note} /></div>
+            </div>
+          )}
+
+          {editTarget?.type === "workType" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2"><Label>コード</Label><Input defaultValue={editTarget.data.code} /></div>
+              <div className="grid gap-2"><Label>区分名</Label><Input defaultValue={editTarget.data.name} /></div>
+              <div className="grid gap-2"><Label>カテゴリ</Label><Input defaultValue={editTarget.data.category} /></div>
+              <div className="grid gap-2"><Label>備考</Label><Input defaultValue={editTarget.data.note} /></div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>キャンセル</Button>
+            <Button onClick={() => setEditTarget(null)}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

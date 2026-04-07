@@ -81,6 +81,8 @@ export default function DailyReportsPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Report>>({});
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch = report.workerName.includes(searchQuery) || report.company.includes(searchQuery);
@@ -109,6 +111,19 @@ export default function DailyReportsPage() {
     setSelectedReportId(null);
     setRejectionReason("");
     toast.success("日報を却下しました");
+  };
+
+  const openEditDialog = (report: Report) => {
+    setEditingReport(report);
+    setEditForm({ ...report });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingReport) return;
+    setReports(prev => prev.map(r => r.id === editingReport.id ? { ...r, ...editForm } as Report : r));
+    setEditingReport(null);
+    setEditForm({});
+    toast.success("日報を更新しました");
   };
 
   const pendingCount = reports.filter(r => r.status === "submitted").length;
@@ -227,9 +242,7 @@ export default function DailyReportsPage() {
                               </Button>
                             </>
                           )}
-                          <Link href={`/daily-reports/${report.id}/edit`}>
-                            <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                          </Link>
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(report)}><Pencil className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -249,6 +262,7 @@ export default function DailyReportsPage() {
         </Card>
       </div>
 
+      {/* 却下ダイアログ */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -264,6 +278,92 @@ export default function DailyReportsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>キャンセル</Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>却下する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 日報編集ダイアログ */}
+      <Dialog open={!!editingReport} onOpenChange={(open) => !open && setEditingReport(null)}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>日報を編集</DialogTitle>
+            <DialogDescription>
+              {editingReport && format(editingReport.workDate, "M月d日", { locale: ja })} — {editingReport?.workerName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>作業員名</Label>
+                <Input value={editForm.workerName ?? ""} onChange={(e) => setEditForm(f => ({ ...f, workerName: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>会社</Label>
+                <Select value={editForm.company ?? ""} onValueChange={(v) => setEditForm(f => ({ ...f, company: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A運輸株式会社">A運輸株式会社</SelectItem>
+                    <SelectItem value="B物流株式会社">B物流株式会社</SelectItem>
+                    <SelectItem value="C配送センター">C配送センター</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>車種</Label>
+                <Select value={editForm.vehicleType ?? ""} onValueChange={(v) => setEditForm(f => ({ ...f, vehicleType: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2t">2tトラック</SelectItem>
+                    <SelectItem value="4t">4tトラック</SelectItem>
+                    <SelectItem value="10t">10tトラック</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>作業区分</Label>
+                <Select value={editForm.category ?? ""} onValueChange={(v) => setEditForm(f => ({ ...f, category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="運搬">運搬</SelectItem>
+                    <SelectItem value="荷揚げ">荷揚げ</SelectItem>
+                    <SelectItem value="仕分け">仕分け</SelectItem>
+                    <SelectItem value="検品">検品</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>開始時刻</Label>
+                <Input type="time" value={editForm.startTime ?? ""} onChange={(e) => setEditForm(f => ({ ...f, startTime: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>終了時刻</Label>
+                <Input type="time" value={editForm.endTime ?? ""} onChange={(e) => setEditForm(f => ({ ...f, endTime: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>休憩（分）</Label>
+                <Input type="number" value={editForm.breakMinutes ?? 60} onChange={(e) => setEditForm(f => ({ ...f, breakMinutes: Number(e.target.value) }))} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>ステータス</Label>
+              <Select value={editForm.status ?? ""} onValueChange={(v) => setEditForm(f => ({ ...f, status: v as Status }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">下書き</SelectItem>
+                  <SelectItem value="submitted">承認待ち</SelectItem>
+                  <SelectItem value="approved">承認済</SelectItem>
+                  <SelectItem value="rejected">却下</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingReport(null)}>キャンセル</Button>
+            <Button onClick={handleSaveEdit}>保存する</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

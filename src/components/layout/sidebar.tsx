@@ -8,7 +8,6 @@ import {
   Calculator,
   Truck,
   ChevronRight,
-  FileBarChart,
   Stamp,
   X,
   PanelLeftClose,
@@ -25,8 +24,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: "ダッシュボード", href: "/", icon: LayoutDashboard },
-  { name: "賃金・支払", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/results", "/wage-ledger", "/overtime", "/weekly-overtime", "/payment-details", "/transfers", "/denomination", "/period-payment"] },
-  { name: "集計", href: "/reports", icon: FileBarChart, matchPrefixes: ["/reports", "/export", "/dispatch", "/aggregation", "/fuel-consumption", "/utilization-analysis"] },
+  { name: "賃金管理", href: "/calculations", icon: Calculator, matchPrefixes: ["/calculations", "/reports", "/results", "/wage-ledger", "/overtime", "/weekly-overtime", "/payment-details", "/transfers", "/denomination", "/period-payment"] },
   { name: "全社共通マスター", href: "/insurance-stamps", icon: Stamp, matchPrefixes: ["/insurance-stamps", "/cash-payment", "/stamp-ledger", "/collection-ledger", "/withholding-tax", "/resident-tax"] },
 ];
 

@@ -81,8 +81,11 @@ const roundingMethodLabels: Record<string, string> = {
   round: "四捨五入",
 };
 
+type Company = typeof mockCompanies[0];
+
 export default function CompaniesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCompanies = mockCompanies.filter(
@@ -217,7 +220,7 @@ export default function CompaniesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingCompany(company)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -229,6 +232,67 @@ export default function CompaniesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={!!editingCompany} onOpenChange={(open) => !open && setEditingCompany(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>会社を編集</DialogTitle>
+            <DialogDescription>
+              {editingCompany?.name} の情報を編集します
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-code">会社コード</Label>
+              <Input id="edit-code" defaultValue={editingCompany?.code} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">会社名</Label>
+              <Input id="edit-name" defaultValue={editingCompany?.name} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>残業計算単位（分）</Label>
+                <Select defaultValue={String(editingCompany?.overtimeUnit)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5分</SelectItem>
+                    <SelectItem value="10">10分</SelectItem>
+                    <SelectItem value="15">15分</SelectItem>
+                    <SelectItem value="30">30分</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>端数処理</Label>
+                <Select defaultValue={editingCompany?.roundingMethod}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="floor">切り捨て</SelectItem>
+                    <SelectItem value="ceil">切り上げ</SelectItem>
+                    <SelectItem value="round">四捨五入</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>状態</Label>
+              <Select defaultValue={editingCompany?.isActive ? "active" : "inactive"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">有効</SelectItem>
+                  <SelectItem value="inactive">無効</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingCompany(null)}>キャンセル</Button>
+            <Button onClick={() => setEditingCompany(null)}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

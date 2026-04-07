@@ -63,12 +63,21 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const stampsData = [
-  { id: 1, name: "山田 太郎", grade: "1級", method: "印紙", days: 22, amount: 7128, month: "2024/01" },
-  { id: 2, name: "鈴木 一郎", grade: "2級", method: "印紙", days: 20, amount: 5880, month: "2024/01" },
-  { id: 3, name: "佐藤 花子", grade: "3級", method: "現金", days: 18, amount: 4536, month: "2024/01" },
-  { id: 4, name: "高橋 健二", grade: "1級", method: "印紙", days: 21, amount: 6804, month: "2024/01" },
-  { id: 5, name: "田中 美咲", grade: "2級", method: "現金", days: 19, amount: 5586, month: "2024/01" },
+type StampEntry = {
+  id: number; name: string; gradeNum: number; grade: string;
+  empGrade: string; // 雇用保険印紙種別: "第1種(176円)" | "第2種(146円)" | "第3種(96円)"
+  method: string; days: number; amount: number; month: string;
+  stampType: "ledger-general" | "ledger-nursing" | "no-ledger"; stampsIssued: number;
+};
+const stampsData: StampEntry[] = [
+  { id: 1, name: "山田 太郎", gradeNum: 1, grade: "1級",  empGrade: "第1種(176円)", method: "印紙", days: 22, amount: 7128, month: "2026/03", stampType: "ledger-general", stampsIssued: 22 },
+  { id: 2, name: "鈴木 一郎", gradeNum: 2, grade: "2級",  empGrade: "第2種(146円)", method: "印紙", days: 20, amount: 5880, month: "2026/03", stampType: "ledger-nursing", stampsIssued: 20 },
+  { id: 3, name: "佐藤 花子", gradeNum: 3, grade: "3級",  empGrade: "第3種(96円)",  method: "現金", days: 18, amount: 4536, month: "2026/03", stampType: "no-ledger",       stampsIssued: 0  },
+  { id: 4, name: "高橋 健二", gradeNum: 1, grade: "1級",  empGrade: "第1種(176円)", method: "印紙", days: 21, amount: 6804, month: "2026/03", stampType: "ledger-general", stampsIssued: 21 },
+  { id: 5, name: "田中 美咲", gradeNum: 2, grade: "2級",  empGrade: "第3種(96円)",  method: "現金", days: 19, amount: 5586, month: "2026/02", stampType: "no-ledger",       stampsIssued: 0  },
+  { id: 6, name: "渡辺 剛",   gradeNum: 3, grade: "3級",  empGrade: "第2種(146円)", method: "印紙", days: 25, amount: 7500, month: "2026/02", stampType: "ledger-nursing", stampsIssued: 25 },
+  { id: 7, name: "伊藤 直樹", gradeNum: 1, grade: "1級",  empGrade: "第1種(176円)", method: "印紙", days: 23, amount: 7452, month: "2026/02", stampType: "ledger-general", stampsIssued: 23 },
+  { id: 8, name: "田中 美咲", gradeNum: 4, grade: "4級",  empGrade: "第2種(146円)", method: "印紙", days: 18, amount: 6156, month: "2026/03", stampType: "ledger-nursing", stampsIssued: 18 },
 ];
 
 const ledgerData = [
@@ -97,10 +106,10 @@ const collectionLedgerData = [
   { id: 5, name: "田中 美咲", healthIns: 11200, pension: 19950, nursingIns: 2020, empIns: 1330, residentTax: 5200, total: 39700, updatedAt: "2024/01/25 16:55" },
 ];
 
-type MainTab = "人（従業員系）" | "車両系" | "運行系";
-const MAIN_TABS: MainTab[] = ["人（従業員系）", "車両系", "運行系"];
+type MainTab = "人材系" | "車両系" | "運行系";
+const MAIN_TABS: MainTab[] = ["人材系", "車両系", "運行系"];
 const SUB_TABS: Record<MainTab, string[]> = {
-  "人（従業員系）": ["人員管理", "週休", "有給休暇", "アルバイト", "印紙管理", "受払簿", "徴収台帳", "仕訳"],
+  "人材系": ["人員管理", "週休", "有給休暇", "アルバイト", "印紙管理", "契約社員", "会社", "仕訳"],
   "車両系":        ["車両・賃金"],
   "運行系":        ["運行実績", "各種設定"],
 };
@@ -150,13 +159,19 @@ function formatCurrency(value: number) {
 
 // --- Rate Tables ---
 type TableType = "health" | "nursing" | "employment" | "pension";
+// 日雇特例被保険者 健康保険印紙 等級表（11級）
 const healthInsuranceRates = [
-  { grade: 1, monthly: "63,000未満", standard: 58000, insured: 2871, employer: 2871 },
-  { grade: 2, monthly: "63,000〜73,000", standard: 68000, insured: 3366, employer: 3366 },
-  { grade: 3, monthly: "73,000〜83,000", standard: 78000, insured: 3861, employer: 3861 },
-  { grade: 4, monthly: "83,000〜93,000", standard: 88000, insured: 4356, employer: 4356 },
-  { grade: 5, monthly: "93,000〜101,000", standard: 98000, insured: 4851, employer: 4851 },
-  { grade: 6, monthly: "101,000〜107,000", standard: 104000, insured: 5148, employer: 5148 },
+  { grade: 1,  daily: "3,500円未満",           standard: 3000,  insured: 64,  employer: 64  },
+  { grade: 2,  daily: "3,500〜5,000円未満",     standard: 4000,  insured: 84,  employer: 84  },
+  { grade: 3,  daily: "5,000〜6,000円未満",     standard: 5500,  insured: 115, employer: 115 },
+  { grade: 4,  daily: "6,000〜7,000円未満",     standard: 6500,  insured: 136, employer: 136 },
+  { grade: 5,  daily: "7,000〜8,000円未満",     standard: 7500,  insured: 157, employer: 157 },
+  { grade: 6,  daily: "8,000〜9,000円未満",     standard: 8500,  insured: 178, employer: 178 },
+  { grade: 7,  daily: "9,000〜10,000円未満",    standard: 9500,  insured: 199, employer: 199 },
+  { grade: 8,  daily: "10,000〜11,000円未満",   standard: 10500, insured: 220, employer: 220 },
+  { grade: 9,  daily: "11,000〜13,000円未満",   standard: 12000, insured: 251, employer: 251 },
+  { grade: 10, daily: "13,000〜17,000円未満",   standard: 15000, insured: 314, employer: 314 },
+  { grade: 11, daily: "17,000円以上",           standard: 21000, insured: 440, employer: 440 },
 ];
 const tableConfig: Record<TableType, { label: string; icon: typeof Shield; color: string }> = {
   health: { label: "健康保険", icon: Heart, color: "text-slate-600 bg-slate-100" },
@@ -267,7 +282,7 @@ const residentData = [
 ];
 
 export default function InsuranceStampsPage() {
-  const [activeMainTab, setActiveMainTab] = useState<MainTab>("人（従業員系）");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>("人材系");
   const [activeSubTab, setActiveSubTab] = useState<string>("人員管理");
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
@@ -291,8 +306,10 @@ export default function InsuranceStampsPage() {
   const [activeMaster, setActiveMaster] = useState<MasterType>("supplier");
   const [masterSearch, setMasterSearch] = useState("");
   const [personnelSubTab, setPersonnelSubTab] = useState<"all" | "hiyatoi" | "furikomi">("all");
-  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
-  const [stampTypeFilter, setStampTypeFilter] = useState<"all" | "health" | "nursing" | "employment" | "nofuda">("all");
+  const [editingWorker, setEditingWorker] = useState<typeof mockWorkers[0] | null>(null);
+  const [stampTypeFilter, setStampTypeFilter] = useState<"all" | "ledger-general" | "ledger-nursing" | "no-ledger">("all");
+  const [stampPeriodMonth, setStampPeriodMonth] = useState("2026/03");
+  const [selectedStampRow, setSelectedStampRow] = useState<StampEntry | null>(null);
   const [vehicleWageSubTab, setVehicleWageSubTab] = useState<"vehicles" | "wage-rules">("vehicles");
   const [settingsSubTab, setSettingsSubTab] = useState<"rate-tables" | "general">("rate-tables");
 
@@ -308,7 +325,9 @@ export default function InsuranceStampsPage() {
   const filteredStamps = stampsData.filter((d) => {
     const matchesSearch = d.name.includes(searchQuery);
     const matchesMethod = methodFilter === "all" || d.method === (methodFilter === "stamp" ? "印紙" : "現金");
-    return matchesSearch && matchesMethod;
+    const matchesType = stampTypeFilter === "all" || d.stampType === stampTypeFilter;
+    const matchesPeriod = !stampPeriodMonth || d.month === stampPeriodMonth;
+    return matchesSearch && matchesMethod && matchesType && matchesPeriod;
   });
 
   const filteredWorkers = mockWorkers.filter((w) => {
@@ -389,15 +408,14 @@ export default function InsuranceStampsPage() {
 
         {activeSubTab === "印紙管理" && (
           <>
-            <p className="text-sm text-slate-500">健康保険印紙の種別管理・受払実績</p>
-            {/* No.36: 3種フィルタ + 手帳なし */}
+            <p className="text-sm text-slate-500">健康保険印紙の種別管理・受払実績（行クリックで等級詳細）</p>
+            {/* 台帳種別フィルタ */}
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
               {([
-                ["all",        "全種別"],
-                ["health",     "健康保険（一般）"],
-                ["nursing",    "健康保険（介護あり・40歳以上）"],
-                ["employment", "雇用保険"],
-                ["nofuda",     "手帳なし"],
+                ["all",            "全種別"],
+                ["ledger-general", "台帳あり(一般)"],
+                ["ledger-nursing", "台帳あり(介護含)"],
+                ["no-ledger",      "台帳なし"],
               ] as const).map(([val, label]) => (
                 <button
                   key={val}
@@ -410,7 +428,25 @@ export default function InsuranceStampsPage() {
                 </button>
               ))}
             </div>
+            {/* 期間・検索・方式フィルタ */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 whitespace-nowrap">期間</span>
+                <input
+                  type="month"
+                  value={stampPeriodMonth ? stampPeriodMonth.replace("/", "-") : ""}
+                  onChange={(e) => setStampPeriodMonth(e.target.value ? e.target.value.replace("-", "/") : "")}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                {stampPeriodMonth && (
+                  <button
+                    onClick={() => setStampPeriodMonth("")}
+                    className="text-xs px-2 py-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    全期間
+                  </button>
+                )}
+              </div>
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
@@ -442,6 +478,7 @@ export default function InsuranceStampsPage() {
                 エクスポート
               </button>
             </div>
+            {/* サマリカード（期間フィルタ連動） */}
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-slate-200/60 bg-white p-5">
                 <div className="flex items-center gap-3">
@@ -450,7 +487,7 @@ export default function InsuranceStampsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">印紙方式</p>
-                    <p className="text-2xl font-semibold text-slate-900">3名</p>
+                    <p className="text-2xl font-semibold text-slate-900">{filteredStamps.filter(d => d.method === "印紙").length}名</p>
                   </div>
                 </div>
               </div>
@@ -461,7 +498,7 @@ export default function InsuranceStampsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">現金納付</p>
-                    <p className="text-2xl font-semibold text-slate-900">2名</p>
+                    <p className="text-2xl font-semibold text-slate-900">{filteredStamps.filter(d => d.method === "現金").length}名</p>
                   </div>
                 </div>
               </div>
@@ -471,12 +508,14 @@ export default function InsuranceStampsPage() {
                     <Stamp className="h-5 w-5 text-slate-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">当月合計額</p>
-                    <p className="text-2xl font-semibold text-slate-900">¥29,934</p>
+                    <p className="text-sm text-slate-500">合計金額 / 配付枚数</p>
+                    <p className="text-xl font-semibold text-slate-900">¥{filteredStamps.reduce((s, d) => s + d.amount, 0).toLocaleString()}</p>
+                    <p className="text-sm text-slate-500">{filteredStamps.reduce((s, d) => s + d.stampsIssued, 0)}枚配付</p>
                   </div>
                 </div>
               </div>
             </div>
+            {/* 一覧テーブル */}
             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -484,19 +523,36 @@ export default function InsuranceStampsPage() {
                     <tr className="border-b border-slate-100 bg-slate-50/50">
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ID</th>
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">等級</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">健保等級</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">雇保種別</th>
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">方式</th>
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">対象月</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">日数</th>
+                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">配付枚数</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">金額</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredStamps.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr
+                        key={row.id}
+                        onClick={() => setSelectedStampRow(row)}
+                        className="hover:bg-blue-50/40 transition-colors cursor-pointer"
+                      >
                         <td className="px-3 sm:px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">{row.id}</td>
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.grade}</td>
+                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{row.grade}</span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                          {row.stampType !== "no-ledger" ? (
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                              row.empGrade === "第1種(176円)" ? "bg-emerald-50 text-emerald-700"
+                              : row.empGrade === "第2種(146円)" ? "bg-amber-50 text-amber-700"
+                              : "bg-slate-100 text-slate-600"
+                            }`}>{row.empGrade}</span>
+                          ) : <span className="text-slate-300 text-xs">—</span>}
+                        </td>
                         <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                             row.method === "印紙" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"
@@ -506,6 +562,11 @@ export default function InsuranceStampsPage() {
                         </td>
                         <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.days}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums whitespace-nowrap">
+                          {row.stampsIssued > 0
+                            ? <span className="font-medium text-blue-700">{row.stampsIssued}枚</span>
+                            : <span className="text-slate-400">—</span>}
+                        </td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono tabular-nums whitespace-nowrap">¥{row.amount.toLocaleString()}</td>
                       </tr>
                     ))}
@@ -514,10 +575,109 @@ export default function InsuranceStampsPage() {
               </div>
             </div>
             <div className="text-sm text-slate-500">全 {filteredStamps.length} 件</div>
+            {/* 等級詳細ポップアップ */}
+            <Dialog open={!!selectedStampRow} onOpenChange={(open) => { if (!open) setSelectedStampRow(null); }}>
+              <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{selectedStampRow?.name} — 等級詳細</DialogTitle>
+                </DialogHeader>
+                {selectedStampRow && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                        <p className="text-[10px] text-slate-500">方式</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedStampRow.method}</p>
+                      </div>
+                      <div className="rounded-lg bg-blue-50 px-3 py-2.5">
+                        <p className="text-[10px] text-blue-500">健保等級（現在）</p>
+                        <p className="text-sm font-bold text-blue-700">{selectedStampRow.grade}</p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                        <p className="text-[10px] text-slate-500">雇保種別</p>
+                        <p className="text-xs font-medium text-slate-900">{selectedStampRow.stampType !== "no-ledger" ? selectedStampRow.empGrade : "—"}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 mb-2">健康保険等級一覧（★ が現在の等級）</p>                      <div className="rounded-lg border border-slate-200 overflow-clip">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-100 bg-slate-50/50">
+                              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">等級</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">賃金日額区分</th>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">標準賃金日額</th>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">被保険者負担</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {healthInsuranceRates.map((r) => {
+                              const isCurrent = r.grade === selectedStampRow.gradeNum;
+                              return (
+                                <tr key={r.grade} className={isCurrent ? "bg-blue-50" : ""}>
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                      isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                                    }`}>
+                                      {isCurrent && "★ "}{r.grade}級
+                                    </span>
+                                  </td>
+                                  <td className={`px-3 py-2 text-xs whitespace-nowrap ${isCurrent ? "text-blue-800 font-semibold" : "text-slate-600"}`}>{r.daily}</td>
+                                  <td className={`px-3 py-2 text-right text-xs font-mono whitespace-nowrap ${isCurrent ? "text-blue-800 font-semibold" : "text-slate-700"}`}>¥{r.standard.toLocaleString()}</td>
+                                  <td className={`px-3 py-2 text-right text-xs font-mono whitespace-nowrap ${isCurrent ? "text-blue-800 font-semibold" : "text-slate-700"}`}>¥{r.insured.toLocaleString()}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* 雇用保険印紙種別テーブル */}
+                      {selectedStampRow.stampType !== "no-ledger" && (
+                        <div className="mt-4">
+                          <p className="text-xs font-medium text-slate-500 mb-2">雇用保険印紙種別（★ が現在の種別）</p>
+                          <div className="rounded-lg border border-slate-200 overflow-clip">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50/50">
+                                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">種別</th>
+                                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">賃金日額</th>
+                                  <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">印紙額面</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {[
+                                  { label: "第1種", range: "11,300円以上", price: 176 },
+                                  { label: "第2種", range: "9,300〜11,300円未満", price: 146 },
+                                  { label: "第3種", range: "9,300円未満", price: 96 },
+                                ].map((t) => {
+                                  const tag = `${t.label}(${t.price}円)`;
+                                  const isCurrent = selectedStampRow.empGrade === tag;
+                                  return (
+                                    <tr key={t.label} className={isCurrent ? "bg-emerald-50" : ""}>
+                                      <td className="px-3 py-2 whitespace-nowrap">
+                                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                          isCurrent ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+                                        }`}>
+                                          {isCurrent && "★ "}{t.label}
+                                        </span>
+                                      </td>
+                                      <td className={`px-3 py-2 text-xs whitespace-nowrap ${isCurrent ? "text-emerald-800 font-semibold" : "text-slate-600"}`}>{t.range}</td>
+                                      <td className={`px-3 py-2 text-right text-xs font-mono whitespace-nowrap ${isCurrent ? "text-emerald-800 font-semibold" : "text-slate-700"}`}>¥{t.price}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </>
         )}
 
-        {activeSubTab === "受払簿" && (
+        {activeSubTab === "会社" && (
           <>
             <p className="text-sm text-slate-500">雇用保険印紙受払記録</p>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -714,9 +874,9 @@ export default function InsuranceStampsPage() {
           </>
         )}
 
-        {activeSubTab === "徴収台帳" && (
+        {activeSubTab === "契約社員" && (
           <>
-            <p className="text-sm text-slate-500">社会保険・住民税・源泉税 徴収台帳（行クリックで詳細編集）</p>
+            <p className="text-sm text-slate-500">社会保険・住民税・源泉税 契約社員（行クリックで詳細編集）</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-slate-200/60 bg-white p-5">
                 <div className="flex items-center gap-3">
@@ -827,7 +987,7 @@ export default function InsuranceStampsPage() {
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <span>{ledger.name}</span>
-                        <span className="text-sm font-normal text-slate-500">— 徴収台帳詳細</span>
+                        <span className="text-sm font-normal text-slate-500">— 契約社員詳細</span>
                       </DialogTitle>
                       <DialogDescription>各種控除額を確認・編集できます</DialogDescription>
                     </DialogHeader>
@@ -1053,8 +1213,7 @@ export default function InsuranceStampsPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredWorkers.map((w) => (
-                        <>
-                          <TableRow key={w.id} className={expandedWorker === w.id ? "bg-slate-50" : ""}>
+                        <TableRow key={w.id}>
                             <TableCell className="font-mono whitespace-nowrap tabular-nums">{w.employeeCode}</TableCell>
                             <TableCell className="font-medium whitespace-nowrap">{w.name}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{w.nameKana}</TableCell>
@@ -1068,52 +1227,13 @@ export default function InsuranceStampsPage() {
                             <TableCell className="whitespace-nowrap">
                               <Badge variant={w.isActive ? "default" : "secondary"}>{w.isActive ? "有効" : "無効"}</Badge>
                             </TableCell>
-                            {/* No.7: アコーディオン編集 */}
+                            {/* 編集ボタン → ポップアップ */}
                             <TableCell>
-                              <Button variant="ghost" size="icon" onClick={() => setExpandedWorker(expandedWorker === w.id ? null : w.id)}>
+                              <Button variant="ghost" size="icon" onClick={() => setEditingWorker(w)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             </TableCell>
                           </TableRow>
-                          {expandedWorker === w.id && (
-                            <TableRow key={`${w.id}-edit`} className="bg-slate-50/80">
-                              <TableCell colSpan={8} className="px-4 py-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">氏名</Label>
-                                    <Input defaultValue={w.name} className="h-8 text-sm" />
-                                  </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">フリガナ</Label>
-                                    <Input defaultValue={w.nameKana} className="h-8 text-sm" />
-                                  </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">所属先</Label>
-                                    <Input defaultValue={w.defaultCompany} className="h-8 text-sm" />
-                                  </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">電話番号</Label>
-                                    <Input defaultValue={w.phone} className="h-8 text-sm" />
-                                  </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">支払い方法</Label>
-                                    <Select defaultValue={w.paymentMethod}>
-                                      <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="キャッシュマシン">キャッシュマシン</SelectItem>
-                                        <SelectItem value="振り込み">振り込み</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="flex items-end gap-2">
-                                    <Button size="sm" className="h-8 text-xs">保存</Button>
-                                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setExpandedWorker(null)}>キャンセル</Button>
-                                  </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </>
                       ))}
                     </TableBody>
                   </Table>
@@ -1121,6 +1241,71 @@ export default function InsuranceStampsPage() {
                 <div className="mt-4 text-sm text-muted-foreground">全 {filteredWorkers.length} 件</div>
               </CardContent>
             </Card>
+
+            {/* 作業員編集ダイアログ */}
+            <Dialog open={!!editingWorker} onOpenChange={(open) => !open && setEditingWorker(null)}>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>作業員を編集</DialogTitle>
+                  <DialogDescription>{editingWorker?.name} の情報を編集します</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="ew-empcode">従業員番号</Label>
+                    <Input id="ew-empcode" defaultValue={editingWorker?.employeeCode} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="ew-name">氏名</Label>
+                      <Input id="ew-name" defaultValue={editingWorker?.name} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="ew-kana">フリガナ</Label>
+                      <Input id="ew-kana" defaultValue={editingWorker?.nameKana} />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>所属先</Label>
+                    <Select defaultValue={editingWorker?.defaultCompany}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {mockCompanies.map((c) => (
+                          <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="ew-phone">電話番号</Label>
+                    <Input id="ew-phone" defaultValue={editingWorker?.phone} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>支払い方法</Label>
+                    <Select defaultValue={editingWorker?.paymentMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="キャッシュマシン">キャッシュマシン</SelectItem>
+                        <SelectItem value="振り込み">振り込み</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>状態</Label>
+                    <Select defaultValue={editingWorker?.isActive ? "active" : "inactive"}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">有効</SelectItem>
+                        <SelectItem value="inactive">無効</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditingWorker(null)}>キャンセル</Button>
+                  <Button onClick={() => setEditingWorker(null)}>保存する</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -1473,18 +1658,18 @@ export default function InsuranceStampsPage() {
                     <thead>
                       <tr className="border-b border-slate-100 bg-slate-50/50">
                         <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">等級</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">報酬月額</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">標準報酬月額</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">賃金日額区分</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">標準賃金日額</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">被保険者負担</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">事業主負担</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">合計</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {healthInsuranceRates.filter((r) => !rateSearch || r.monthly.includes(rateSearch) || String(r.grade).includes(rateSearch)).map((row) => (
+                      {healthInsuranceRates.filter((r) => !rateSearch || r.daily.includes(rateSearch) || String(r.grade).includes(rateSearch)).map((row) => (
                         <tr key={row.grade} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap tabular-nums">{row.grade}</td>
-                          <td className="px-4 py-3 text-slate-700 text-xs whitespace-nowrap">{row.monthly}</td>
+                          <td className="px-4 py-3 text-slate-700 text-xs whitespace-nowrap">{row.daily}</td>
                           <td className="px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.standard.toLocaleString()}</td>
                           <td className="px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.insured.toLocaleString()}</td>
                           <td className="px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">¥{row.employer.toLocaleString()}</td>
@@ -1811,7 +1996,7 @@ export default function InsuranceStampsPage() {
                       })}
                       <td className="px-4 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{entry.workDays}日</td>
                       <td className="px-4 py-3 text-right tabular-nums text-slate-500 whitespace-nowrap">{entry.offDays}日</td>
-                      <td className="py-3"><Button variant="ghost" size="sm" className="h-7 text-xs text-slate-500">編集</Button></td>
+                      <td className="py-3"><Button variant="ghost" size="sm" className="h-7 text-slate-400 hover:text-blue-600 hover:bg-blue-50"><Pencil className="h-3.5 w-3.5" /></Button></td>
                     </tr>
                   ))}
                 </tbody>

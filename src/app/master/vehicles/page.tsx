@@ -57,8 +57,11 @@ const mockCompanies = [
   { id: "3", name: "C配送センター" },
 ];
 
+type VehicleType = typeof mockVehicleTypes[0];
+
 export default function VehiclesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<VehicleType | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
 
@@ -212,7 +215,7 @@ export default function VehiclesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingVehicle(vehicle)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -228,6 +231,59 @@ export default function VehiclesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={!!editingVehicle} onOpenChange={(open) => !open && setEditingVehicle(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>車種を編集</DialogTitle>
+            <DialogDescription>
+              {editingVehicle?.name} の情報を編集します
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>会社</Label>
+              <Select defaultValue={editingVehicle?.companyId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {mockCompanies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-vcode">車種コード</Label>
+                <Input id="edit-vcode" defaultValue={editingVehicle?.code} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-vname">車種名</Label>
+                <Input id="edit-vname" defaultValue={editingVehicle?.name} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-order">表示順</Label>
+              <Input id="edit-order" type="number" defaultValue={editingVehicle?.displayOrder} />
+            </div>
+            <div className="grid gap-2">
+              <Label>状態</Label>
+              <Select defaultValue={editingVehicle?.isActive ? "active" : "inactive"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">有効</SelectItem>
+                  <SelectItem value="inactive">無効</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingVehicle(null)}>キャンセル</Button>
+            <Button onClick={() => setEditingVehicle(null)}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

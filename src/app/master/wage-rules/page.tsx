@@ -149,8 +149,11 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+type WageRule = typeof mockWageRules[0];
+
 export default function WageRulesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<WageRule | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
 
@@ -361,7 +364,7 @@ export default function WageRulesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingRule(rule)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -377,6 +380,98 @@ export default function WageRulesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={!!editingRule} onOpenChange={(open) => !open && setEditingRule(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>日当設定を編集</DialogTitle>
+            <DialogDescription>
+              {editingRule?.companyName} / {editingRule?.vehicleTypeName} の設定を編集します
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>所属先</Label>
+                <Select defaultValue={editingRule?.companyId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {mockCompanies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>車種</Label>
+                <Select defaultValue={editingRule?.vehicleTypeId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">2tトラック</SelectItem>
+                    <SelectItem value="2">4tトラック</SelectItem>
+                    <SelectItem value="3">10tトラック</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>適用開始日</Label>
+                <Input type="date" defaultValue={format(editingRule?.effectiveFrom ?? new Date(), "yyyy-MM-dd")} />
+              </div>
+              <div className="grid gap-2">
+                <Label>適用終了日（任意）</Label>
+                <Input type="date" defaultValue={editingRule?.effectiveTo ? format(editingRule.effectiveTo, "yyyy-MM-dd") : ""} />
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">基本日当</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>日給（円）</Label>
+                  <Input type="number" defaultValue={editingRule?.baseDailyWage} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>基本労働時間</Label>
+                  <Input type="number" step="0.5" defaultValue={editingRule?.baseHours} />
+                </div>
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">残業単価（円/時間）</h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label>通常</Label>
+                  <Input type="number" defaultValue={editingRule?.overtimeRateNormal} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>深夜（22-5時）</Label>
+                  <Input type="number" defaultValue={editingRule?.overtimeRateLate} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>休日</Label>
+                  <Input type="number" defaultValue={editingRule?.overtimeRateHoliday} />
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>状態</Label>
+              <Select defaultValue={editingRule?.isActive ? "active" : "inactive"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">有効</SelectItem>
+                  <SelectItem value="inactive">無効</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingRule(null)}>キャンセル</Button>
+            <Button onClick={() => setEditingRule(null)}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
-import { Bell, Menu, User } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, Menu, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   title?: string;
@@ -13,7 +14,8 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) {
-  const today = format(new Date(), "yyyy年M月d日（E）", { locale: ja });
+  const pathname = usePathname();
+  const isSettingsActive = pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/data-management") || pathname.startsWith("/data-migration") || pathname.startsWith("/master");
 
   return (
     <header className="sticky top-0 z-40 glass-header">
@@ -36,7 +38,21 @@ export function Header({ title, subtitle, actions, onMenuToggle }: HeaderProps) 
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="mr-2 text-xs text-slate-400 hidden sm:inline">{today}</span>
+          <Link href="/settings">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-8 w-8 rounded-xl transition-colors",
+                isSettingsActive
+                  ? "bg-slate-800 text-white hover:bg-slate-700"
+                  : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+              )}
+              title="システム設定"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </Link>
 
           <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-xl text-slate-500 hover:bg-white/50 hover:text-slate-700">
             <Bell className="h-4 w-4" />

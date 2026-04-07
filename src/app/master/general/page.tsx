@@ -10,38 +10,36 @@ import {
   Clock,
   Train,
   Wrench,
-  Package,
-  Settings,
 } from "lucide-react";
 
 type MasterType = "supplier" | "earlyShift" | "transport" | "workType";
 
 const masterConfig: Record<MasterType, { label: string; icon: typeof Building2; description: string }> = {
-  supplier: { label: "供給先マスタ", icon: Building2, description: "派遣先・供給先の登録管理" },
-  earlyShift: { label: "早出マスタ", icon: Clock, description: "早出時間帯・手当の設定" },
-  transport: { label: "交通費マスタ", icon: Train, description: "路線別交通費の登録" },
-  workType: { label: "作業区分マスタ", icon: Wrench, description: "作業種別・区分の管理" },
+  supplier:   { label: "供給先マスタ",   icon: Building2, description: "派遣先・供給先の登録管理" },
+  earlyShift: { label: "早出マスタ",     icon: Clock,     description: "早出時間帯・手当の設定" },
+  transport:  { label: "交通費マスタ",   icon: Train,     description: "路線別交通費の登録" },
+  workType:   { label: "作業区分マスタ", icon: Wrench,    description: "作業種別・区分の管理" },
 };
 
 const supplierData = [
-  { id: 1, code: "SUP001", name: "一産廃", address: "東京都世田谷区", contactPerson: "佐藤", phone: "03-1234-5678", status: "有効" },
+  { id: 1, code: "SUP001", name: "一産廃",  address: "東京都世田谷区", contactPerson: "佐藤", phone: "03-1234-5678", status: "有効" },
   { id: 2, code: "SUP002", name: "区有施設", address: "東京都世田谷区", contactPerson: "田中", phone: "03-2345-6789", status: "有効" },
-  { id: 3, code: "SUP003", name: "局集", address: "東京都新宿区", contactPerson: "鈴木", phone: "03-3456-7890", status: "有効" },
-  { id: 4, code: "SUP004", name: "民間A社", address: "東京都渋谷区", contactPerson: "高橋", phone: "03-4567-8901", status: "有効" },
-  { id: 5, code: "SUP005", name: "民間B社", address: "東京都中野区", contactPerson: "山田", phone: "03-5678-9012", status: "無効" },
+  { id: 3, code: "SUP003", name: "局集",    address: "東京都新宿区",   contactPerson: "鈴木", phone: "03-3456-7890", status: "有効" },
+  { id: 4, code: "SUP004", name: "民間A社", address: "東京都渋谷区",   contactPerson: "高橋", phone: "03-4567-8901", status: "有効" },
+  { id: 5, code: "SUP005", name: "民間B社", address: "東京都中野区",   contactPerson: "山田", phone: "03-5678-9012", status: "無効" },
 ];
 
 const earlyShiftData = [
   { id: 1, code: "ES01", timeRange: "05:00〜06:00", allowance: 1500, note: "深夜帯割増" },
   { id: 2, code: "ES02", timeRange: "06:00〜07:00", allowance: 1000, note: "早朝割増" },
-  { id: 3, code: "ES03", timeRange: "07:00〜08:00", allowance: 500, note: "早出手当" },
+  { id: 3, code: "ES03", timeRange: "07:00〜08:00", allowance: 500,  note: "早出手当" },
 ];
 
 const transportData = [
-  { id: 1, code: "TR01", route: "世田谷区内", amount: 500, note: "バス利用" },
-  { id: 2, code: "TR02", route: "新宿方面", amount: 800, note: "電車利用" },
-  { id: 3, code: "TR03", route: "渋谷方面", amount: 700, note: "電車利用" },
-  { id: 4, code: "TR04", route: "品川方面", amount: 1000, note: "電車利用" },
+  { id: 1, code: "TR01", route: "世田谷区内", amount: 500,  note: "バス利用" },
+  { id: 2, code: "TR02", route: "新宿方面",   amount: 800,  note: "電車利用" },
+  { id: 3, code: "TR03", route: "渋谷方面",   amount: 700,  note: "電車利用" },
+  { id: 4, code: "TR04", route: "品川方面",   amount: 1000, note: "電車利用" },
 ];
 
 const workTypeData = [

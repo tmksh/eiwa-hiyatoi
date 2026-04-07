@@ -35,6 +35,7 @@ import {
   Landmark,
   Wallet,
   AlertTriangle,
+  AlertCircle,
   CheckCircle2,
   Pencil,
   Plus,
@@ -49,8 +50,18 @@ import {
   Clock,
   Train,
   Wrench,
+  Route,
+  MapPin,
+  Weight,
+  ChevronLeft,
+  ChevronRight,
+  CalendarCheck,
+  CalendarPlus,
+  CalendarMinus,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const stampsData = [
   { id: 1, name: "山田 太郎", grade: "1級", method: "印紙", days: 22, amount: 7128, month: "2024/01" },
@@ -86,16 +97,21 @@ const collectionLedgerData = [
   { id: 5, name: "田中 美咲", healthIns: 11200, pension: 19950, nursingIns: 2020, empIns: 1330, residentTax: 5200, total: 39700, updatedAt: "2024/01/25 16:55" },
 ];
 
-const TABS = ["印紙管理", "受払簿", "現金納付", "徴収台帳", "源泉税", "住民税", "人員管理", "車両・賃金", "各種設定"] as const;
-type Tab = (typeof TABS)[number];
+type MainTab = "人（従業員系）" | "車両系" | "運行系";
+const MAIN_TABS: MainTab[] = ["人（従業員系）", "車両系", "運行系"];
+const SUB_TABS: Record<MainTab, string[]> = {
+  "人（従業員系）": ["人員管理", "週休", "有給休暇", "アルバイト", "印紙管理", "受払簿", "徴収台帳", "仕訳"],
+  "車両系":        ["車両・賃金"],
+  "運行系":        ["運行実績", "各種設定"],
+};
 
 // --- Workers ---
 const mockWorkers = [
-  { id: "1", employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", phone: "090-1234-5678", isActive: true },
-  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", phone: "090-2345-6789", isActive: true },
-  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", phone: "090-3456-7890", isActive: true },
-  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", phone: "090-4567-8901", isActive: true },
-  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", phone: "090-5678-9012", isActive: false },
+  { id: "1", employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", phone: "090-1234-5678", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
+  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", phone: "090-2345-6789", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
+  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", phone: "090-3456-7890", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi" },
+  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", phone: "090-4567-8901", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi" },
+  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", phone: "090-5678-9012", isActive: false, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
 ];
 
 // --- Companies ---
@@ -182,6 +198,58 @@ const workTypeData = [
   { id: 4, code: "WT04", name: "運転業務", category: "運転", note: "長距離運搬" },
 ];
 
+// --- 運行実績 ---
+const operationData = [
+  { id: "1", date: "2026-03-19", driverName: "山田 太郎", vehicleNumber: "品川 100 あ 1234", vehicleType: "4t",  routes: [{ destination: "川崎市処理施設", wasteType: "一般廃棄物", weight: 3.2, distance: 28.5 }, { destination: "横浜市リサイクルセンター", wasteType: "産業廃棄物", weight: 2.8, distance: 35.2 }], totalDistance: 63.7,  totalWeight: 6.0,  trips: 2, startTime: "06:00", endTime: "17:30" },
+  { id: "2", date: "2026-03-19", driverName: "鈴木 一郎", vehicleNumber: "品川 200 い 5678", vehicleType: "10t", routes: [{ destination: "東京都中央処理場", wasteType: "一般廃棄物", weight: 8.5, distance: 42.0 }, { destination: "千葉市最終処分場", wasteType: "産業廃棄物", weight: 7.2, distance: 55.8 }], totalDistance: 126.3, totalWeight: 21.7, trips: 3, startTime: "05:30", endTime: "18:00" },
+  { id: "3", date: "2026-03-18", driverName: "佐藤 花子", vehicleNumber: "品川 300 う 9012", vehicleType: "2t",  routes: [{ destination: "品川区集積所", wasteType: "資源ごみ", weight: 1.5, distance: 12.3 }], totalDistance: 12.3, totalWeight: 1.5, trips: 1, startTime: "07:00", endTime: "15:00" },
+];
+
+// --- 週休 ---
+type DayType = "work" | "off" | "half" | "paid";
+const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
+const dayTypeConfig: Record<DayType, { label: string; className: string }> = {
+  work: { label: "出", className: "bg-blue-50 text-blue-700 font-medium" },
+  off:  { label: "休", className: "bg-slate-100 text-slate-400" },
+  half: { label: "半", className: "bg-slate-200 text-slate-600" },
+  paid: { label: "有", className: "bg-blue-100 text-blue-700" },
+};
+const scheduleData = [
+  { id: "1", name: "山田 太郎", employeeNo: "E001", schedule: { "月": "work", "火": "work", "水": "work", "木": "work", "金": "work", "土": "off",  "日": "off" } as Record<string, DayType>, workDays: 22, offDays: 9 },
+  { id: "2", name: "鈴木 一郎", employeeNo: "E002", schedule: { "月": "work", "火": "work", "水": "off",  "木": "work", "金": "work", "土": "work", "日": "off" } as Record<string, DayType>, workDays: 21, offDays: 10 },
+  { id: "3", name: "佐藤 花子", employeeNo: "E003", schedule: { "月": "work", "火": "work", "水": "work", "木": "off",  "金": "work", "土": "half", "日": "off" } as Record<string, DayType>, workDays: 20, offDays: 11 },
+  { id: "4", name: "高橋 健二", employeeNo: "E004", schedule: { "月": "work", "火": "off",  "水": "work", "木": "work", "金": "work", "土": "work", "日": "off" } as Record<string, DayType>, workDays: 21, offDays: 10 },
+  { id: "5", name: "田中 次郎", employeeNo: "E005", schedule: { "月": "work", "火": "work", "水": "work", "木": "work", "金": "off",  "土": "off",  "日": "off" } as Record<string, DayType>, workDays: 18, offDays: 13 },
+];
+
+// --- 有給休暇 ---
+const mockPaidLeave = [
+  { id: 1, name: "山田 太郎", grantDate: "2023/04/01", granted: 20, used: 8,  remaining: 12, expiry: "2025/03/31" },
+  { id: 2, name: "鈴木 一郎", grantDate: "2023/10/01", granted: 10, used: 3,  remaining: 7,  expiry: "2025/09/30" },
+  { id: 3, name: "佐藤 花子", grantDate: "2023/04/01", granted: 20, used: 18, remaining: 2,  expiry: "2025/03/31" },
+  { id: 4, name: "高橋 健二", grantDate: "2023/07/01", granted: 11, used: 5,  remaining: 6,  expiry: "2025/06/30" },
+  { id: 5, name: "田中 美咲", grantDate: "2024/01/01", granted: 10, used: 0,  remaining: 10, expiry: "2025/12/31" },
+];
+
+// --- アルバイト ---
+const mockPartTimeWorkers = [
+  { id: 1, name: "木村 翔太",   hourlyRate: 1200, workDays: 15, totalHours: 90.0,  overtime: 5.0,  grossPay: 114000, month: "2024/01", status: "確定" },
+  { id: 2, name: "松本 さくら", hourlyRate: 1150, workDays: 12, totalHours: 72.0,  overtime: 0,    grossPay: 82800,  month: "2024/01", status: "確定" },
+  { id: 3, name: "小林 大輝",   hourlyRate: 1300, workDays: 18, totalHours: 108.0, overtime: 8.0,  grossPay: 153400, month: "2024/01", status: "未確定" },
+  { id: 4, name: "中村 愛",     hourlyRate: 1200, workDays: 10, totalHours: 60.0,  overtime: 2.0,  grossPay: 75000,  month: "2024/01", status: "確定" },
+  { id: 5, name: "加藤 隆",     hourlyRate: 1100, workDays: 20, totalHours: 120.0, overtime: 10.0, grossPay: 145750, month: "2024/01", status: "未確定" },
+];
+
+// --- 仕訳 ---
+const mockJournals = [
+  { id: 1, date: "2024/01/25", debitAccount: "給料手当",       debitAmount: 285000, creditAccount: "預り金（源泉）",  creditAmount: 6800,   description: "1月分給与 山田太郎",   category: "給与" },
+  { id: 2, date: "2024/01/25", debitAccount: "給料手当",       debitAmount: 285000, creditAccount: "預り金（社保）",  creditAmount: 42180,  description: "1月分給与 山田太郎",   category: "給与" },
+  { id: 3, date: "2024/01/25", debitAccount: "給料手当",       debitAmount: 285000, creditAccount: "預り金（住民税）", creditAmount: 8500,  description: "1月分給与 山田太郎",   category: "給与" },
+  { id: 4, date: "2024/01/25", debitAccount: "給料手当",       debitAmount: 285000, creditAccount: "普通預金",       creditAmount: 227520, description: "1月分給与 山田太郎",   category: "給与" },
+  { id: 5, date: "2024/02/10", debitAccount: "預り金（源泉）", debitAmount: 30800,  creditAccount: "普通預金",       creditAmount: 30800,  description: "1月分源泉所得税納付", category: "納付" },
+  { id: 6, date: "2024/02/28", debitAccount: "預り金（社保）", debitAmount: 210900, creditAccount: "普通預金",       creditAmount: 210900, description: "1月分社会保険料納付", category: "納付" },
+];
+
 const withholdingData = [
   { id: 1, name: "山田 太郎", grossPay: 285000, deduction: 6800, netTax: 6800, month: "2024/01", status: "計算済" },
   { id: 2, name: "鈴木 一郎", grossPay: 245000, deduction: 5200, netTax: 5200, month: "2024/01", status: "計算済" },
@@ -199,13 +267,17 @@ const residentData = [
 ];
 
 export default function InsuranceStampsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("印紙管理");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>("人（従業員系）");
+  const [activeSubTab, setActiveSubTab] = useState<string>("人員管理");
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
 
   // Master management states
+  const [selectedLedgerId, setSelectedLedgerId] = useState<number | null>(null);
+  const [ledgerDetailTab, setLedgerDetailTab] = useState<"social" | "withholding" | "resident">("social");
   const [workerDialogOpen, setWorkerDialogOpen] = useState(false);
   const [workerSearch, setWorkerSearch] = useState("");
+
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
   const [companySearch, setCompanySearch] = useState("");
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
@@ -218,9 +290,20 @@ export default function InsuranceStampsPage() {
   const [rateSearch, setRateSearch] = useState("");
   const [activeMaster, setActiveMaster] = useState<MasterType>("supplier");
   const [masterSearch, setMasterSearch] = useState("");
-  const [personnelSubTab, setPersonnelSubTab] = useState<"workers" | "companies">("workers");
+  const [personnelSubTab, setPersonnelSubTab] = useState<"all" | "hiyatoi" | "furikomi">("all");
+  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
+  const [stampTypeFilter, setStampTypeFilter] = useState<"all" | "health" | "nursing" | "employment" | "nofuda">("all");
   const [vehicleWageSubTab, setVehicleWageSubTab] = useState<"vehicles" | "wage-rules">("vehicles");
   const [settingsSubTab, setSettingsSubTab] = useState<"rate-tables" | "general">("rate-tables");
+
+  // 移動タブ states
+  const [operationDate, setOperationDate] = useState("2026-03-19");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState("2026年3月");
+  const [paidLeaveSearch, setPaidLeaveSearch] = useState("");
+  const [partTimeSearch, setPartTimeSearch] = useState("");
+  const [journalSearch, setJournalSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const filteredStamps = stampsData.filter((d) => {
     const matchesSearch = d.name.includes(searchQuery);
@@ -228,9 +311,11 @@ export default function InsuranceStampsPage() {
     return matchesSearch && matchesMethod;
   });
 
-  const filteredWorkers = mockWorkers.filter(
-    (w) => w.name.includes(workerSearch) || w.nameKana.includes(workerSearch) || w.employeeCode.includes(workerSearch)
-  );
+  const filteredWorkers = mockWorkers.filter((w) => {
+    const matchSearch = w.name.includes(workerSearch) || w.nameKana.includes(workerSearch) || w.employeeCode.includes(workerSearch);
+    const matchType = personnelSubTab === "all" || w.employeeType === personnelSubTab;
+    return matchSearch && matchType;
+  });
   const filteredCompanies = mockCompanies.filter(
     (c) => c.name.includes(companySearch) || c.code.includes(companySearch)
   );
@@ -243,6 +328,14 @@ export default function InsuranceStampsPage() {
     const matchSearch = r.companyName.includes(wageSearch) || r.vehicleTypeName.includes(wageSearch);
     const matchCompany = wageCompanyFilter === "all" || r.companyId === wageCompanyFilter;
     return matchSearch && matchCompany;
+  });
+
+  const filteredPaidLeave = mockPaidLeave.filter((d) => d.name.includes(paidLeaveSearch));
+  const filteredPartTimeWorkers = mockPartTimeWorkers.filter((w) => w.name.includes(partTimeSearch));
+  const filteredJournals = mockJournals.filter((j) => {
+    const matchesSearch = j.description.includes(journalSearch) || j.debitAccount.includes(journalSearch) || j.creditAccount.includes(journalSearch);
+    const matchesCategory = categoryFilter === "all" || j.category === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
 
   const filteredLedger = ledgerData.filter((d) =>
@@ -262,16 +355,16 @@ export default function InsuranceStampsPage() {
   const totalBalance = filteredResident.reduce((acc, d) => acc + d.balance, 0);
 
   return (
-    <MainLayout title="マスタ設定">
+    <MainLayout title="全社共通マスター">
       <div className="space-y-6">
-        {/* Tabs */}
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
-          {TABS.map((tab) => (
+        {/* メインタブ */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit">
+          {MAIN_TABS.map((tab) => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); setSearchQuery(""); setMethodFilter("all"); }}
-              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
-                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              onClick={() => { setActiveMainTab(tab); setActiveSubTab(SUB_TABS[tab][0]); setSearchQuery(""); setMethodFilter("all"); }}
+              className={`rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
+                activeMainTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
               {tab}
@@ -279,17 +372,43 @@ export default function InsuranceStampsPage() {
           ))}
         </div>
 
-        {activeTab === "印紙管理" && (
+        {/* サブタブ */}
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+          {SUB_TABS[activeMainTab].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveSubTab(tab); setSearchQuery(""); setMethodFilter("all"); }}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeSubTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeSubTab === "印紙管理" && (
           <>
-            <p className="text-sm text-slate-500">40テーブル正規化統合・印紙方式/現金納付切替対応</p>
-            <div className="flex items-start gap-3 rounded-xl border border-blue-200/60 bg-blue-50/50 p-4">
-              <Info className="mt-0.5 h-5 w-5 text-blue-500 shrink-0" />
-              <div className="text-sm text-blue-700">
-                <p className="font-medium">正規化統合モード</p>
-                <p className="mt-1 text-blue-600">
-                  旧40テーブル（印紙台帳01〜40）を統合テーブルに正規化済み。印紙方式と現金納付の切替が可能です。
-                </p>
-              </div>
+            <p className="text-sm text-slate-500">健康保険印紙の種別管理・受払実績</p>
+            {/* No.36: 3種フィルタ + 手帳なし */}
+            <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
+              {([
+                ["all",        "全種別"],
+                ["health",     "健康保険（一般）"],
+                ["nursing",    "健康保険（介護あり・40歳以上）"],
+                ["employment", "雇用保険"],
+                ["nofuda",     "手帳なし"],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setStampTypeFilter(val)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    stampTypeFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
               <div className="relative flex-1 max-w-xs">
@@ -398,7 +517,7 @@ export default function InsuranceStampsPage() {
           </>
         )}
 
-        {activeTab === "受払簿" && (
+        {activeSubTab === "受払簿" && (
           <>
             <p className="text-sm text-slate-500">雇用保険印紙受払記録</p>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -499,7 +618,7 @@ export default function InsuranceStampsPage() {
           </>
         )}
 
-        {activeTab === "現金納付" && (
+        {activeSubTab === "現金納付" && (
           <>
             <p className="text-sm text-slate-500">社保現金納付実績管理</p>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -595,9 +714,9 @@ export default function InsuranceStampsPage() {
           </>
         )}
 
-        {activeTab === "徴収台帳" && (
+        {activeSubTab === "徴収台帳" && (
           <>
-            <p className="text-sm text-slate-500">社会保険・住民税徴収台帳</p>
+            <p className="text-sm text-slate-500">社会保険・住民税・源泉税 徴収台帳（行クリックで詳細編集）</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-slate-200/60 bg-white p-5">
                 <div className="flex items-center gap-3">
@@ -666,12 +785,15 @@ export default function InsuranceStampsPage() {
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">雇用保険</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">住民税</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">合計</th>
-                      <th className="px-3 sm:px-4 py-3 text-center text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredCollectionLedger.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr
+                        key={row.id}
+                        className="hover:bg-blue-50/40 transition-colors cursor-pointer"
+                        onClick={() => { setSelectedLedgerId(row.id); setLedgerDetailTab("social"); }}
+                      >
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
                         <td className="px-3 sm:px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{row.updatedAt}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.healthIns.toLocaleString()}</td>
@@ -680,12 +802,6 @@ export default function InsuranceStampsPage() {
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.empIns.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.residentTax.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">¥{row.total.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-center whitespace-nowrap">
-                          <button className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
-                            <Pencil className="h-3 w-3" />
-                            編集
-                          </button>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -693,239 +809,147 @@ export default function InsuranceStampsPage() {
                     <tr className="border-t-2 border-slate-200 bg-slate-50/80">
                       <td className="px-3 sm:px-4 py-3 text-slate-900 font-semibold whitespace-nowrap" colSpan={7}>合計</td>
                       <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-bold tabular-nums whitespace-nowrap">¥{collectionGrandTotal.toLocaleString()}</td>
-                      <td></td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
             </div>
-          </>
-        )}
 
-        {activeTab === "源泉税" && (
-          <>
-            <p className="text-sm text-slate-500">源泉徴収票・納付テーブル管理</p>
-            <div className="grid gap-4 sm:grid-cols-4">
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-50 p-2">
-                    <TrendingDown className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">当月源泉税合計</p>
-                    <p className="text-2xl font-semibold text-slate-900">¥{totalTax.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-slate-100 p-2">
-                    <Calculator className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">計算済</p>
-                    <p className="text-2xl font-semibold text-slate-900">4件</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-50 p-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">未計算</p>
-                    <p className="text-2xl font-semibold text-slate-900">1件</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-slate-100 p-2">
-                    <CalendarDays className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">納付期限</p>
-                    <p className="text-lg font-semibold text-slate-900">2024/02/10</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-              <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="作業員名で検索..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
-                <Calculator className="h-4 w-4" />
-                一括計算
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <FileText className="h-4 w-4" />
-                源泉徴収票出力
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <Download className="h-4 w-4" />
-                エクスポート
-              </button>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">対象月</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">支給額</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">控除額</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">源泉税額</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ステータス</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredWithholding.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.deduction.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-medium tabular-nums whitespace-nowrap">¥{row.netTax.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            row.status === "計算済" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"
-                          }`}>
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="text-sm text-slate-500">全 {filteredWithholding.length} 件</div>
-          </>
-        )}
+            {/* 詳細編集ダイアログ */}
+            {selectedLedgerId !== null && (() => {
+              const ledger = collectionLedgerData.find((d) => d.id === selectedLedgerId);
+              const wh = withholdingData.find((d) => d.name === ledger?.name);
+              const res = residentData.find((d) => d.name === ledger?.name);
+              if (!ledger) return null;
+              return (
+                <Dialog open={true} onOpenChange={(open) => { if (!open) setSelectedLedgerId(null); }}>
+                  <DialogContent className="sm:max-w-[560px]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <span>{ledger.name}</span>
+                        <span className="text-sm font-normal text-slate-500">— 徴収台帳詳細</span>
+                      </DialogTitle>
+                      <DialogDescription>各種控除額を確認・編集できます</DialogDescription>
+                    </DialogHeader>
 
-        {activeTab === "住民税" && (
-          <>
-            <p className="text-sm text-slate-500">住民税徴収台帳・残高管理</p>
-            <div className="grid gap-4 sm:grid-cols-4">
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-50 p-2">
-                    <Landmark className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">年間総額</p>
-                    <p className="text-2xl font-semibold text-slate-900">¥477,600</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-slate-100 p-2">
-                    <CheckCircle2 className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">当月徴収済</p>
-                    <p className="text-2xl font-semibold text-slate-900">4件</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-50 p-2">
-                    <AlertTriangle className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">未徴収</p>
-                    <p className="text-2xl font-semibold text-slate-900">1件</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-slate-100 p-2">
-                    <Wallet className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">残高合計</p>
-                    <p className="text-2xl font-semibold text-slate-900">¥{totalBalance.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-              <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="氏名・市区町村で検索..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <Download className="h-4 w-4" />
-                エクスポート
-              </button>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">市区町村</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">年間額</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">月額</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">徴収済</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">残高</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">ステータス</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredResident.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.municipality}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.annualAmount.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.monthlyAmount.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.collected.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-medium tabular-nums whitespace-nowrap">¥{row.balance.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            row.status === "徴収済" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"
-                          }`}>
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="text-sm text-slate-500">全 {filteredResident.length} 件</div>
+                    {/* 内部タブ */}
+                    <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit mt-1">
+                      {([["social", "社会保険"], ["withholding", "源泉税"], ["resident", "住民税"]] as const).map(([val, label]) => (
+                        <button key={val} onClick={() => setLedgerDetailTab(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${ledgerDetailTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
+                      ))}
+                    </div>
+
+                    {/* 社会保険 */}
+                    {ledgerDetailTab === "social" && (
+                      <div className="grid grid-cols-2 gap-4 py-2">
+                        {[
+                          ["健康保険", ledger.healthIns],
+                          ["厚生年金", ledger.pension],
+                          ["介護保険", ledger.nursingIns],
+                          ["雇用保険", ledger.empIns],
+                          ["住民税控除", ledger.residentTax],
+                        ].map(([label, val]) => (
+                          <div key={label as string} className="grid gap-1.5">
+                            <Label className="text-xs text-slate-500">{label as string}</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+                              <Input defaultValue={(val as number).toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
+                            </div>
+                          </div>
+                        ))}
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">合計</Label>
+                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono font-semibold text-slate-900">
+                            ¥{ledger.total.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 源泉税 */}
+                    {ledgerDetailTab === "withholding" && wh && (
+                      <div className="grid grid-cols-2 gap-4 py-2">
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">対象月</Label>
+                          <Input defaultValue={wh.month} className="h-9 text-sm" />
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">ステータス</Label>
+                          <div className={`flex items-center rounded-lg border px-3 py-2 text-xs font-medium ${wh.status === "計算済" ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}>{wh.status}</div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">支給額</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+                            <Input defaultValue={wh.grossPay.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
+                          </div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">源泉税額</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+                            <Input defaultValue={wh.netTax.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 住民税 */}
+                    {ledgerDetailTab === "resident" && res && (
+                      <div className="grid grid-cols-2 gap-4 py-2">
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">市区町村</Label>
+                          <Input defaultValue={res.municipality} className="h-9 text-sm" />
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">ステータス</Label>
+                          <div className={`flex items-center rounded-lg border px-3 py-2 text-xs font-medium ${res.status === "徴収済" ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-amber-50 border-amber-200 text-amber-700"}`}>{res.status}</div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">月額</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+                            <Input defaultValue={res.monthlyAmount.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
+                          </div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">年間額</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+                            <Input defaultValue={res.annualAmount.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
+                          </div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">徴収済</Label>
+                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono text-slate-700">¥{res.collected.toLocaleString()}</div>
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label className="text-xs text-slate-500">残高</Label>
+                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono font-semibold text-slate-900">¥{res.balance.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    <DialogFooter className="mt-2">
+                      <Button variant="outline" onClick={() => setSelectedLedgerId(null)}>閉じる</Button>
+                      <Button onClick={() => setSelectedLedgerId(null)}>保存する</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              );
+            })()}
           </>
         )}
 
         {/* ===== 人員管理 ===== */}
-        {activeTab === "人員管理" && (
+        {activeSubTab === "人員管理" && (
           <div className="space-y-4">
+            {/* No.11: 全員/日雇い/振り込み（継続雇用）3タブ */}
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-              {([["workers", "作業員"], ["companies", "会社"]] as const).map(([val, label]) => (
+              {([["all", "全員"], ["hiyatoi", "日雇い"], ["furikomi", "振り込み（継続雇用）"]] as const).map(([val, label]) => (
                 <button
                   key={val}
-                  onClick={() => setPersonnelSubTab(val)}
+                  onClick={() => { setPersonnelSubTab(val); setExpandedWorker(null); }}
                   className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                     personnelSubTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
@@ -935,211 +959,173 @@ export default function InsuranceStampsPage() {
               ))}
             </div>
 
-            {personnelSubTab === "workers" && (
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <CardTitle>作業員一覧</CardTitle>
-                      <CardDescription>日雇い作業員の情報を管理します</CardDescription>
-                    </div>
-                    <Dialog open={workerDialogOpen} onOpenChange={setWorkerDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button><Plus className="mr-2 h-4 w-4" />新規登録</Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                          <DialogTitle>作業員を新規登録</DialogTitle>
-                          <DialogDescription>作業員の情報を入力してください</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <CardTitle>作業員一覧</CardTitle>
+                    <CardDescription>
+                      {personnelSubTab === "all" ? "全作業員" : personnelSubTab === "hiyatoi" ? "日雇い作業員" : "振り込み（継続雇用）作業員"}の情報を管理します
+                    </CardDescription>
+                  </div>
+                  <Dialog open={workerDialogOpen} onOpenChange={setWorkerDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button><Plus className="mr-2 h-4 w-4" />新規登録</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>作業員を新規登録</DialogTitle>
+                        <DialogDescription>作業員の情報を入力してください</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="employeeCode">従業員番号</Label>
+                          <Input id="employeeCode" placeholder="例: E001" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="grid gap-2">
-                            <Label htmlFor="employeeCode">従業員番号</Label>
-                            <Input id="employeeCode" placeholder="例: E001" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                              <Label htmlFor="wname">氏名</Label>
-                              <Input id="wname" placeholder="例: 山田 太郎" />
-                            </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="nameKana">フリガナ</Label>
-                              <Input id="nameKana" placeholder="例: ヤマダ タロウ" />
-                            </div>
+                            <Label htmlFor="wname">氏名</Label>
+                            <Input id="wname" placeholder="例: 山田 太郎" />
                           </div>
                           <div className="grid gap-2">
-                            <Label>主な派遣先</Label>
-                            <Select>
-                              <SelectTrigger><SelectValue placeholder="選択してください" /></SelectTrigger>
-                              <SelectContent>
-                                {mockCompanies.map((c) => (
-                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="phone">電話番号</Label>
-                            <Input id="phone" placeholder="例: 090-1234-5678" />
+                            <Label htmlFor="nameKana">フリガナ</Label>
+                            <Input id="nameKana" placeholder="例: ヤマダ タロウ" />
                           </div>
                         </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setWorkerDialogOpen(false)}>キャンセル</Button>
-                          <Button onClick={() => setWorkerDialogOpen(false)}>登録する</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                        {/* No.8: 所属先 */}
+                        <div className="grid gap-2">
+                          <Label>所属先</Label>
+                          <Select>
+                            <SelectTrigger><SelectValue placeholder="選択してください" /></SelectTrigger>
+                            <SelectContent>
+                              {mockCompanies.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="phone">電話番号</Label>
+                          <Input id="phone" placeholder="例: 090-1234-5678" />
+                        </div>
+                        {/* No.14: 支払い方法 */}
+                        <div className="grid gap-2">
+                          <Label>支払い方法</Label>
+                          <Select>
+                            <SelectTrigger><SelectValue placeholder="選択してください" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="キャッシュマシン">キャッシュマシン（現金手渡し）</SelectItem>
+                              <SelectItem value="振り込み">振り込み</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setWorkerDialogOpen(false)}>キャンセル</Button>
+                        <Button onClick={() => setWorkerDialogOpen(false)}>登録する</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input placeholder="氏名・従業員番号で検索..." value={workerSearch} onChange={(e) => setWorkerSearch(e.target.value)} className="pl-9" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex items-center gap-2">
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder="氏名・従業員番号で検索..." value={workerSearch} onChange={(e) => setWorkerSearch(e.target.value)} className="pl-9" />
-                    </div>
-                  </div>
-                  <div className="overflow-x-auto rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="whitespace-nowrap">従業員番号</TableHead>
-                          <TableHead className="whitespace-nowrap">氏名</TableHead>
-                          <TableHead className="whitespace-nowrap">フリガナ</TableHead>
-                          <TableHead className="whitespace-nowrap">主な派遣先</TableHead>
-                          <TableHead className="whitespace-nowrap">電話番号</TableHead>
-                          <TableHead className="whitespace-nowrap">状態</TableHead>
-                          <TableHead></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredWorkers.map((w) => (
-                          <TableRow key={w.id}>
+                </div>
+                <div className="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">従業員番号</TableHead>
+                        <TableHead className="whitespace-nowrap">氏名</TableHead>
+                        <TableHead className="whitespace-nowrap">フリガナ</TableHead>
+                        {/* No.8: 所属先 */}
+                        <TableHead className="whitespace-nowrap">所属先</TableHead>
+                        <TableHead className="whitespace-nowrap">電話番号</TableHead>
+                        {/* No.14: 支払い方法 */}
+                        <TableHead className="whitespace-nowrap">支払い方法</TableHead>
+                        <TableHead className="whitespace-nowrap">状態</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredWorkers.map((w) => (
+                        <>
+                          <TableRow key={w.id} className={expandedWorker === w.id ? "bg-slate-50" : ""}>
                             <TableCell className="font-mono whitespace-nowrap tabular-nums">{w.employeeCode}</TableCell>
                             <TableCell className="font-medium whitespace-nowrap">{w.name}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{w.nameKana}</TableCell>
                             <TableCell className="whitespace-nowrap">{w.defaultCompany}</TableCell>
                             <TableCell className="whitespace-nowrap">{w.phone}</TableCell>
                             <TableCell className="whitespace-nowrap">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${w.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>
+                                {w.paymentMethod}
+                              </span>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <Badge variant={w.isActive ? "default" : "secondary"}>{w.isActive ? "有効" : "無効"}</Badge>
                             </TableCell>
+                            {/* No.7: アコーディオン編集 */}
                             <TableCell>
-                              <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setExpandedWorker(expandedWorker === w.id ? null : w.id)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <div className="mt-4 text-sm text-muted-foreground">全 {filteredWorkers.length} 件</div>
-                </CardContent>
-              </Card>
-            )}
-
-            {personnelSubTab === "companies" && (
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <CardTitle>会社一覧</CardTitle>
-                      <CardDescription>派遣先会社の情報と残業計算ルールを管理します</CardDescription>
-                    </div>
-                    <Dialog open={companyDialogOpen} onOpenChange={setCompanyDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button><Plus className="mr-2 h-4 w-4" />新規登録</Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                          <DialogTitle>会社を新規登録</DialogTitle>
-                          <DialogDescription>派遣先会社の情報を入力してください</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="ccode">会社コード</Label>
-                            <Input id="ccode" placeholder="例: A001" />
-                          </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="cname">会社名</Label>
-                            <Input id="cname" placeholder="例: A運輸株式会社" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                              <Label>残業計算単位（分）</Label>
-                              <Select defaultValue="15">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="5">5分</SelectItem>
-                                  <SelectItem value="10">10分</SelectItem>
-                                  <SelectItem value="15">15分</SelectItem>
-                                  <SelectItem value="30">30分</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid gap-2">
-                              <Label>端数処理</Label>
-                              <Select defaultValue="floor">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="floor">切り捨て</SelectItem>
-                                  <SelectItem value="ceil">切り上げ</SelectItem>
-                                  <SelectItem value="round">四捨五入</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setCompanyDialogOpen(false)}>キャンセル</Button>
-                          <Button onClick={() => setCompanyDialogOpen(false)}>登録する</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex items-center gap-2">
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder="会社名・コードで検索..." value={companySearch} onChange={(e) => setCompanySearch(e.target.value)} className="pl-9" />
-                    </div>
-                  </div>
-                  <div className="overflow-x-auto rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="whitespace-nowrap">コード</TableHead>
-                          <TableHead className="whitespace-nowrap">会社名</TableHead>
-                          <TableHead className="whitespace-nowrap">残業単位</TableHead>
-                          <TableHead className="whitespace-nowrap">端数処理</TableHead>
-                          <TableHead className="whitespace-nowrap">状態</TableHead>
-                          <TableHead></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredCompanies.map((c) => (
-                          <TableRow key={c.id}>
-                            <TableCell className="font-mono whitespace-nowrap">{c.code}</TableCell>
-                            <TableCell className="font-medium whitespace-nowrap">{c.name}</TableCell>
-                            <TableCell className="whitespace-nowrap tabular-nums">{c.overtimeUnit}分</TableCell>
-                            <TableCell className="whitespace-nowrap">{roundingMethodLabels[c.roundingMethod]}</TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <Badge variant={c.isActive ? "default" : "secondary"}>{c.isActive ? "有効" : "無効"}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                          {expandedWorker === w.id && (
+                            <TableRow key={`${w.id}-edit`} className="bg-slate-50/80">
+                              <TableCell colSpan={8} className="px-4 py-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                  <div className="grid gap-1.5">
+                                    <Label className="text-xs">氏名</Label>
+                                    <Input defaultValue={w.name} className="h-8 text-sm" />
+                                  </div>
+                                  <div className="grid gap-1.5">
+                                    <Label className="text-xs">フリガナ</Label>
+                                    <Input defaultValue={w.nameKana} className="h-8 text-sm" />
+                                  </div>
+                                  <div className="grid gap-1.5">
+                                    <Label className="text-xs">所属先</Label>
+                                    <Input defaultValue={w.defaultCompany} className="h-8 text-sm" />
+                                  </div>
+                                  <div className="grid gap-1.5">
+                                    <Label className="text-xs">電話番号</Label>
+                                    <Input defaultValue={w.phone} className="h-8 text-sm" />
+                                  </div>
+                                  <div className="grid gap-1.5">
+                                    <Label className="text-xs">支払い方法</Label>
+                                    <Select defaultValue={w.paymentMethod}>
+                                      <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="キャッシュマシン">キャッシュマシン</SelectItem>
+                                        <SelectItem value="振り込み">振り込み</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="flex items-end gap-2">
+                                    <Button size="sm" className="h-8 text-xs">保存</Button>
+                                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setExpandedWorker(null)}>キャンセル</Button>
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="mt-4 text-sm text-muted-foreground">全 {filteredWorkers.length} 件</div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
         {/* ===== 車両・賃金 ===== */}
-        {activeTab === "車両・賃金" && (
+        {activeSubTab === "車両・賃金" && (
           <div className="space-y-4">
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
               {([["vehicles", "車両"], ["wage-rules", "賃金ルール"]] as const).map(([val, label]) => (
@@ -1418,7 +1404,7 @@ export default function InsuranceStampsPage() {
         )}
 
         {/* ===== 各種設定 ===== */}
-        {activeTab === "各種設定" && (
+        {activeSubTab === "各種設定" && (
           <div className="space-y-4">
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
               {([["rate-tables", "運賃表"], ["general", "各種マスタ"]] as const).map(([val, label]) => (
@@ -1681,6 +1667,369 @@ export default function InsuranceStampsPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── 運行実績 ── */}
+        {activeSubTab === "運行実績" && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "本日の運行数", value: "10件",    icon: Route,  bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "総走行距離",   value: "363.8km", icon: MapPin, bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "総処理量",     value: "51.6t",   icon: Weight, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "稼働車両数",   value: "5台",     icon: Truck,  bg: "bg-blue-50",   ic: "text-blue-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-xs text-slate-500">{label}</p><p className="text-2xl font-bold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+                <input type="date" value={operationDate} onChange={(e) => setOperationDate(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700" />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input type="text" placeholder="ドライバー・車両で検索..." className="rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 w-full sm:w-56" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5 text-slate-600 border-slate-200"><Download className="h-3.5 w-3.5" />CSV出力</Button>
+                <Button size="sm" className="gap-1.5 bg-slate-800 hover:bg-slate-900 text-white"><Plus className="h-3.5 w-3.5" />新規登録</Button>
+              </div>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    {(["日付","ドライバー","車両","車種","便数","走行距離","処理量","時間",""] as const).map((h) => (
+                      <th key={h} className={`px-3 pb-3 pt-3 font-medium text-slate-500 text-xs whitespace-nowrap ${["便数","走行距離","処理量"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {operationData.map((record) => (
+                    <>
+                      <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer" onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
+                        <td className="px-3 py-3 text-slate-700 whitespace-nowrap">{record.date}</td>
+                        <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{record.driverName}</td>
+                        <td className="px-3 py-3 text-slate-600 text-xs whitespace-nowrap">{record.vehicleNumber}</td>
+                        <td className="px-3 py-3 whitespace-nowrap"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{record.vehicleType}</span></td>
+                        <td className="px-3 py-3 text-right tabular-nums text-slate-700 whitespace-nowrap">{record.trips}</td>
+                        <td className="px-3 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalDistance} km</td>
+                        <td className="px-3 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{record.totalWeight} t</td>
+                        <td className="px-3 py-3 text-slate-600 text-xs whitespace-nowrap">{record.startTime}〜{record.endTime}</td>
+                        <td className="px-3 py-3"><Button variant="ghost" size="sm" className="h-7 text-xs text-slate-500">詳細</Button></td>
+                      </tr>
+                      {expandedId === record.id && (
+                        <tr key={`${record.id}-detail`}>
+                          <td colSpan={9} className="bg-slate-50/50 px-4 py-3">
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-slate-500 mb-2">運搬明細</p>
+                              {record.routes.map((route, idx) => (
+                                <div key={idx} className="flex items-center gap-4 rounded-lg bg-white border border-slate-100 px-4 py-2.5">
+                                  <div className="flex items-center gap-2 flex-1"><MapPin className="h-3.5 w-3.5 text-slate-400" /><span className="text-sm font-medium text-slate-700">{route.destination}</span></div>
+                                  <span className="text-sm text-slate-600">{route.wasteType}</span>
+                                  <span className="text-sm tabular-nums text-slate-700 font-medium">{route.weight} t</span>
+                                  <span className="text-sm tabular-nums text-slate-600">{route.distance} km</span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* ── 週休 ── */}
+        {activeSubTab === "週休" && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "登録従業員数",   value: `${scheduleData.length}名`, icon: Users,        bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "平均出勤日数",   value: "20.4日",                  icon: CalendarDays, bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "今月の営業日数", value: "22日",                    icon: CalendarDays, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "本日の出勤予定", value: "6名",                     icon: Users,        bg: "bg-blue-50",   ic: "text-blue-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-xs text-slate-500">{label}</p><p className="text-2xl font-bold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200"><ChevronLeft className="h-4 w-4" /></Button>
+                <span className="text-sm font-medium text-slate-700 min-w-[100px] text-center">{currentMonth}</span>
+                <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200"><ChevronRight className="h-4 w-4" /></Button>
+                <div className="relative ml-2">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input type="text" placeholder="従業員名で検索..." className="rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 w-full sm:w-48" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5 text-slate-600 border-slate-200"><Download className="h-3.5 w-3.5" />CSV出力</Button>
+                <Button size="sm" className="gap-1.5 bg-slate-800 hover:bg-slate-900 text-white"><Plus className="h-3.5 w-3.5" />登録</Button>
+              </div>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="px-4 pb-3 pt-3 text-left font-medium text-slate-500 text-xs w-16 whitespace-nowrap">社員No</th>
+                    <th className="px-4 pb-3 pt-3 text-left font-medium text-slate-500 text-xs w-24 whitespace-nowrap">氏名</th>
+                    {weekDays.map((day, i) => (
+                      <th key={day} className={cn("px-2 pb-3 pt-3 text-center font-medium text-xs w-10", i >= 5 ? "text-blue-500" : "text-slate-500")}>{day}</th>
+                    ))}
+                    <th className="px-4 pb-3 pt-3 text-right font-medium text-slate-500 text-xs whitespace-nowrap">出勤日</th>
+                    <th className="px-4 pb-3 pt-3 text-right font-medium text-slate-500 text-xs whitespace-nowrap">休日</th>
+                    <th className="px-4 pb-3 pt-3 text-xs w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scheduleData.map((entry) => (
+                    <tr key={entry.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{entry.employeeNo}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{entry.name}</td>
+                      {weekDays.map((day) => {
+                        const type = entry.schedule[day];
+                        const config = dayTypeConfig[type];
+                        return (
+                          <td key={day} className="py-3 text-center">
+                            <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded text-xs", config.className)}>{config.label}</span>
+                          </td>
+                        );
+                      })}
+                      <td className="px-4 py-3 text-right tabular-nums font-medium text-slate-900 whitespace-nowrap">{entry.workDays}日</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-500 whitespace-nowrap">{entry.offDays}日</td>
+                      <td className="py-3"><Button variant="ghost" size="sm" className="h-7 text-xs text-slate-500">編集</Button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-slate-400">
+              {Object.entries(dayTypeConfig).map(([key, config]) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <span className={cn("inline-flex h-5 w-5 items-center justify-center rounded text-[10px]", config.className)}>{config.label}</span>
+                  <span>{key === "work" ? "出勤" : key === "off" ? "休日" : key === "half" ? "半休" : "有給"}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── 有給休暇 ── */}
+        {activeSubTab === "有給休暇" && (
+          <>
+            <p className="text-sm text-slate-500">付与・取得・残日数管理</p>
+            <div className="grid gap-4 sm:grid-cols-4">
+              {[
+                { label: "付与合計",  value: "71日", icon: CalendarPlus,  bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "取得合計",  value: "34日", icon: CalendarMinus, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残日数合計", value: "37日", icon: CalendarCheck, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残2日以下", value: "1名",  icon: AlertCircle,  bg: "bg-blue-50",   ic: "text-blue-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="作業員名で検索..." value={paidLeaveSearch} onChange={(e) => setPaidLeaveSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <CalendarPlus className="h-4 w-4" />一括付与
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["作業員名","付与日","付与日数","取得日数","残日数","有効期限","消化率"].map((h) => (
+                        <th key={h} className={`px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["付与日数","取得日数","残日数"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredPaidLeave.map((row) => {
+                      const rate = Math.round((row.used / row.granted) * 100);
+                      return (
+                        <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                          <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{row.grantDate}</td>
+                          <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.granted}</td>
+                          <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.used}</td>
+                          <td className="px-4 py-3 text-right font-mono font-medium tabular-nums whitespace-nowrap">
+                            <span className={row.remaining <= 2 ? "text-blue-600" : "text-slate-900"}>{row.remaining}</span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{row.expiry}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-20 rounded-full bg-slate-100 overflow-hidden">
+                                <div className={`h-full rounded-full ${rate >= 80 ? "bg-slate-900" : rate >= 50 ? "bg-blue-500" : "bg-slate-300"}`} style={{ width: `${rate}%` }} />
+                              </div>
+                              <span className="text-xs text-slate-500">{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredPaidLeave.length} 件</div>
+          </>
+        )}
+
+        {/* ── アルバイト ── */}
+        {activeSubTab === "アルバイト" && (
+          <>
+            <p className="text-sm text-slate-500">時給制アルバイトの勤怠・賃金管理</p>
+            <div className="grid gap-4 sm:grid-cols-4">
+              {[
+                { label: "登録人数",     value: "5名",       icon: Users,        bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "総労働時間",   value: "450.0h",   icon: Clock,        bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "残業時間合計", value: "25.0h",    icon: CalendarDays, bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "賃金合計",     value: "¥570,950", icon: Banknote,     bg: "bg-slate-100", ic: "text-slate-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="氏名で検索..." value={partTimeSearch} onChange={(e) => setPartTimeSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <Plus className="h-4 w-4" />新規登録
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["氏名","時給","出勤日数","総時間","残業","支給額","対象月","ステータス"].map((h) => (
+                        <th key={h} className={`px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["時給","出勤日数","総時間","残業","支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredPartTimeWorkers.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.hourlyRate.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.workDays}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.totalHours.toFixed(1)}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.overtime.toFixed(1)}</td>
+                        <td className="px-4 py-3 text-right text-slate-900 font-mono font-medium tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredPartTimeWorkers.length} 件</div>
+          </>
+        )}
+
+        {/* ── 仕訳 ── */}
+        {activeSubTab === "仕訳" && (
+          <>
+            <p className="text-sm text-slate-500">仕訳・預り金テーブル管理</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { label: "仕訳件数", value: `${mockJournals.length}件`, icon: BookOpen,   bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "借方合計", value: "¥1,381,700",               icon: Calculator, bg: "bg-slate-100", ic: "text-slate-600" },
+                { label: "貸方合計", value: "¥526,700",                 icon: ArrowRight, bg: "bg-slate-100", ic: "text-slate-600" },
+              ].map(({ label, value, icon: Icon, bg, ic }) => (
+                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
+                    <div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-semibold text-slate-900">{value}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="勘定科目・摘要で検索..." value={journalSearch} onChange={(e) => setJournalSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-slate-400" />
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="all">全カテゴリ</option>
+                  <option value="給与">給与</option>
+                  <option value="納付">納付</option>
+                </select>
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                <Plus className="h-4 w-4" />仕訳追加
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <Download className="h-4 w-4" />エクスポート
+              </button>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["日付","借方科目","借方金額","貸方科目","貸方金額","摘要"].map((h) => (
+                        <th key={h} className={`px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["借方金額","貸方金額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredJournals.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{row.date}</td>
+                        <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.debitAccount}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.debitAmount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.creditAccount}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.creditAmount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="text-sm text-slate-500">全 {filteredJournals.length} 件</div>
+          </>
         )}
       </div>
     </MainLayout>

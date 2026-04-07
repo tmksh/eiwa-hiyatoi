@@ -132,11 +132,11 @@ const PAYMENT_SUBTABS = ["支払明細", "振込データ", "金種表", "期間
 type PaymentSubTab = (typeof PAYMENT_SUBTABS)[number];
 
 const paymentData = [
-  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, grossPay: 308000, deductions: 46200, netPay: 261800, status: "確定" },
-  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, grossPay: 260000, deductions: 39000, netPay: 221000, status: "確定" },
-  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中" },
-  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中" },
-  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, grossPay: 252000, deductions: 37800, netPay: 214200, status: "確定" },
+  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, grossPay: 308000, deductions: 46200, netPay: 261800, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, grossPay: 260000, deductions: 39000, netPay: 221000, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中", paymentMethod: "振り込み" },
+  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中", paymentMethod: "振り込み" },
+  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, grossPay: 252000, deductions: 37800, netPay: 214200, status: "確定", paymentMethod: "キャッシュマシン" },
 ];
 
 const transfersData = [
@@ -183,6 +183,7 @@ export default function CalculationsPage() {
   const [weeklySearch, setWeeklySearch] = useState("");
   const [weeklyWeekFilter, setWeeklyWeekFilter] = useState("");
   const [paymentSearch, setPaymentSearch] = useState("");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "cash" | "transfer">("all");
   const [monthFilter, setMonthFilter] = useState("");
   const [transferSearch, setTransferSearch] = useState("");
   const [denomSearch, setDenomSearch] = useState("");
@@ -274,7 +275,8 @@ export default function CalculationsPage() {
   const filteredPayment = paymentData.filter((row) => {
     const matchesSearch = row.name.includes(paymentSearch);
     const matchesMonth = !monthFilter || row.period.includes(monthFilter.replace("-", "年").replace(/(\d{2})$/, "$1月"));
-    return matchesSearch && (monthFilter ? matchesMonth : true);
+    const matchesMethod = paymentMethodFilter === "all" || (paymentMethodFilter === "cash" && row.paymentMethod === "キャッシュマシン") || (paymentMethodFilter === "transfer" && row.paymentMethod === "振り込み");
+    return matchesSearch && (monthFilter ? matchesMonth : true) && matchesMethod;
   });
   const filteredTransfers = transfersData.filter((row) => row.name.includes(transferSearch) || row.bank.includes(transferSearch));
   const filteredDenomination = denominationData.filter((row) => row.name.includes(denomSearch));
@@ -865,7 +867,13 @@ export default function CalculationsPage() {
 
         {activeTab === "支払処理" && paymentSubTab === "支払明細" && (
           <>
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between">
+              {/* No.24: キャッシュマシン/振り込みフィルタ */}
+              <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                {([["all", "全員"], ["cash", "キャッシュマシン"], ["transfer", "振り込み"]] as const).map(([val, label]) => (
+                  <button key={val} onClick={() => setPaymentMethodFilter(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${paymentMethodFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
+                ))}
+              </div>
               <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
                 <Download className="h-4 w-4" />PDF出力
               </button>
@@ -888,7 +896,7 @@ export default function CalculationsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["氏名","対象期間","稼働日数","総支給額","控除合計","差引支給額","ステータス"].map((h) => (
+                      {["氏名","対象期間","稼働日数","総支給額","控除合計","差引支給額","支払方法","ステータス"].map((h) => (
                         <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["稼働日数","総支給額","控除合計","差引支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -903,8 +911,11 @@ export default function CalculationsPage() {
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-600 font-mono tabular-nums whitespace-nowrap">-{formatAmount(row.deductions)}円</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">{formatAmount(row.netPay)}円</td>
                         <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
-                        </td>
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{row.paymentMethod}</span>
+                            </td>
+                            <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
+                            </td>
                       </tr>
                     ))}
                   </tbody>

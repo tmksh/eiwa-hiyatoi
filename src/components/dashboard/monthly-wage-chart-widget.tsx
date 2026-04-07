@@ -15,12 +15,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 
 const monthlyData = [
-  { month: "10月", wage: 3980000, workers: 162 },
-  { month: "11月", wage: 4210000, workers: 171 },
-  { month: "12月", wage: 4650000, workers: 183 },
-  { month: "1月",  wage: 4320000, workers: 175 },
-  { month: "2月",  wage: 4620000, workers: 179 },
-  { month: "3月",  wage: 4850000, workers: 187 },
+  { month: "10月", wage: 3980000, cashWage: 2388000, transferWage: 1592000, workers: 162 },
+  { month: "11月", wage: 4210000, cashWage: 2526000, transferWage: 1684000, workers: 171 },
+  { month: "12月", wage: 4650000, cashWage: 2790000, transferWage: 1860000, workers: 183 },
+  { month: "1月",  wage: 4320000, cashWage: 2592000, transferWage: 1728000, workers: 175 },
+  { month: "2月",  wage: 4620000, cashWage: 2772000, transferWage: 1848000, workers: 179 },
+  { month: "3月",  wage: 4850000, cashWage: 2910000, transferWage: 1940000, workers: 187 },
 ];
 
 function formatYen(value: number) {
@@ -43,9 +43,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: entry.color }} />
           <span className="text-slate-500">{entry.name}:</span>
           <span className="font-semibold text-slate-800">
-            {entry.name === "総支給額"
-              ? `¥${new Intl.NumberFormat("ja-JP").format(entry.value)}`
-              : `${entry.value}名`}
+            {entry.name === "出勤者数"
+              ? `${entry.value}名`
+              : `¥${new Intl.NumberFormat("ja-JP").format(entry.value)}`}
           </span>
         </div>
       ))}
@@ -109,11 +109,22 @@ export function MonthlyWageChartWidget() {
               iconSize={8}
               wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
             />
+            {/* No.27: 支払い方法別内訳 (積み上げ棒グラフ) */}
             <Bar
               yAxisId="wage"
-              dataKey="wage"
-              name="総支給額"
+              dataKey="cashWage"
+              name="キャッシュマシン"
+              stackId="wage"
               fill="#cbd5e1"
+              radius={[0, 0, 0, 0]}
+              maxBarSize={40}
+            />
+            <Bar
+              yAxisId="wage"
+              dataKey="transferWage"
+              name="振り込み"
+              stackId="wage"
+              fill="#3b82f6"
               radius={[4, 4, 0, 0]}
               maxBarSize={40}
             />
@@ -122,9 +133,9 @@ export function MonthlyWageChartWidget() {
               type="monotone"
               dataKey="workers"
               name="出勤者数"
-              stroke="#3b82f6"
+              stroke="#f97316"
               strokeWidth={2}
-              dot={{ fill: "#3b82f6", r: 3 }}
+              dot={{ fill: "#f97316", r: 3 }}
               activeDot={{ r: 5 }}
             />
           </ComposedChart>

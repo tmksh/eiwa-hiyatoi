@@ -164,16 +164,16 @@ export default function WageRulesPage() {
   });
 
   return (
-    <MainLayout title="マスタ管理">
+    <MainLayout title="日当設定">
       <div className="space-y-6">
         <MasterSubnav />
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <CardTitle>賃金ルール一覧</CardTitle>
+                <CardTitle>日当設定一覧</CardTitle>
                 <CardDescription>
-                  会社・車種ごとの基本給・残業単価を管理します
+                  所属先（会社）× 車種 の組み合わせごとに基本日当・残業単価を管理します
                 </CardDescription>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -185,18 +185,18 @@ export default function WageRulesPage() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px]">
                   <DialogHeader>
-                    <DialogTitle>賃金ルールを新規登録</DialogTitle>
-                    <DialogDescription>
-                      会社・車種の組み合わせに対する賃金ルールを設定します
-                    </DialogDescription>
+                      <DialogTitle>日当設定を新規登録</DialogTitle>
+                      <DialogDescription>
+                        所属先と車種の組み合わせに対する日当を設定します
+                      </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
-                        <Label>会社</Label>
+                        <Label>所属先</Label>
                         <Select>
                           <SelectTrigger>
-                            <SelectValue placeholder="会社を選択" />
+                            <SelectValue placeholder="所属先を選択" />
                           </SelectTrigger>
                           <SelectContent>
                             {mockCompanies.map((company) => (
@@ -234,7 +234,7 @@ export default function WageRulesPage() {
                     </div>
 
                     <div className="border-t pt-4">
-                      <h4 className="font-medium mb-3">基本給</h4>
+                      <h4 className="font-medium mb-3">基本日当</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                           <Label>日給（円）</Label>
@@ -291,7 +291,7 @@ export default function WageRulesPage() {
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="会社名・車種で検索..."
+                  placeholder="所属先・車種で検索..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -299,10 +299,10 @@ export default function WageRulesPage() {
               </div>
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
                 <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="会社で絞り込み" />
+                  <SelectValue placeholder="所属先で絞り込み" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">すべての会社</SelectItem>
+                  <SelectItem value="all">すべての所属先</SelectItem>
                   {mockCompanies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
@@ -317,9 +317,9 @@ export default function WageRulesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">会社</TableHead>
+                    <TableHead className="whitespace-nowrap">所属先</TableHead>
                     <TableHead className="whitespace-nowrap">車種</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">基本日給</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                     <TableHead className="text-right whitespace-nowrap">残業単価</TableHead>
                     <TableHead className="whitespace-nowrap">適用期間</TableHead>
                     <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>

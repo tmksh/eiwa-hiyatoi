@@ -260,7 +260,7 @@ export default function ReportsPage() {
                         {MONTH_LABELS.map((m) => (
                           <th key={m} className="px-3 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">{m}</th>
                         ))}
-                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">合計</th>
+                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">年間合計</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -277,6 +277,21 @@ export default function ReportsPage() {
                         );
                       })}
                     </tbody>
+                    {/* No.30: 月合計行 */}
+                    <tfoot>
+                      <tr className="border-t-2 border-slate-200 bg-slate-50">
+                        <td className="sticky left-0 z-10 bg-slate-50 px-3 sm:px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap">月合計</td>
+                        {MONTH_LABELS.map((_, mi) => {
+                          const monthTotal = personalData.filter((d) => d.name.includes(searchQuery)).reduce((s, row) => s + row.months[mi], 0);
+                          return (
+                            <td key={mi} className="px-3 py-3 text-right text-xs font-semibold text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{monthTotal.toLocaleString()}</td>
+                          );
+                        })}
+                        <td className="px-3 sm:px-4 py-3 text-right text-xs font-bold text-slate-900 font-mono tabular-nums whitespace-nowrap">
+                          ¥{personalData.filter((d) => d.name.includes(searchQuery)).reduce((s, row) => s + row.months.reduce((a, b) => a + b, 0), 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>

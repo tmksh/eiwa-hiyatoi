@@ -301,6 +301,8 @@ export default function InsuranceStampsPage() {
   const [wageDialogOpen, setWageDialogOpen] = useState(false);
   const [wageSearch, setWageSearch] = useState("");
   const [wageCompanyFilter, setWageCompanyFilter] = useState("all");
+  const [editingWageRule, setEditingWageRule] = useState<typeof mockWageRules[0] | null>(null);
+  const [unitPriceEditId, setUnitPriceEditId] = useState<string | null>(null);
   const [activeTable, setActiveTable] = useState<TableType>("health");
   const [rateSearch, setRateSearch] = useState("");
   const [activeMaster, setActiveMaster] = useState<MasterType>("supplier");
@@ -1313,7 +1315,7 @@ export default function InsuranceStampsPage() {
         {activeSubTab === "車両・賃金" && (
           <div className="space-y-4">
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-              {([["vehicles", "車両"], ["wage-rules", "賃金ルール"]] as const).map(([val, label]) => (
+              {([["vehicles", "車両"], ["wage-rules", "日当設定"]] as const).map(([val, label]) => (
                 <button
                   key={val}
                   onClick={() => setVehicleWageSubTab(val)}
@@ -1439,8 +1441,10 @@ export default function InsuranceStampsPage() {
                 <CardHeader>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <CardTitle>賃金ルール一覧</CardTitle>
-                      <CardDescription>会社・車種ごとの基本給・残業単価を管理します</CardDescription>
+                      <CardTitle>日当設定一覧</CardTitle>
+                      <CardDescription>
+                        <span className="font-medium text-slate-700">所属先 × 車種</span> の組み合わせで基本日当・残業単価が決まります
+                      </CardDescription>
                     </div>
                     <Dialog open={wageDialogOpen} onOpenChange={setWageDialogOpen}>
                       <DialogTrigger asChild>
@@ -1448,15 +1452,15 @@ export default function InsuranceStampsPage() {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[600px]">
                         <DialogHeader>
-                          <DialogTitle>賃金ルールを新規登録</DialogTitle>
-                          <DialogDescription>会社・車種の組み合わせに対する賃金ルールを設定します</DialogDescription>
+                          <DialogTitle>日当設定を新規登録</DialogTitle>
+                          <DialogDescription>所属先と車種の組み合わせに対する日当を設定します</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                              <Label>会社</Label>
+                              <Label>所属先</Label>
                               <Select>
-                                <SelectTrigger><SelectValue placeholder="会社を選択" /></SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="所属先を選択" /></SelectTrigger>
                                 <SelectContent>
                                   {mockCompanies.map((c) => (
                                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -1487,7 +1491,7 @@ export default function InsuranceStampsPage() {
                             </div>
                           </div>
                           <div className="border-t pt-4">
-                            <h4 className="font-medium mb-3">基本給</h4>
+                            <h4 className="font-medium mb-3">基本日当</h4>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="grid gap-2">
                                 <Label>日給（円）</Label>
@@ -1525,33 +1529,78 @@ export default function InsuranceStampsPage() {
                     </Dialog>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
+                <CardContent className="space-y-5">
+                  {/* 所属先×車種 マトリクス概要 */}
+                  {wageCompanyFilter === "all" && wageSearch === "" && (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/50 overflow-x-auto">
+                      <div className="px-4 py-2.5 border-b border-slate-200 flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-600">所属先 × 車種 — 基本日当マトリクス</span>
+                        <span className="text-[10px] text-slate-400">（単位：円）</span>
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200 bg-slate-100/60">
+                            <th className="px-3 py-2 text-left font-medium text-slate-500 whitespace-nowrap">所属先</th>
+                            {["2tトラック", "4tトラック", "10tトラック"].map((v) => (
+                              <th key={v} className="px-3 py-2 text-right font-medium text-slate-500 whitespace-nowrap">{v}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {mockCompanies.map((company) => {
+                            const rules = mockWageRules.filter((r) => r.companyId === company.id);
+                            return (
+                              <tr key={company.id} className="hover:bg-white transition-colors">
+                                <td className="px-3 py-2 font-medium text-slate-700 whitespace-nowrap">{company.name}</td>
+                                {["2tトラック", "4tトラック", "10tトラック"].map((vt) => {
+                                  const rule = rules.find((r) => r.vehicleTypeName === vt);
+                                  return (
+                                    <td key={vt} className="px-3 py-2 text-right tabular-nums">
+                                      {rule ? (
+                                        <span className="font-mono text-slate-900">¥{rule.baseDailyWage.toLocaleString()}</span>
+                                      ) : (
+                                        <span className="text-slate-300">—</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 検索・絞り込み */}
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
                     <div className="relative flex-1 max-w-sm">
                       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder="会社名・車種で検索..." value={wageSearch} onChange={(e) => setWageSearch(e.target.value)} className="pl-9" />
+                      <Input placeholder="所属先・車種で検索..." value={wageSearch} onChange={(e) => setWageSearch(e.target.value)} className="pl-9" />
                     </div>
                     <Select value={wageCompanyFilter} onValueChange={setWageCompanyFilter}>
-                      <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="会社で絞り込み" /></SelectTrigger>
+                      <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="所属先で絞り込み" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">すべての会社</SelectItem>
+                        <SelectItem value="all">すべての所属先</SelectItem>
                         {mockCompanies.map((c) => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* テーブル */}
                   <div className="overflow-x-auto rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="whitespace-nowrap">会社</TableHead>
+                          <TableHead className="whitespace-nowrap">所属先</TableHead>
                           <TableHead className="whitespace-nowrap">車種</TableHead>
-                          <TableHead className="text-right whitespace-nowrap">基本日給</TableHead>
+                          <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                           <TableHead className="text-right whitespace-nowrap">残業単価</TableHead>
                           <TableHead className="whitespace-nowrap">適用期間</TableHead>
                           <TableHead className="whitespace-nowrap">状態</TableHead>
-                          <TableHead></TableHead>
+                          <TableHead className="whitespace-nowrap w-[130px]">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1574,16 +1623,155 @@ export default function InsuranceStampsPage() {
                               <Badge variant={r.isActive ? "default" : "secondary"}>{r.isActive ? "有効" : "無効"}</Badge>
                             </TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                              <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" onClick={() => setEditingWageRule(r)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost" size="sm"
+                                  className="text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50 px-2"
+                                  onClick={() => setUnitPriceEditId(r.id)}
+                                  title="途中帰宅・負傷帰宅など例外時の単価調整"
+                                >
+                                  単価編集
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </div>
-                  <div className="mt-4 text-sm text-muted-foreground">全 {filteredWageRules.length} 件</div>
+                  <div className="text-sm text-muted-foreground">全 {filteredWageRules.length} 件</div>
                 </CardContent>
               </Card>
+
+              {/* 日当設定 編集ダイアログ */}
+              <Dialog open={!!editingWageRule} onOpenChange={(open) => !open && setEditingWageRule(null)}>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>日当設定を編集</DialogTitle>
+                    <DialogDescription>
+                      {editingWageRule?.companyName} / {editingWageRule?.vehicleTypeName} の設定を編集します
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label>所属先</Label>
+                        <Select defaultValue={editingWageRule?.companyId}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {mockCompanies.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>車種</Label>
+                        <Select defaultValue={editingWageRule?.vehicleTypeName}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="2tトラック">2tトラック</SelectItem>
+                            <SelectItem value="4tトラック">4tトラック</SelectItem>
+                            <SelectItem value="10tトラック">10tトラック</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label>適用開始日</Label>
+                        <Input type="date" defaultValue={format(editingWageRule?.effectiveFrom ?? new Date(), "yyyy-MM-dd")} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>適用終了日（任意）</Label>
+                        <Input type="date" defaultValue={editingWageRule?.effectiveTo ? format(editingWageRule.effectiveTo, "yyyy-MM-dd") : ""} />
+                      </div>
+                    </div>
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium mb-3">基本日当</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label>日給（円）</Label>
+                          <Input type="number" defaultValue={editingWageRule?.baseDailyWage} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>基本労働時間</Label>
+                          <Input type="number" step="0.5" defaultValue={editingWageRule?.baseHours} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium mb-3">残業単価（円/時間）</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="grid gap-2">
+                          <Label>通常</Label>
+                          <Input type="number" defaultValue={editingWageRule?.overtimeRateNormal} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>深夜（22-5時）</Label>
+                          <Input type="number" defaultValue={editingWageRule?.overtimeRateLate} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>休日</Label>
+                          <Input type="number" defaultValue={editingWageRule?.overtimeRateHoliday} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditingWageRule(null)}>キャンセル</Button>
+                    <Button onClick={() => setEditingWageRule(null)}>保存する</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* 単価編集（例外対応）ダイアログ */}
+              {(() => {
+                const rule = mockWageRules.find((r) => r.id === unitPriceEditId);
+                return (
+                  <Dialog open={!!unitPriceEditId} onOpenChange={(open) => !open && setUnitPriceEditId(null)}>
+                    <DialogContent className="sm:max-w-[480px]">
+                      <DialogHeader>
+                        <DialogTitle>単価編集（例外対応）</DialogTitle>
+                        <DialogDescription>
+                          途中帰宅・負傷帰宅などの例外時に適用する単価を設定します。
+                          {rule && <><br /><span className="font-medium">{rule.companyName} / {rule.vehicleTypeName}</span></>}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label>例外種別</Label>
+                          <Select defaultValue="early-return">
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="early-return">途中帰宅</SelectItem>
+                              <SelectItem value="injury-return">負傷帰宅</SelectItem>
+                              <SelectItem value="no-work">作業なし</SelectItem>
+                              <SelectItem value="half-day">半日</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>適用単価（円）</Label>
+                          <Input type="number" defaultValue={rule ? Math.round(rule.baseDailyWage / 2) : 0} />
+                          <p className="text-xs text-slate-400">通常日当: {rule ? formatCurrency(rule.baseDailyWage) : "—"}</p>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>備考</Label>
+                          <Input placeholder="例: 午前中のみ作業・病院送迎" />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setUnitPriceEditId(null)}>キャンセル</Button>
+                        <Button onClick={() => setUnitPriceEditId(null)}>設定する</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                );
+              })()}
             )}
           </div>
         )}

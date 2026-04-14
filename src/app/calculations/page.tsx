@@ -76,6 +76,7 @@ import {
   Banknote,
   Filter,
   Printer,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

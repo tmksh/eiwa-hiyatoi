@@ -60,7 +60,10 @@ import {
   CalendarMinus,
   ArrowRight,
   CalendarIcon,
+  Trash2,
+  Coins,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
@@ -118,12 +121,14 @@ const SUB_TABS: Record<MainTab, string[]> = {
 };
 
 // --- Workers ---
+interface WorkerAllowance { id: string; name: string; amount: number; isContinuous: boolean; }
+
 const mockWorkers = [
-  { id: "1", employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", phone: "090-1234-5678", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
-  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", phone: "090-2345-6789", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
-  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", phone: "090-3456-7890", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi" },
-  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", phone: "090-4567-8901", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi" },
-  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", phone: "090-5678-9012", isActive: false, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi" },
+  { id: "1", employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", phone: "090-1234-5678", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "6等級（介護なし）", employmentInsuranceGrade: "4等級", allowances: [{ id: "a1", name: "皆勤手当", amount: 5000, isContinuous: true }, { id: "a2", name: "リーダー手当", amount: 3000, isContinuous: true }] as WorkerAllowance[] },
+  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", phone: "090-2345-6789", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級", allowances: [{ id: "a3", name: "資格手当", amount: 2000, isContinuous: true }] as WorkerAllowance[] },
+  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", phone: "090-3456-7890", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi", socialInsuranceGrade: "10等級（介護あり）", employmentInsuranceGrade: "7等級", allowances: [] as WorkerAllowance[] },
+  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", phone: "090-4567-8901", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi", socialInsuranceGrade: "6等級（介護あり）", employmentInsuranceGrade: "5等級", allowances: [{ id: "a4", name: "早出手当（固定）", amount: 1500, isContinuous: false }] as WorkerAllowance[] },
+  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", phone: "090-5678-9012", isActive: false, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級", allowances: [] as WorkerAllowance[] },
 ];
 
 // --- Companies ---
@@ -334,6 +339,8 @@ export default function InsuranceStampsPage() {
   const [partTimeSearch, setPartTimeSearch] = useState("");
   const [partTimeNewOpen, setPartTimeNewOpen] = useState(false);
   const [vehicleRuleNewOpen, setVehicleRuleNewOpen] = useState(false);
+  const [editingWorkerAllowances, setEditingWorkerAllowances] = useState<WorkerAllowance[]>([]);
+  const [isEditingAllowances, setIsEditingAllowances] = useState(false);
   const [journalSearch, setJournalSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -710,6 +717,7 @@ export default function InsuranceStampsPage() {
                       {stampDetailTab === "worker" && (
                         <div className="space-y-3">
                           {worker ? (
+                            <>
                             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                               <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs w-32">従業員番号</td><td className="px-4 py-2.5 text-slate-900 font-mono text-xs">{worker.employeeCode}</td></tr>
@@ -718,9 +726,56 @@ export default function InsuranceStampsPage() {
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">所属先</td><td className="px-4 py-2.5 text-slate-900">{worker.defaultCompany}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">電話番号</td><td className="px-4 py-2.5 text-slate-700">{worker.phone}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">支払い方法</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${worker.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{worker.paymentMethod}</span></td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">社会保険等級</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${worker.socialInsuranceGrade.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>{worker.socialInsuranceGrade}</span></td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">雇用保険等級</td><td className="px-4 py-2.5"><span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">{worker.employmentInsuranceGrade}</span></td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">状態</td><td className="px-4 py-2.5"><Badge variant={worker.isActive ? "default" : "secondary"}>{worker.isActive ? "有効" : "無効"}</Badge></td></tr>
                               </tbody></table>
                             </div>
+                            {/* 手当セクション */}
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide flex items-center gap-1"><Coins className="h-3 w-3" />手当設定</p>
+                                {!isEditingAllowances && (
+                                  <button onClick={() => { setEditingWorkerAllowances([...worker.allowances]); setIsEditingAllowances(true); }} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"><Pencil className="h-3 w-3" />編集</button>
+                                )}
+                              </div>
+                              {isEditingAllowances ? (
+                                <div className="space-y-2">
+                                  {editingWorkerAllowances.map((a, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
+                                      <Input value={a.name} onChange={(e) => setEditingWorkerAllowances(editingWorkerAllowances.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))} placeholder="手当名" className="h-7 text-xs flex-1 min-w-[80px]" />
+                                      <div className="relative">
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">¥</span>
+                                        <Input type="number" value={a.amount || ""} onChange={(e) => setEditingWorkerAllowances(editingWorkerAllowances.map((x, i) => i === idx ? { ...x, amount: Number(e.target.value) } : x))} className="h-7 text-xs w-[90px] pl-5" />
+                                      </div>
+                                      <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                                        <Checkbox checked={a.isContinuous} onCheckedChange={(v) => setEditingWorkerAllowances(editingWorkerAllowances.map((x, i) => i === idx ? { ...x, isContinuous: !!v } : x))} className="h-3.5 w-3.5" />
+                                        <span className="text-[10px] text-slate-500">継続</span>
+                                      </label>
+                                      <button onClick={() => setEditingWorkerAllowances(editingWorkerAllowances.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><Trash2 className="h-3 w-3" /></button>
+                                    </div>
+                                  ))}
+                                  <button onClick={() => setEditingWorkerAllowances([...editingWorkerAllowances, { id: `new-${Date.now()}`, name: "", amount: 0, isContinuous: false }])} className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 border border-dashed border-slate-300 rounded-md px-2.5 py-1.5">
+                                    <Plus className="h-3 w-3" />手当を追加
+                                  </button>
+                                  <div className="flex justify-end gap-2 pt-1">
+                                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setIsEditingAllowances(false)}>キャンセル</Button>
+                                    <Button size="sm" className="h-7 text-xs" onClick={() => setIsEditingAllowances(false)}>保存</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                worker.allowances.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {worker.allowances.map((a) => (
+                                      <span key={a.id} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${a.isContinuous ? "bg-green-50 text-green-700 ring-1 ring-green-200" : "bg-slate-100 text-slate-600"}`}>
+                                        {a.name} ¥{a.amount.toLocaleString()}{a.isContinuous && <span className="text-[9px]">継続</span>}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : <p className="text-xs text-slate-300">手当なし</p>
+                              )}
+                            </div>
+                            </>
                           ) : <p className="text-sm text-slate-400">作業員情報が見つかりません</p>}
                         </div>
                       )}
@@ -1062,6 +1117,8 @@ export default function InsuranceStampsPage() {
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業員名</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">社保等級</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">雇保等級</th>
                       <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">更新日時</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">健康保険</th>
                       <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">厚生年金</th>
@@ -1079,6 +1136,10 @@ export default function InsuranceStampsPage() {
                         onClick={() => { setSelectedLedgerId(row.id); setLedgerDetailTab("social"); }}
                       >
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                        {(() => { const w = mockWorkers.find(x => x.name === row.name); return (<>
+                          <td className="px-3 sm:px-4 py-3 whitespace-nowrap"><span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${w?.socialInsuranceGrade?.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>{w?.socialInsuranceGrade ?? "—"}</span></td>
+                          <td className="px-3 sm:px-4 py-3 whitespace-nowrap"><span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">{w?.employmentInsuranceGrade ?? "—"}</span></td>
+                        </>); })()}
                         <td className="px-3 sm:px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{row.updatedAt}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.healthIns.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.pension.toLocaleString()}</td>
@@ -1091,7 +1152,7 @@ export default function InsuranceStampsPage() {
                   </tbody>
                   <tfoot>
                     <tr className="border-t-2 border-slate-200 bg-slate-50/80">
-                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-semibold whitespace-nowrap" colSpan={7}>合計</td>
+                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-semibold whitespace-nowrap" colSpan={9}>合計</td>
                       <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-bold tabular-nums whitespace-nowrap">¥{collectionGrandTotal.toLocaleString()}</td>
                     </tr>
                   </tfoot>
@@ -1557,7 +1618,7 @@ export default function InsuranceStampsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["会社名", "車種コード", "車種名", "表示順", "状態", "基本日当", "残業単価(通常)", "残業単価(深夜/休日)", "基準時間"].map((h) => (
+                      {["会社名", "車種名", "表示順", "状態", "基本日当", "残業単価(通常)", "残業単価(深夜/休日)", "基準時間"].map((h) => (
                         <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["基本日当","残業単価(通常)","残業単価(深夜/休日)","基準時間"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -1568,7 +1629,6 @@ export default function InsuranceStampsPage() {
                       return (
                         <tr key={v.id} className="hover:bg-blue-50/40 transition-colors cursor-pointer" onClick={() => { setSelectedVehicleRule(v); setVehicleRuleDetailTab("vehicle"); }}>
                           <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap text-xs">{v.companyName}</td>
-                          <td className="px-3 sm:px-4 py-3 font-mono text-slate-700 whitespace-nowrap">{v.code}</td>
                           <td className="px-3 sm:px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{v.name}</td>
                           <td className="px-3 sm:px-4 py-3 text-slate-500 tabular-nums whitespace-nowrap">{v.displayOrder}</td>
                           <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
@@ -1621,15 +1681,13 @@ export default function InsuranceStampsPage() {
                           <div className="space-y-3">
                             {editingVehicleRule ? (
                               <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs text-slate-500">車種コード</Label>
-                                    <Input defaultValue={editingVehicleRule.code} className="h-9 text-sm font-mono" />
-                                  </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs text-slate-500">車種名</Label>
-                                    <Input defaultValue={editingVehicleRule.name} className="h-9 text-sm" />
-                                  </div>
+                                <div className="grid gap-1.5">
+                                  <Label className="text-xs text-slate-500">車種名</Label>
+                                  <Input defaultValue={editingVehicleRule.name} className="h-9 text-sm" list="vehicle-name-list" />
+                                  <datalist id="vehicle-name-list">
+                                    {["軽トラック","1tトラック","2tトラック","3tトラック","4tトラック","8tトラック","10tトラック","大型トラック","ウイングトラック","バン"].map(n => <option key={n} value={n} />)}
+                                  </datalist>
+                                  <p className="text-[10px] text-slate-400">候補から選ぶか直接入力</p>
                                 </div>
                                 <div className="grid gap-1.5">
                                   <Label className="text-xs text-slate-500">会社</Label>
@@ -1669,7 +1727,6 @@ export default function InsuranceStampsPage() {
                                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                                   <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
                                     <tr><td className="px-4 py-2.5 text-slate-500 text-xs w-28">会社</td><td className="px-4 py-2.5 text-slate-900">{selectedVehicleRule.companyName}</td></tr>
-                                    <tr><td className="px-4 py-2.5 text-slate-500 text-xs">車種コード</td><td className="px-4 py-2.5 text-slate-900 font-mono">{selectedVehicleRule.code}</td></tr>
                                     <tr><td className="px-4 py-2.5 text-slate-500 text-xs">車種名</td><td className="px-4 py-2.5 text-slate-900 font-medium">{selectedVehicleRule.name}</td></tr>
                                     <tr><td className="px-4 py-2.5 text-slate-500 text-xs">表示順</td><td className="px-4 py-2.5 text-slate-700 tabular-nums">{selectedVehicleRule.displayOrder}</td></tr>
                                     <tr><td className="px-4 py-2.5 text-slate-500 text-xs">状態</td><td className="px-4 py-2.5"><Badge variant={selectedVehicleRule.isActive ? "default" : "secondary"}>{selectedVehicleRule.isActive ? "有効" : "無効"}</Badge></td></tr>
@@ -1752,6 +1809,84 @@ export default function InsuranceStampsPage() {
             )}
           </>
         )}
+
+        {/* ── 運行実績 ── */}
+        {activeSubTab === "運行実績" && (
+          <>
+            <p className="text-sm text-slate-500">日別の運行実績一覧</p>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="作業員名で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                      {["日付","作業員","車種","便数","合計距離","合計重量","出勤","退勤"].map(h => (
+                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["便数","合計距離","合計重量"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {operationData.filter(d => d.driverName.includes(searchQuery)).map(row => (
+                      <tr key={row.id} className="hover:bg-blue-50/40 transition-colors cursor-pointer" onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}>
+                        <td className="px-3 sm:px-4 py-3 text-slate-700 text-xs whitespace-nowrap">{row.date}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.driverName}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.vehicleType}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums whitespace-nowrap">{row.trips}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums whitespace-nowrap">{row.totalDistance} km</td>
+                        <td className="px-3 sm:px-4 py-3 text-right font-mono tabular-nums whitespace-nowrap">{row.totalWeight} t</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.startTime}</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{row.endTime}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── 各種設定（早出手当ルール） ── */}
+        {activeSubTab === "各種設定" && (
+          <>
+            <p className="text-sm text-slate-500">行き先ごとの早出手当ルール（車種別・基本給倍率）</p>
+            <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-xs text-blue-700">
+              <span className="font-semibold">早出手当の計算方式：</span>
+              基本給 × 倍率（車種ごとに設定した倍率を基本給に乗じる方式）
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {[
+                { id: "d1", name: "東京中央市場", prefecture: "東京都", hours: 2.5, rules: [{ vt: "2tトラック", min: 30, mult: 0.25 }, { vt: "4tトラック", min: 30, mult: 0.25 }, { vt: "10tトラック", min: 30, mult: 0.30 }], memo: "" },
+                { id: "d2", name: "横浜港物流センター", prefecture: "神奈川県", hours: 3.0, rules: [{ vt: "4tトラック", min: 45, mult: 0.30 }, { vt: "10tトラック", min: 45, mult: 0.35 }, { vt: "大型トラック", min: 45, mult: 0.35 }], memo: "港湾早出は45分基準" },
+                { id: "d3", name: "埼玉北部営業所", prefecture: "埼玉県", hours: 1.5, rules: [{ vt: "2tトラック", min: 30, mult: 0.20 }, { vt: "4tトラック", min: 30, mult: 0.25 }], memo: "" },
+                { id: "d4", name: "千葉南倉庫", prefecture: "千葉県", hours: 2.0, rules: [{ vt: "4tトラック", min: 30, mult: 0.25 }, { vt: "10tトラック", min: 30, mult: 0.30 }], memo: "現在使用停止" },
+              ].map(dest => (
+                <div key={dest.id} className="rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition-all">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-slate-900 text-sm">{dest.name}</p>
+                      <p className="text-xs text-slate-500">{dest.prefecture} · 標準 {dest.hours}h</p>
+                    </div>
+                    <button className="rounded p-1 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5 text-slate-400" /></button>
+                  </div>
+                  <div className="space-y-1 mb-2">
+                    {dest.rules.map((rule, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-600">{rule.vt}</span>
+                        <span className="text-slate-500">{rule.min}分〜 <span className="font-semibold text-blue-700">×{rule.mult}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                  {dest.memo && <p className="text-[11px] text-slate-400 border-t border-slate-100 pt-1.5">{dest.memo}</p>}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── アルバイト新規登録ダイアログ ── */}
@@ -1826,7 +1961,11 @@ export default function InsuranceStampsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>車種名</Label>
-                <Input placeholder="例: 4tトラック" />
+                <Input placeholder="例: 4tトラック" list="vehicle-name-list-new" />
+                <datalist id="vehicle-name-list-new">
+                  {["軽トラック","1tトラック","2tトラック","3tトラック","4tトラック","8tトラック","10tトラック","大型トラック","ウイングトラック","バン"].map(n => <option key={n} value={n} />)}
+                </datalist>
+                <p className="text-[10px] text-slate-400">候補から選ぶか直接入力</p>
               </div>
               <div className="grid gap-2">
                 <Label>表示順</Label>

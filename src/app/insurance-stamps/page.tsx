@@ -332,6 +332,8 @@ export default function InsuranceStampsPage() {
   const [currentMonth, setCurrentMonth] = useState("2026年3月");
   const [paidLeaveSearch, setPaidLeaveSearch] = useState("");
   const [partTimeSearch, setPartTimeSearch] = useState("");
+  const [partTimeNewOpen, setPartTimeNewOpen] = useState(false);
+  const [vehicleRuleNewOpen, setVehicleRuleNewOpen] = useState(false);
   const [journalSearch, setJournalSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -1298,7 +1300,7 @@ export default function InsuranceStampsPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input type="text" placeholder="氏名で検索..." value={partTimeSearch} onChange={(e) => setPartTimeSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
               </div>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+              <button onClick={() => setPartTimeNewOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
                 <Plus className="h-4 w-4" />新規登録
               </button>
               <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
@@ -1546,7 +1548,7 @@ export default function InsuranceStampsPage() {
                   {mockCompanies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+              <button onClick={() => setVehicleRuleNewOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
                 <Plus className="h-4 w-4" />新規登録
               </button>
             </div>
@@ -1751,6 +1753,116 @@ export default function InsuranceStampsPage() {
           </>
         )}
       </div>
+
+      {/* ── アルバイト新規登録ダイアログ ── */}
+      <Dialog open={partTimeNewOpen} onOpenChange={setPartTimeNewOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>アルバイトを新規登録</DialogTitle>
+            <DialogDescription>アルバイト作業員の情報を入力してください</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>氏名</Label>
+                <Input placeholder="例: 田中 花子" />
+              </div>
+              <div className="grid gap-2">
+                <Label>フリガナ</Label>
+                <Input placeholder="例: タナカ ハナコ" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>時給</Label>
+                <Input type="number" placeholder="1200" />
+              </div>
+              <div className="grid gap-2">
+                <Label>雇用形態</Label>
+                <Select>
+                  <SelectTrigger><SelectValue placeholder="選択" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="part-time">アルバイト</SelectItem>
+                    <SelectItem value="temp">派遣</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>電話番号</Label>
+              <Input placeholder="例: 090-1234-5678" />
+            </div>
+            <div className="grid gap-2">
+              <Label>メモ</Label>
+              <Input placeholder="任意メモ" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPartTimeNewOpen(false)}>キャンセル</Button>
+            <Button onClick={() => setPartTimeNewOpen(false)}>登録する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 車種/日当設定 新規登録ダイアログ ── */}
+      <Dialog open={vehicleRuleNewOpen} onOpenChange={setVehicleRuleNewOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>車種/日当設定を新規登録</DialogTitle>
+            <DialogDescription>車種情報と日当設定を入力してください</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>会社</Label>
+              <Select>
+                <SelectTrigger><SelectValue placeholder="会社を選択" /></SelectTrigger>
+                <SelectContent>
+                  {mockCompanies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>車種名</Label>
+                <Input placeholder="例: 4tトラック" />
+              </div>
+              <div className="grid gap-2">
+                <Label>表示順</Label>
+                <Input type="number" placeholder="1" defaultValue={1} />
+              </div>
+            </div>
+            <div className="border-t border-slate-100 pt-3 mt-1">
+              <p className="text-xs font-semibold text-slate-500 mb-3">日当設定</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>基本日当</Label>
+                  <Input type="number" placeholder="11000" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>基準時間（h）</Label>
+                  <Input type="number" placeholder="8" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="grid gap-2">
+                  <Label>残業単価（通常）</Label>
+                  <Input type="number" placeholder="1500" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>残業単価（深夜/休日）</Label>
+                  <Input type="number" placeholder="1875" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVehicleRuleNewOpen(false)}>キャンセル</Button>
+            <Button onClick={() => setVehicleRuleNewOpen(false)}>登録する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

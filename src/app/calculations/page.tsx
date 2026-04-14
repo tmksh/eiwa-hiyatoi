@@ -66,6 +66,7 @@ import {
   Building2,
   FileOutput,
   Coins,
+  Trash2,
   AlertCircle,
   Pencil,
   BarChart3,
@@ -74,6 +75,7 @@ import {
   Truck,
   Banknote,
   Filter,
+  Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -145,11 +147,11 @@ const PAYMENT_SUBTABS = ["計算結果", "キャッシュマシン", "振込"] a
 type PaymentSubTab = (typeof PAYMENT_SUBTABS)[number];
 
 const paymentData = [
-  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, grossPay: 308000, deductions: 46200, netPay: 261800, status: "確定", paymentMethod: "キャッシュマシン" },
-  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, grossPay: 260000, deductions: 39000, netPay: 221000, status: "確定", paymentMethod: "キャッシュマシン" },
-  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中", paymentMethod: "振り込み" },
-  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中", paymentMethod: "振り込み" },
-  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, grossPay: 252000, deductions: 37800, netPay: 214200, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, dailyWage: 242000, overtimeWage: 46000, specialAllowance: 20000, grossPay: 308000, deductions: 46200, netPay: 261800, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, dailyWage: 220000, overtimeWage: 30000, specialAllowance: 10000, grossPay: 260000, deductions: 39000, netPay: 221000, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, dailyWage: 276000, overtimeWage: 52000, specialAllowance: 17000, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中", paymentMethod: "振り込み" },
+  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, dailyWage: 198000, overtimeWage: 28000, specialAllowance: 8000, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中", paymentMethod: "振り込み" },
+  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, dailyWage: 231000, overtimeWage: 14000, specialAllowance: 7000, grossPay: 252000, deductions: 37800, netPay: 214200, status: "確定", paymentMethod: "キャッシュマシン" },
 ];
 
 const transfersData = [
@@ -160,13 +162,34 @@ const transfersData = [
 ];
 
 const denominationData = [
-  { id: 1, name: "山田 太郎", netPay: 261800, man: 26, gosen: 0, sen: 1, gohyaku: 1, hyaku: 3, goju: 0, ju: 0, go: 0, ichi: 0 },
-  { id: 2, name: "鈴木 一郎", netPay: 221000, man: 22, gosen: 0, sen: 1, gohyaku: 0, hyaku: 0, goju: 0, ju: 0, go: 0, ichi: 0 },
-  { id: 3, name: "佐藤 花子", netPay: 293250, man: 29, gosen: 0, sen: 3, gohyaku: 0, hyaku: 2, goju: 1, ju: 0, go: 0, ichi: 0 },
-  { id: 4, name: "高橋 健二", netPay: 198900, man: 19, gosen: 1, sen: 3, gohyaku: 1, hyaku: 4, goju: 0, ju: 0, go: 0, ichi: 0 },
+  { id: 1, name: "山田 太郎", netPay: 261800, man: 26, gosen: 0, sen: 1, gohyaku: 1, hyaku: 3, goju: 0, ju: 0, go: 0, ichi: 0, status: "支払済み", updatedAt: "2024/01/31 18:23" },
+  { id: 2, name: "鈴木 一郎", netPay: 221000, man: 22, gosen: 0, sen: 1, gohyaku: 0, hyaku: 0, goju: 0, ju: 0, go: 0, ichi: 0, status: "支払済み", updatedAt: "2024/01/31 18:23" },
+  { id: 3, name: "佐藤 花子", netPay: 293250, man: 29, gosen: 0, sen: 3, gohyaku: 0, hyaku: 2, goju: 1, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/30 14:05" },
+  { id: 4, name: "高橋 健二", netPay: 198900, man: 19, gosen: 1, sen: 3, gohyaku: 1, hyaku: 4, goju: 0, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/30 14:05" },
+  { id: 5, name: "田中 美咲", netPay: 214200, man: 21, gosen: 0, sen: 4, gohyaku: 0, hyaku: 2, goju: 0, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/29 09:41" },
 ];
 
 const denomTotals = { netPay: 974950, man: 96, gosen: 1, sen: 8, gohyaku: 2, hyaku: 9, goju: 1, ju: 0, go: 0, ichi: 0 };
+
+function calcDenom(amount: number) {
+  const man = Math.floor(amount / 10000);
+  const r1 = amount % 10000;
+  const gosen = Math.floor(r1 / 5000);
+  const r2 = r1 % 5000;
+  const sen = Math.floor(r2 / 1000);
+  const r3 = r2 % 1000;
+  const gohyaku = Math.floor(r3 / 500);
+  const r4 = r3 % 500;
+  const hyaku = Math.floor(r4 / 100);
+  const r5 = r4 % 100;
+  const goju = Math.floor(r5 / 50);
+  const r6 = r5 % 50;
+  const ju = Math.floor(r6 / 10);
+  const r7 = r6 % 10;
+  const go = Math.floor(r7 / 5);
+  const ichi = r7 % 5;
+  return { man, gosen, sen, gohyaku, hyaku, goju, ju, go, ichi };
+}
 
 const periodPaymentData = [
   { id: 1, name: "山田 太郎", period: "2024/01/01 ~ 01/15", workDays: 10, totalHours: 85.0, grossPay: 150000, deductions: 22500, netPay: 127500, status: "支給済" },
@@ -298,6 +321,7 @@ export default function CalculationsPage() {
   const [selectedEditId, setSelectedEditId] = useState<string | null>(null);
   const [editAdjustAmount, setEditAdjustAmount] = useState<string>("");
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
+  const [editAllowances, setEditAllowances] = useState<{ name: string; amount: number; isContinuous: boolean }[]>([]);
   const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("キャッシュマシン");
   const [paymentInnerTab, setPaymentInnerTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
   const [selectedTransferRow, setSelectedTransferRow] = useState<typeof transfersData[0] | null>(null);
@@ -349,6 +373,7 @@ export default function CalculationsPage() {
   const [dispatchSearch, setDispatchSearch] = useState("");
   const [dispatchView, setDispatchView] = useState<"summary" | "detail">("summary");
   const [analysisSub, setAnalysisSub] = useState<"vehicles" | "drivers" | "trend" | "dashboard">("vehicles");
+  const [aggPreviewOpen, setAggPreviewOpen] = useState(false);
 
   // 集計 computed
   const filteredDispatchSummary = mockDispatchData.filter((d) => d.destination.includes(dispatchSearch));
@@ -468,6 +493,9 @@ export default function CalculationsPage() {
     return {
       ...row,
       totalWork: workDays,
+      dailyWage: Math.round(row.dailyWage * ratio),
+      overtimeWage: Math.round(row.overtimeWage * ratio),
+      specialAllowance: Math.round(row.specialAllowance * ratio),
       grossPay: Math.round(row.grossPay * ratio),
       deductions: Math.round(row.deductions * ratio),
       netPay: Math.round(row.netPay * ratio),
@@ -746,7 +774,21 @@ export default function CalculationsPage() {
                           {result.weeklyOvertimeWage > 0 ? <span className="text-amber-700">{formatCurrency(result.weeklyOvertimeWage)}</span> : <span className="text-slate-300">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                          {result.adjustment > 0 ? <span className="text-slate-600">+{formatCurrency(result.adjustment)}</span> : <span className="text-slate-300">—</span>}
+                          <button
+                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-blue-50 transition-colors"
+                            onClick={() => {
+                              setSelectedEditId(result.id);
+                              setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
+                              setEditAdjustReason(result.adjustReason || "");
+                              setEditAllowances([]);
+                            }}
+                          >
+                            {result.adjustment > 0 ? (
+                              <span className="text-slate-600 font-mono">+{formatCurrency(result.adjustment)}</span>
+                            ) : (
+                              <span className="text-blue-400 flex items-center gap-0.5"><Plus className="h-3 w-3" />追加</span>
+                            )}
+                          </button>
                         </TableCell>
                         <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
                         <TableCell><StatusBadge status={result.status} /></TableCell>
@@ -839,16 +881,70 @@ export default function CalculationsPage() {
                       />
                     </div>
                   </div>
+                  {/* 手当追加セクション */}
+                  <div className="border-t border-slate-200 pt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                        <Coins className="h-3.5 w-3.5 text-slate-500" />
+                        手当（マスタにも反映）
+                      </Label>
+                    </div>
+                    <div className="space-y-2">
+                      {editAllowances.map((a, idx) => (
+                        <div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
+                          <Input
+                            value={a.name}
+                            onChange={(e) => setEditAllowances(editAllowances.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
+                            placeholder="手当名"
+                            className="h-7 text-xs flex-1 min-w-[80px]"
+                          />
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">¥</span>
+                            <Input
+                              type="number"
+                              value={a.amount || ""}
+                              onChange={(e) => setEditAllowances(editAllowances.map((x, i) => i === idx ? { ...x, amount: Number(e.target.value) } : x))}
+                              placeholder="金額"
+                              className="h-7 text-xs w-[90px] pl-5"
+                            />
+                          </div>
+                          <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                            <Checkbox
+                              checked={a.isContinuous}
+                              onCheckedChange={(v) => setEditAllowances(editAllowances.map((x, i) => i === idx ? { ...x, isContinuous: !!v } : x))}
+                              className="h-3.5 w-3.5"
+                            />
+                            <span className="text-[10px] text-slate-500">継続</span>
+                          </label>
+                          <button onClick={() => setEditAllowances(editAllowances.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 p-0.5">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setEditAllowances([...editAllowances, { name: "", amount: 0, isContinuous: false }])}
+                        className="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-700 hover:border-slate-400 transition-colors"
+                      >
+                        <Plus className="h-3 w-3" />手当を追加
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="rounded-lg bg-slate-800 text-white px-4 py-3 flex justify-between items-center">
                     <span className="text-sm font-medium">調整後合計</span>
                     <span className="text-lg font-bold font-mono tabular-nums">
-                      {formatCurrency(result.baseWage + result.overtimeWage + result.weeklyOvertimeWage + (parseInt(editAdjustAmount || "0") || 0))}
+                      {formatCurrency(
+                        result.baseWage + result.overtimeWage + result.weeklyOvertimeWage
+                        + (parseInt(editAdjustAmount || "0") || 0)
+                        + editAllowances.reduce((s, a) => s + (a.amount || 0), 0)
+                      )}
                     </span>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setSelectedEditId(null)}>キャンセル</Button>
-                  <Button onClick={() => { toast.success(`${result.workerName}の賃金調整を保存しました`); setSelectedEditId(null); }}>保存する</Button>
+                  <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); }}>キャンセル</Button>
+                  <Button onClick={() => { toast.success(`${result.workerName}の賃金調整・手当を保存しました`); setSelectedEditId(null); setEditAllowances([]); }}>保存する</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -869,10 +965,46 @@ export default function CalculationsPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => toast.success("FBデータを出力しました")}
+                  onClick={async () => {
+                    if (paymentSubTab === "振込") {
+                      const rows = adjustedPayment;
+                      const lines = rows.map(row => {
+                        const t = transfersData.find(t => t.name === row.name);
+                        return `${row.name}\t${t?.bank ?? ""}\t${t?.branch ?? ""}\t${t?.accountType ?? ""}\t${t?.accountNo ?? ""}\t${row.netPay}`;
+                      });
+                      const blob = new Blob([["氏名\t銀行\t支店\t種別\t口座番号\t金額", ...lines].join("\n")], { type: "text/plain;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a"); a.href = url; a.download = `FB一括データ_${new Date().toLocaleDateString("ja-JP")}.txt`; a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success("FBデータを出力しました");
+                    } else {
+                      // キャッシュマシン：全員まとめてPDF
+                      const { default: jsPDF } = await import("jspdf");
+                      const denomLabels: [string, keyof ReturnType<typeof calcDenom>][] = [["1万円","man"],["5千円","gosen"],["1千円","sen"],["500円","gohyaku"],["100円","hyaku"],["50円","goju"],["10円","ju"],["5円","go"],["1円","ichi"]];
+                      const rows = adjustedPayment;
+                      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                      rows.forEach((row, i) => {
+                        if (i > 0) doc.addPage();
+                        const dInfo = denominationData.find(d => d.name === row.name);
+                        const d = calcDenom(row.netPay);
+                        doc.setFontSize(16); doc.text("支払明細書（金種表）", 105, 18, { align: "center" });
+                        doc.setFontSize(10);
+                        doc.text(`氏名：${row.name}`, 20, 32);
+                        doc.text(`対象期間：${row.period}`, 20, 40);
+                        doc.text(`差引支給額：¥${row.netPay.toLocaleString()}`, 20, 48);
+                        doc.text(`ステータス：${dInfo?.status ?? "報酬確定"}`, 20, 56);
+                        doc.line(20, 60, 190, 60);
+                        doc.text("金種内訳", 20, 68);
+                        denomLabels.forEach(([label, key], j) => {
+                          const val = d[key]; doc.text(`${label}：${val > 0 ? `${val}枚` : "—"}`, 25, 76 + j * 8);
+                        });
+                      });
+                      doc.save(`金種表一括_${new Date().toLocaleDateString("ja-JP")}.pdf`);
+                    }
+                  }}
                 >
                   <Download className="h-4 w-4" />
-                  FBデータ出力
+                  {paymentSubTab === "キャッシュマシン" ? "PDF出力" : "FBデータ出力"}
                 </Button>
                 <Button
                   size="sm"
@@ -882,25 +1014,36 @@ export default function CalculationsPage() {
                     const { default: jsPDF } = await import("jspdf");
                     const rows = adjustedPayment.filter(r => selectedPaymentIds.includes(r.id));
                     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-                    rows.forEach((row, i) => {
-                      if (i > 0) doc.addPage();
-                      doc.setFontSize(16); doc.text("支払明細書", 105, 20, { align: "center" });
-                      doc.setFontSize(10);
-                      const lines = [
-                        ["氏名", row.name],
-                        ["対象期間", row.period],
-                        ["稼働日数", `${row.totalWork}日`],
-                        ["支払方法", row.paymentMethod],
-                        ["総支給額", `¥${row.grossPay.toLocaleString()}`],
-                        ["控除合計", `-¥${row.deductions.toLocaleString()}`],
-                        ["差引支給額", `¥${row.netPay.toLocaleString()}`],
-                        ["ステータス", row.status === "確定" ? "支払済み" : "未払い"],
-                      ];
-                      lines.forEach(([label, value], j) => {
-                        doc.text(`${label}：${value}`, 20, 40 + j * 10);
+                    if (paymentSubTab === "キャッシュマシン") {
+                      const denomLabels: [string, keyof ReturnType<typeof calcDenom>][] = [["1万円","man"],["5千円","gosen"],["1千円","sen"],["500円","gohyaku"],["100円","hyaku"],["50円","goju"],["10円","ju"],["5円","go"],["1円","ichi"]];
+                      rows.forEach((row, i) => {
+                        if (i > 0) doc.addPage();
+                        const dInfo = denominationData.find(d => d.name === row.name);
+                        const d = calcDenom(row.netPay);
+                        doc.setFontSize(16); doc.text("支払明細書（金種表）", 105, 18, { align: "center" });
+                        doc.setFontSize(10);
+                        doc.text(`氏名：${row.name}`, 20, 32);
+                        doc.text(`対象期間：${row.period}`, 20, 40);
+                        doc.text(`差引支給額：¥${row.netPay.toLocaleString()}`, 20, 48);
+                        doc.text(`ステータス：${dInfo?.status ?? "報酬確定"}`, 20, 56);
+                        doc.line(20, 60, 190, 60);
+                        doc.text("金種内訳", 20, 68);
+                        denomLabels.forEach(([label, key], j) => {
+                          const val = d[key]; doc.text(`${label}：${val > 0 ? `${val}枚` : "—"}`, 25, 76 + j * 8);
+                        });
                       });
-                    });
-                    doc.save(`支払明細_${rows.map(r => r.name).join("_")}.pdf`);
+                      doc.save(`金種表一括_${new Date().toLocaleDateString("ja-JP")}.pdf`);
+                    } else {
+                      rows.forEach((row, i) => {
+                        if (i > 0) doc.addPage();
+                        doc.setFontSize(16); doc.text("支払明細書", 105, 20, { align: "center" });
+                        doc.setFontSize(10);
+                        [["氏名", row.name], ["対象期間", row.period], ["稼働日数", `${row.totalWork}日`], ["支払方法", row.paymentMethod], ["総支給額", `¥${row.grossPay.toLocaleString()}`], ["控除合計", `-¥${row.deductions.toLocaleString()}`], ["差引支給額", `¥${row.netPay.toLocaleString()}`], ["ステータス", row.status === "確定" ? "支払済み" : "未払い"]].forEach(([label, value], j) => {
+                          doc.text(`${label}：${value}`, 20, 40 + j * 10);
+                        });
+                      });
+                      doc.save(`支払明細_${rows.map(r => r.name).join("_")}.pdf`);
+                    }
                   }}
                 >
                   <Upload className="h-4 w-4" />
@@ -908,66 +1051,178 @@ export default function CalculationsPage() {
                 </Button>
               </div>
             </div>
-            {/* ── 統合一覧テーブル ── */}
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 py-3 text-left w-10">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
-                          checked={selectedPaymentIds.length === adjustedPayment.length && adjustedPayment.length > 0}
-                          onChange={(e) => setSelectedPaymentIds(e.target.checked ? adjustedPayment.map(r => r.id) : [])}
-                        />
-                      </th>
-                      {["氏名","対象期間","稼働日数","支払方法","総支給額","控除合計","差引支給額","支払ステータス","振込ステータス","FB"].map((h) => (
-                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["稼働日数","総支給額","控除合計","差引支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {adjustedPayment.map((row) => (
-                      <tr key={row.id} className={`hover:bg-blue-50/40 transition-colors cursor-pointer ${selectedPaymentIds.includes(row.id) ? "bg-blue-50/60" : ""}`} onClick={() => setSelectedPaymentRow(row)}>
-                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
-                            checked={selectedPaymentIds.includes(row.id)}
-                            onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))}
-                          />
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-600 whitespace-nowrap">{row.period}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 whitespace-nowrap tabular-nums">{row.totalWork}日</td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{row.paymentMethod}</span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-red-600 font-mono tabular-nums whitespace-nowrap">−¥{row.deductions.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status === "確定" ? "支払済み" : "未払い"}</span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          {(() => { const t = transfersData.find(t => t.name === row.name); return t ? <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${t.status === "生成済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}>{t.status}</span> : <span className="text-xs text-slate-300">—</span>; })()}
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
-                            onClick={() => toast.success(`${row.name}のFBデータを出力しました`)}
-                          >
-                            <Download className="h-3 w-3" />
-                            FB
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* ── キャッシュマシン: 金種表レイアウト ── */}
+            {paymentSubTab === "キャッシュマシン" && (() => {
+              const DENOMS: [string, keyof ReturnType<typeof calcDenom>][] = [["1万", "man"],["5千", "gosen"],["1千", "sen"],["500", "gohyaku"],["100", "hyaku"],["50", "goju"],["10", "ju"],["5", "go"],["1", "ichi"]];
+              const rows = adjustedPayment.map(row => {
+                const dInfo = denominationData.find(d => d.name === row.name);
+                const dCalc = calcDenom(row.netPay);
+                return { ...row, denom: dCalc, status: dInfo?.status ?? "報酬確定", updatedAt: dInfo?.updatedAt ?? "—" };
+              });
+              const totals = DENOMS.reduce((acc, [, key]) => { acc[key] = rows.reduce((s, r) => s + r.denom[key], 0); return acc; }, {} as Record<string, number>);
+              const totalNet = rows.reduce((s, r) => s + r.netPay, 0);
+              return (
+                <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/50">
+                          <th className="px-3 py-3 w-10">
+                            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                              checked={selectedPaymentIds.length === rows.length && rows.length > 0}
+                              onChange={(e) => setSelectedPaymentIds(e.target.checked ? rows.map(r => r.id) : [])} />
+                          </th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">氏名</th>
+                          {DENOMS.map(([label]) => (
+                            <th key={label} className="px-2 py-3 text-xs font-medium text-slate-400 text-right whitespace-nowrap">{label}円</th>
+                          ))}
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">ステータス</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-right whitespace-nowrap">差引支給額</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">更新日時</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">PDF</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {rows.map((row) => (
+                          <tr key={row.id} className={`hover:bg-blue-50/30 transition-colors cursor-pointer ${selectedPaymentIds.includes(row.id) ? "bg-blue-50/50" : ""}`}
+                            onClick={() => setSelectedPaymentRow(row)}>
+                            <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                                checked={selectedPaymentIds.includes(row.id)}
+                                onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
+                            </td>
+                            <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{row.name}</td>
+                            {DENOMS.map(([, key]) => (
+                              <td key={key} className="px-2 py-3 text-right tabular-nums whitespace-nowrap">
+                                <span className={row.denom[key] > 0 ? "font-semibold text-slate-800" : "text-slate-200"}>{row.denom[key] > 0 ? row.denom[key] : "—"}</span>
+                              </td>
+                            ))}
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "支払済み" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status}</span>
+                            </td>
+                            <td className="px-3 py-3 text-right font-mono font-semibold text-blue-700 tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">{row.updatedAt}</td>
+                            <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <button className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                onClick={async () => {
+                                  const { default: jsPDF } = await import("jspdf");
+                                  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                                  doc.setFontSize(16); doc.text("支払明細書（金種表）", 105, 18, { align: "center" });
+                                  doc.setFontSize(10);
+                                  doc.text(`氏名：${row.name}`, 20, 32);
+                                  doc.text(`対象期間：${row.period}`, 20, 40);
+                                  doc.text(`差引支給額：¥${row.netPay.toLocaleString()}`, 20, 48);
+                                  doc.text(`ステータス：${row.status}`, 20, 56);
+                                  doc.line(20, 60, 190, 60);
+                                  doc.text("金種内訳", 20, 68);
+                                  const denomLabels: [string, keyof ReturnType<typeof calcDenom>][] = [["1万円", "man"],["5千円", "gosen"],["1千円", "sen"],["500円", "gohyaku"],["100円", "hyaku"],["50円", "goju"],["10円", "ju"],["5円", "go"],["1円", "ichi"]];
+                                  denomLabels.forEach(([label, key], i) => {
+                                    const val = row.denom[key];
+                                    doc.text(`${label}：${val > 0 ? `${val}枚` : "—"}`, 25, 76 + i * 8);
+                                  });
+                                  doc.save(`金種表_${row.name}.pdf`);
+                                }}>
+                                <FileText className="h-3 w-3" />PDF
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {/* 合計行 */}
+                        <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
+                          {DENOMS.map(([, key]) => (
+                            <td key={key} className="px-2 py-3 text-right tabular-nums text-slate-700">
+                              {totals[key] > 0 ? totals[key] : "—"}
+                            </td>
+                          ))}
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3 text-right font-mono font-bold text-blue-800 tabular-nums">¥{totalNet.toLocaleString()}</td>
+                          <td colSpan={2} />
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── 振込: 新レイアウト ── */}
+            {paymentSubTab === "振込" && (() => {
+              const rows = adjustedPayment.map(row => {
+                const tInfo = transfersData.find(t => t.name === row.name);
+                return { ...row, bank: tInfo?.bank ?? "—", branch: tInfo?.branch ?? "—", accountType: tInfo?.accountType ?? "—", accountNo: tInfo?.accountNo ?? "—", fbStatus: tInfo?.status ?? "未生成" };
+              });
+              const totalDaily = rows.reduce((s, r) => s + r.dailyWage, 0);
+              const totalOT = rows.reduce((s, r) => s + r.overtimeWage, 0);
+              const totalSpecial = rows.reduce((s, r) => s + r.specialAllowance, 0);
+              const totalNet = rows.reduce((s, r) => s + r.netPay, 0);
+              return (
+                <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/50">
+                          <th className="px-3 py-3 w-10">
+                            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                              checked={selectedPaymentIds.length === rows.length && rows.length > 0}
+                              onChange={(e) => setSelectedPaymentIds(e.target.checked ? rows.map(r => r.id) : [])} />
+                          </th>
+                          {[["氏名","left"],["対象期間","left"],["日当合計","right"],["残業手当","right"],["特別手当","right"],["総計","right"],["振込ステータス","left"],["FB","left"]].map(([h, align]) => (
+                            <th key={h} className={`px-3 py-3 text-xs font-medium text-slate-500 whitespace-nowrap text-${align}`}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {rows.map((row) => (
+                          <tr key={row.id} className={`hover:bg-blue-50/30 transition-colors cursor-pointer ${selectedPaymentIds.includes(row.id) ? "bg-blue-50/50" : ""}`}
+                            onClick={() => setSelectedPaymentRow(row)}>
+                            <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                                checked={selectedPaymentIds.includes(row.id)}
+                                onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
+                            </td>
+                            <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{row.name}</td>
+                            <td className="px-3 py-3 text-slate-500 whitespace-nowrap text-xs">{row.period}</td>
+                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-slate-800">¥{row.dailyWage.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-blue-700">¥{row.overtimeWage.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-amber-700">¥{row.specialAllowance.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono font-bold tabular-nums whitespace-nowrap text-slate-900">¥{row.netPay.toLocaleString()}</td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.fbStatus === "生成済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}>{row.fbStatus}</span>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <button className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                onClick={() => {
+                                  const line = `振込先：${row.bank} ${row.branch} ${row.accountType} ${row.accountNo} ${row.name} ¥${row.netPay.toLocaleString()}`;
+                                  const blob = new Blob([line], { type: "text/plain;charset=utf-8" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a"); a.href = url; a.download = `FB_${row.name}.txt`; a.click();
+                                  URL.revokeObjectURL(url);
+                                  toast.success(`${row.name}のFBデータを出力しました`);
+                                }}>
+                                <Download className="h-3 w-3" />FB
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {/* 合計行 */}
+                        <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
+                          <td />
+                          <td className="px-3 py-3 text-right font-mono font-bold text-slate-800 tabular-nums">¥{totalDaily.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-blue-700 tabular-nums">¥{totalOT.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-amber-700 tabular-nums">¥{totalSpecial.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-slate-900 tabular-nums">¥{totalNet.toLocaleString()}</td>
+                          <td colSpan={2} />
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
           </>
         )}
 
@@ -1040,7 +1295,7 @@ export default function CalculationsPage() {
                 <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setAggPeriodFrom(undefined); setAggPeriodTo(undefined); }}>解除</Button>
               )}
             </div>
-            <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"><Download className="h-4 w-4" />エクスポート</button>
+            <button onClick={() => setAggPreviewOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"><FileText className="h-4 w-4" />プレビュー</button>
           </div>
 
           {view === "personal" && (
@@ -1317,11 +1572,26 @@ export default function CalculationsPage() {
                       <tr><td className="px-4 py-2.5 text-xs text-slate-500 w-28">対象期間</td><td className="px-4 py-2.5 text-slate-900">{selectedPaymentRow.period}</td></tr>
                       <tr><td className="px-4 py-2.5 text-xs text-slate-500">稼働日数</td><td className="px-4 py-2.5 text-slate-900">{selectedPaymentRow.totalWork}日</td></tr>
                       <tr><td className="px-4 py-2.5 text-xs text-slate-500">支払方法</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${selectedPaymentRow.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{selectedPaymentRow.paymentMethod}</span></td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">日当合計</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{selectedPaymentRow.dailyWage?.toLocaleString() ?? "—"}</td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">残業手当</td><td className="px-4 py-2.5 text-blue-700 font-mono">¥{selectedPaymentRow.overtimeWage?.toLocaleString() ?? "—"}</td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">特別手当</td><td className="px-4 py-2.5 text-amber-700 font-mono">¥{selectedPaymentRow.specialAllowance?.toLocaleString() ?? "—"}</td></tr>
                       <tr><td className="px-4 py-2.5 text-xs text-slate-500">総支給額</td><td className="px-4 py-2.5 text-slate-900 font-mono font-medium">¥{selectedPaymentRow.grossPay.toLocaleString()}</td></tr>
                       <tr className="bg-red-50/30"><td className="px-4 py-2.5 text-xs text-slate-500">控除合計</td><td className="px-4 py-2.5 text-red-600 font-mono">−¥{selectedPaymentRow.deductions.toLocaleString()}</td></tr>
                       <tr className="bg-blue-50/30"><td className="px-4 py-2.5 text-xs text-slate-500 font-medium">差引支給額</td><td className="px-4 py-2.5 text-blue-700 font-mono font-bold">¥{selectedPaymentRow.netPay.toLocaleString()}</td></tr>
                       <tr><td className="px-4 py-2.5 text-xs text-slate-500">ステータス</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedPaymentRow.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{selectedPaymentRow.status === "確定" ? "支払済み" : "未払い"}</span></td></tr>
                     </tbody></table>
+                    {/* 登録口座 */}
+                    {transfer && (
+                      <div className="border-t border-slate-100 bg-blue-50/30 px-4 py-3 space-y-1.5">
+                        <p className="text-xs font-semibold text-slate-600 mb-2">登録口座</p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                          <span className="text-slate-400">銀行</span><span className="text-slate-800 font-medium">{transfer.bank} {transfer.branch}</span>
+                          <span className="text-slate-400">種別</span><span className="text-slate-800">{transfer.accountType}</span>
+                          <span className="text-slate-400">口座番号</span><span className="text-slate-800 font-mono tracking-wider">{transfer.accountNo}</span>
+                          <span className="text-slate-400">FB状態</span><span><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${transfer.status === "生成済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}>{transfer.status}</span></span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1440,6 +1710,256 @@ export default function CalculationsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ===== 集計プレビューダイアログ ===== */}
+      <Dialog open={aggPreviewOpen} onOpenChange={setAggPreviewOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-slate-900">
+              集計プレビュー —{" "}
+              {view === "personal" ? "個人別月別" : view === "vehicle" ? "車種別" : "供給元別"}
+            </DialogTitle>
+            <DialogDescription>
+              {aggPeriodFrom ? format(aggPeriodFrom, "yyyy年M月") : "期間未設定"}
+              {" 〜 "}
+              {aggPeriodTo ? format(aggPeriodTo, "yyyy年M月") : "期間未設定"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* プレビュー本体 */}
+          <div id="agg-preview-content" className="overflow-auto flex-1 rounded-lg border border-slate-200">
+            {view === "personal" && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    {["従業員CD","名前","所属元","本給","付加給","残業手当","交通費","総支給額","社保計","所得税","住民税","差引支給額"].map(h => (
+                      <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap ${["従業員CD","名前","所属元"].includes(h) ? "text-left" : "text-right"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {personalData.filter(d => d.name.includes(aggSearchQuery)).map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50">
+                      <td className="px-3 py-2 text-slate-400 font-mono text-xs whitespace-nowrap">{row.employeeCode}</td>
+                      <td className="px-3 py-2 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap text-xs">{row.affiliation}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.basePay.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">¥{row.additionalPay.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.overtimePay > 0 ? `¥${row.overtimePay.toLocaleString()}` : "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700 whitespace-nowrap">{row.transportAllowance > 0 ? `¥${row.transportAllowance.toLocaleString()}` : "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold text-slate-900 whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-red-600 whitespace-nowrap text-xs">¥{row.socialInsuranceTotal.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-600 whitespace-nowrap text-xs">¥{row.incomeTax.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-600 whitespace-nowrap text-xs">{row.residentTax > 0 ? `¥${row.residentTax.toLocaleString()}` : "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-blue-700 font-semibold whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  {(() => {
+                    const fd = personalData.filter(d => d.name.includes(aggSearchQuery));
+                    return (
+                      <tr className="border-t-2 border-slate-300 bg-slate-100">
+                        <td className="px-3 py-2.5 text-xs font-bold text-slate-700 whitespace-nowrap" colSpan={3}>合計 ({fd.length}名)</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.basePay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.additionalPay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.overtimePay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.transportAllowance,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-900 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.grossPay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-red-600 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.socialInsuranceTotal,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.incomeTax,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.residentTax,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-blue-700 font-mono tabular-nums">¥{fd.reduce((s,r)=>s+r.netPay,0).toLocaleString()}</td>
+                      </tr>
+                    );
+                  })()}
+                </tfoot>
+              </table>
+            )}
+
+            {view === "vehicle" && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    {["車種","人数","基本給","無事故手当","残業","総支給額","社保（本人）","所得税","差引支給額","社保会社"].map(h => (
+                      <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap ${h === "車種" ? "text-left" : "text-right"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {vehicleData.map((row, idx) => {
+                    const r = vehicleEdits[row.type] ?? row;
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/50">
+                        <td className="px-3 py-2 text-slate-900 font-medium whitespace-nowrap">{r.type}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">{r.count}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">¥{r.basicWage.toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">{r.safetyBonus > 0 ? `¥${r.safetyBonus.toLocaleString()}` : "—"}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">{r.overtime > 0 ? `¥${r.overtime.toLocaleString()}` : "—"}</td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums text-slate-900">¥{r.grossPay.toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-red-600 text-xs">¥{r.socialInsurance.toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-600 text-xs">¥{r.incomeTax.toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums text-blue-700">¥{r.netPay.toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">¥{r.companyInsurance.toLocaleString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  {(() => {
+                    const rows = vehicleData.map(r => vehicleEdits[r.type] ?? r);
+                    return (
+                      <tr className="border-t-2 border-slate-300 bg-slate-100">
+                        <td className="px-3 py-2.5 text-xs font-bold text-slate-700">合計</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">{rows.reduce((s,r)=>s+r.count,0)}名</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">¥{rows.reduce((s,r)=>s+r.basicWage,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">¥{rows.reduce((s,r)=>s+r.safetyBonus,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">¥{rows.reduce((s,r)=>s+r.overtime,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-900 font-mono">¥{rows.reduce((s,r)=>s+r.grossPay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-red-600 font-mono">¥{rows.reduce((s,r)=>s+r.socialInsurance,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 font-mono">¥{rows.reduce((s,r)=>s+r.incomeTax,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-blue-700 font-mono">¥{rows.reduce((s,r)=>s+r.netPay,0).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">¥{rows.reduce((s,r)=>s+r.companyInsurance,0).toLocaleString()}</td>
+                      </tr>
+                    );
+                  })()}
+                </tfoot>
+              </table>
+            )}
+
+            {view === "dispatch" && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    {["供給元","人数","延べ日数","平均日当","賃金合計","対象月"].map(h => (
+                      <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap ${["人数","延べ日数","平均日当","賃金合計"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredDispatchSummary.map(row => (
+                    <tr key={row.id} className="hover:bg-slate-50/50">
+                      <td className="px-3 py-2 text-slate-900 font-medium whitespace-nowrap">{row.destination}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">{row.workerCount}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">{row.workDays}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-700">¥{row.avgDailyRate.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums text-slate-900">¥{row.totalWage.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.month}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-slate-300 bg-slate-100">
+                    <td className="px-3 py-2.5 text-xs font-bold text-slate-700">合計</td>
+                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">{filteredDispatchSummary.reduce((s,r)=>s+r.workerCount,0)}名</td>
+                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 font-mono">{filteredDispatchSummary.reduce((s,r)=>s+r.workDays,0)}日</td>
+                    <td className="px-3 py-2.5" />
+                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-900 font-mono">¥{filteredDispatchSummary.reduce((s,r)=>s+r.totalWage,0).toLocaleString()}</td>
+                    <td className="px-3 py-2.5" />
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setAggPreviewOpen(false)}>
+              閉じる
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                const content = document.getElementById("agg-preview-content");
+                if (!content) return;
+                const viewLabel = view === "personal" ? "個人別月別" : view === "vehicle" ? "車種別" : "供給元別";
+                const periodLabel = `${aggPeriodFrom ? format(aggPeriodFrom, "yyyy年M月") : "期間未設定"} 〜 ${aggPeriodTo ? format(aggPeriodTo, "yyyy年M月") : "期間未設定"}`;
+                const printWindow = window.open("", "_blank", "width=1000,height=750");
+                if (!printWindow) return;
+                printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${viewLabel} 集計プレビュー</title><style>body{font-family:sans-serif;font-size:12px;color:#1e293b;margin:20px}h1{font-size:15px;margin-bottom:4px}h2{font-size:11px;color:#64748b;margin-bottom:16px;font-weight:normal}table{width:100%;border-collapse:collapse}th{background:#f8fafc;padding:7px 10px;font-size:10px;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}td{padding:6px 10px;border-bottom:1px solid #f1f5f9;font-size:11px;white-space:nowrap}.text-right{text-align:right}tfoot tr{background:#f1f5f9;border-top:2px solid #cbd5e1;font-weight:700}@media print{@page{margin:12mm}}</style></head><body><h1>${viewLabel} 集計</h1><h2>${periodLabel}</h2>${content.innerHTML}</body></html>`);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => { printWindow.print(); }, 300);
+              }}
+            >
+              <Printer className="h-4 w-4" />
+              印刷
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={async () => {
+                const viewLabel = view === "personal" ? "個人別月別" : view === "vehicle" ? "車種別" : "供給元別";
+                const periodLabel = `${aggPeriodFrom ? format(aggPeriodFrom, "yyyy年M月") : "期間未設定"}〜${aggPeriodTo ? format(aggPeriodTo, "yyyy年M月") : "期間未設定"}`;
+                const { default: jsPDF } = await import("jspdf");
+                const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+                doc.setFontSize(14);
+                doc.text(`${viewLabel} 集計`, 14, 14);
+                doc.setFontSize(9);
+                doc.setTextColor(100, 116, 139);
+                doc.text(periodLabel, 14, 21);
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(8);
+                const startY = 28;
+                let y = startY;
+                const lineH = 7;
+                doc.setFillColor(248, 250, 252);
+                doc.setDrawColor(226, 232, 240);
+
+                if (view === "personal") {
+                  const headers = ["名前","所属元","本給","付加給","残業手当","総支給額","社保計","所得税","差引支給額"];
+                  const colW = [30,40,22,22,22,24,20,18,24];
+                  const rows = personalData.filter(d => d.name.includes(aggSearchQuery));
+                  let x = 14;
+                  doc.setFillColor(248,250,252); doc.rect(14, y-4, colW.reduce((s,v)=>s+v,0), lineH, "F");
+                  headers.forEach((h,i) => { doc.setFont("helvetica","bold"); doc.text(h, x+1, y); x+=colW[i]; });
+                  y += lineH;
+                  rows.forEach(row => {
+                    const vals = [row.name, row.affiliation, `¥${row.basePay.toLocaleString()}`, `¥${row.additionalPay.toLocaleString()}`, row.overtimePay>0?`¥${row.overtimePay.toLocaleString()}`:"—", `¥${row.grossPay.toLocaleString()}`, `¥${row.socialInsuranceTotal.toLocaleString()}`, `¥${row.incomeTax.toLocaleString()}`, `¥${row.netPay.toLocaleString()}`];
+                    let x2 = 14; doc.setFont("helvetica","normal");
+                    vals.forEach((v,i) => { doc.text(String(v), x2+1, y); x2+=colW[i]; });
+                    y += lineH;
+                    if (y > 195) { doc.addPage(); y = 14; }
+                  });
+                } else if (view === "vehicle") {
+                  const headers = ["車種","人数","基本給","無事故手当","残業","総支給額","社保","所得税","差引支給額","社保会社"];
+                  const colW = [30,16,24,24,22,24,22,18,24,22];
+                  let x = 14;
+                  doc.setFillColor(248,250,252); doc.rect(14, y-4, colW.reduce((s,v)=>s+v,0), lineH, "F");
+                  headers.forEach((h,i) => { doc.setFont("helvetica","bold"); doc.text(h, x+1, y); x+=colW[i]; });
+                  y += lineH;
+                  vehicleData.map(r => vehicleEdits[r.type] ?? r).forEach(r => {
+                    const vals = [r.type, String(r.count), `¥${r.basicWage.toLocaleString()}`, r.safetyBonus>0?`¥${r.safetyBonus.toLocaleString()}`:"—", r.overtime>0?`¥${r.overtime.toLocaleString()}`:"—", `¥${r.grossPay.toLocaleString()}`, `¥${r.socialInsurance.toLocaleString()}`, `¥${r.incomeTax.toLocaleString()}`, `¥${r.netPay.toLocaleString()}`, `¥${r.companyInsurance.toLocaleString()}`];
+                    let x2 = 14; doc.setFont("helvetica","normal");
+                    vals.forEach((v,i) => { doc.text(String(v), x2+1, y); x2+=colW[i]; });
+                    y += lineH;
+                  });
+                } else {
+                  const headers = ["供給元","人数","延べ日数","平均日当","賃金合計","対象月"];
+                  const colW = [50,20,22,26,28,26];
+                  let x = 14;
+                  doc.setFillColor(248,250,252); doc.rect(14, y-4, colW.reduce((s,v)=>s+v,0), lineH, "F");
+                  headers.forEach((h,i) => { doc.setFont("helvetica","bold"); doc.text(h, x+1, y); x+=colW[i]; });
+                  y += lineH;
+                  filteredDispatchSummary.forEach(row => {
+                    const vals = [row.destination, String(row.workerCount), String(row.workDays), `¥${row.avgDailyRate.toLocaleString()}`, `¥${row.totalWage.toLocaleString()}`, row.month];
+                    let x2 = 14; doc.setFont("helvetica","normal");
+                    vals.forEach((v,i) => { doc.text(String(v), x2+1, y); x2+=colW[i]; });
+                    y += lineH;
+                  });
+                }
+
+                doc.save(`集計_${viewLabel}_${new Date().toLocaleDateString("ja-JP")}.pdf`);
+              }}
+            >
+              <Download className="h-4 w-4" />
+              PDF保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       </div>
     </MainLayout>
   );

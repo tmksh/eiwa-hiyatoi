@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Users, Building2, Truck, DollarSign, Table2, BookOpen } from "lucide-react";
+import { Users, Building2, Truck, DollarSign, Table2, BookOpen, Route } from "lucide-react";
 
 const masterNavItems = [
   { name: "作業員", href: "/master/workers", icon: Users },
   { name: "会社", href: "/master/companies", icon: Building2 },
   { name: "車両", href: "/master/vehicles", icon: Truck },
   { name: "賃金ルール", href: "/master/wage-rules", icon: DollarSign },
+  { name: "運行系", href: "/master/operations", icon: Route },
   { name: "運賃表", href: "/master/rate-tables", icon: Table2 },
   { name: "各種マスタ", href: "/master/general", icon: BookOpen },
 ];

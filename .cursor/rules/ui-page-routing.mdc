@@ -1,0 +1,31 @@
+---
+description: UIからアクセス可能なページの制約。機能追加・修正時に必ず参照。
+alwaysApply: true
+---
+
+# UIルーティング制約
+
+## サイドバーからアクセス可能なページ
+
+- `/insurance-stamps` — 全社共通マスター（人材系・車両系・運行系タブ）
+- `/calculations` — 賃金（計算結果・集計・印紙管理）
+- `/daily-reports` — 日報
+- `/reports` — 帳票
+- `/settings` — 設定
+
+## アクセス不可（修正禁止）
+
+`/master/*` 配下のページはサイドバーに存在せずユーザーが到達できない。
+直接修正しないこと。
+
+- ❌ `/master/workers`
+- ❌ `/master/vehicles`
+- ❌ `/master/operations`
+- ❌ `/master/companies`
+- ❌ `/master/general`
+- ❌ `/master/wage-rules`
+
+## ルール
+
+- マスタデータ関連の機能追加・修正は **`/insurance-stamps`** 内のタブで完結させる
+- 新しいマスタ種別が必要な場合はサブタブを追加する

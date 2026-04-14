@@ -135,13 +135,13 @@ const weeklyOvertimeData = [
   { id: 5, name: "田中 美咲", weekStart: "2024-01-22", weekEnd: "2024-01-28", totalHours: 42.5, overHours: 2.5, rate: 1250, premium: 3906, status: "超過" },
 ];
 
-const TABS = ["支払処理", "集計", "分析"] as const;
+const TABS = ["賃金", "集計", "分析"] as const;
 type Tab = (typeof TABS)[number];
 
 const CALC_SUBTABS = ["一括計算", "残業計算", "週40h割増"] as const;
 type CalcSubTab = (typeof CALC_SUBTABS)[number];
 
-const PAYMENT_SUBTABS = ["計算結果", "支払明細", "振込データ", "金種表", "期間払い"] as const;
+const PAYMENT_SUBTABS = ["計算結果", "キャッシュマシン", "振込"] as const;
 type PaymentSubTab = (typeof PAYMENT_SUBTABS)[number];
 
 const paymentData = [
@@ -293,15 +293,21 @@ const monthlyTrend = [
 ];
 
 export default function CalculationsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("支払処理");
+  const [activeTab, setActiveTab] = useState<Tab>("賃金");
   const [calcSubTab, setCalcSubTab] = useState<CalcSubTab>("一括計算");
   const [selectedEditId, setSelectedEditId] = useState<string | null>(null);
   const [editAdjustAmount, setEditAdjustAmount] = useState<string>("");
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
-  const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("支払明細");
+  const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("キャッシュマシン");
+  const [paymentInnerTab, setPaymentInnerTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
+  const [selectedTransferRow, setSelectedTransferRow] = useState<typeof transfersData[0] | null>(null);
+  const [selectedPaymentRow, setSelectedPaymentRow] = useState<typeof paymentData[0] | null>(null);
+  const [paymentDetailTab, setPaymentDetailTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
   const [date, setDate] = useState<Date>(new Date());
-  const [periodFrom, setPeriodFrom] = useState("");
-  const [periodTo, setPeriodTo] = useState("");
+  const [periodFrom, setPeriodFrom] = useState<Date | undefined>(undefined);
+  const [periodTo, setPeriodTo] = useState<Date | undefined>(undefined);
+  const [periodFromOpen, setPeriodFromOpen] = useState(false);
+  const [periodToOpen, setPeriodToOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -316,15 +322,25 @@ export default function CalculationsPage() {
   const [weeklySearch, setWeeklySearch] = useState("");
   const [weeklyWeekFilter, setWeeklyWeekFilter] = useState("");
   const [paymentSearch, setPaymentSearch] = useState("");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "cash" | "transfer">("all");
   const [calcPeriodType, setCalcPeriodType] = useState<"day" | "3day" | "week" | "month" | "custom">("month");
   const [calcPeriodFrom, setCalcPeriodFrom] = useState("");
   const [calcPeriodTo, setCalcPeriodTo] = useState("");
+  // 期間ごとの選択日
+  const [periodDateDay, setPeriodDateDay] = useState<Date | undefined>(new Date());
+  const [periodDate3day, setPeriodDate3day] = useState<Date | undefined>(new Date());
+  const [periodDateWeek, setPeriodDateWeek] = useState<Date | undefined>(new Date());
+  const [periodDateMonth, setPeriodDateMonth] = useState<Date | undefined>(new Date());
+  const [periodDateCustomFrom, setPeriodDateCustomFrom] = useState<Date | undefined>(undefined);
+  const [periodDateCustomTo, setPeriodDateCustomTo] = useState<Date | undefined>(undefined);
+  const [periodCalOpen, setPeriodCalOpen] = useState<Record<string, boolean>>({});
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<number[]>([]);
 
   // 集計・分析 states
   const [aggSearchQuery, setAggSearchQuery] = useState("");
-  const [aggPeriodFrom, setAggPeriodFrom] = useState("");
-  const [aggPeriodTo, setAggPeriodTo] = useState("");
+  const [aggPeriodFrom, setAggPeriodFrom] = useState<Date | undefined>(undefined);
+  const [aggPeriodTo, setAggPeriodTo] = useState<Date | undefined>(undefined);
+  const [aggFromOpen, setAggFromOpen] = useState(false);
+  const [aggToOpen, setAggToOpen] = useState(false);
   const [view, setView] = useState<AggView>("personal");
   const [selectedPerson, setSelectedPerson] = useState<PersonalRow | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleRow | null>(null);
@@ -375,10 +391,10 @@ export default function CalculationsPage() {
 
   const filteredResults = mockResults.filter((result) => {
     const matchesSearch = result.workerName.includes(searchQuery) || result.company.includes(searchQuery);
-    const matchesStatus = statusFilter === "all" || (statusFilter === "paid" && result.status === "confirmed") || (statusFilter === "unpaid" && result.status === "calculated");
+    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
     const d = result.workDate;
-    const matchesFrom = !periodFrom || d >= new Date(periodFrom);
-    const matchesTo = !periodTo || d <= new Date(periodTo + "T23:59:59");
+    const matchesFrom = !periodFrom || d >= periodFrom;
+    const matchesTo = !periodTo || d <= new Date(periodTo.getFullYear(), periodTo.getMonth(), periodTo.getDate(), 23, 59, 59);
     return matchesSearch && matchesStatus && matchesFrom && matchesTo;
   });
 
@@ -437,8 +453,26 @@ export default function CalculationsPage() {
   const filteredPayment = paymentData.filter((row) => {
     const matchesSearch = row.name.includes(paymentSearch);
     const matchesMonth = !monthFilter || row.period.includes(monthFilter.replace("-", "年").replace(/(\d{2})$/, "$1月"));
-    const matchesMethod = paymentMethodFilter === "all" || (paymentMethodFilter === "cash" && row.paymentMethod === "キャッシュマシン") || (paymentMethodFilter === "transfer" && row.paymentMethod === "振り込み");
-    return matchesSearch && (monthFilter ? matchesMonth : true) && matchesMethod;
+    const matchesTab = paymentSubTab === "キャッシュマシン" ? row.paymentMethod === "キャッシュマシン" : paymentSubTab === "振込" ? row.paymentMethod === "振り込み" : true;
+    return matchesSearch && (monthFilter ? matchesMonth : true) && matchesTab;
+  });
+
+  // 期間タイプに応じて金額・稼働日数を調整した表示用データ
+  const periodDays: Record<typeof calcPeriodType, number> = { day: 1, "3day": 3, week: 7, month: 30, custom: 30 };
+  const periodLabel: Record<typeof calcPeriodType, string> = { day: "日払い", "3day": "3日払い", week: "週払い", month: "月払い", custom: "任意期間" };
+  const adjustedPayment = filteredPayment.map((row) => {
+    if (calcPeriodType === "month") return row;
+    const days = periodDays[calcPeriodType];
+    const ratio = days / 30;
+    const workDays = Math.max(1, Math.round(row.totalWork * ratio));
+    return {
+      ...row,
+      totalWork: workDays,
+      grossPay: Math.round(row.grossPay * ratio),
+      deductions: Math.round(row.deductions * ratio),
+      netPay: Math.round(row.netPay * ratio),
+      period: `${row.period}（${periodLabel[calcPeriodType]}）`,
+    };
   });
   const filteredTransfers = transfersData.filter((row) => row.name.includes(transferSearch) || row.bank.includes(transferSearch));
   const filteredDenomination = denominationData.filter((row) => row.name.includes(denomSearch));
@@ -468,7 +502,7 @@ export default function CalculationsPage() {
         </div>
 
         {/* Sub Tabs */}
-        {activeTab === "支払処理" && (
+        {activeTab === "賃金" && (
           <div className="space-y-2">
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
               {PAYMENT_SUBTABS.map((sub) => (
@@ -483,20 +517,105 @@ export default function CalculationsPage() {
                 </button>
               ))}
             </div>
-            {paymentSubTab === "支払明細" && (
-              <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-                {([["all", "全員"], ["cash", "キャッシュマシン"], ["transfer", "振り込み"]] as const).map(([val, label]) => (
-                  <button key={val} onClick={() => setPaymentMethodFilter(val)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${paymentMethodFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
-                    {label}
-                  </button>
-                ))}
+            {/* 集計期間セレクター */}
+            {(paymentSubTab === "キャッシュマシン" || paymentSubTab === "振込") && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-500 font-medium">集計期間</span>
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
+                  {([["day","日払い"],["3day","3日払い"],["week","週払い"],["month","月払い"],["custom","任意期間"]] as const).map(([val, label]) => (
+                    <button key={val} onClick={() => setCalcPeriodType(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${calcPeriodType === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
+                  ))}
+                </div>
+                {/* 日払い：単日選択 */}
+                {calcPeriodType === "day" && (
+                  <Popover open={periodCalOpen["day"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, day: o}))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDateDay && "text-muted-foreground")}>
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {periodDateDay ? format(periodDateDay, "yyyy/MM/dd") : "日付を選択"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodDateDay} onSelect={(d) => { setPeriodDateDay(d); setPeriodCalOpen(p => ({...p, day: false})); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {/* 3日払い：開始日選択 → 開始〜+2日 */}
+                {calcPeriodType === "3day" && (
+                  <Popover open={periodCalOpen["3day"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, "3day": o}))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDate3day && "text-muted-foreground")}>
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {periodDate3day ? `${format(periodDate3day, "yyyy/MM/dd")} 〜 ${format(new Date(periodDate3day.getTime() + 2*86400000), "MM/dd")}` : "開始日を選択"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodDate3day} onSelect={(d) => { setPeriodDate3day(d); setPeriodCalOpen(p => ({...p, "3day": false})); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {/* 週払い：週開始日選択 → 開始〜+6日 */}
+                {calcPeriodType === "week" && (
+                  <Popover open={periodCalOpen["week"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, week: o}))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDateWeek && "text-muted-foreground")}>
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {periodDateWeek ? `${format(periodDateWeek, "yyyy/MM/dd")} 〜 ${format(new Date(periodDateWeek.getTime() + 6*86400000), "MM/dd")}` : "週開始日を選択"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodDateWeek} onSelect={(d) => { setPeriodDateWeek(d); setPeriodCalOpen(p => ({...p, week: false})); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {/* 月払い：年月選択 */}
+                {calcPeriodType === "month" && (
+                  <Popover open={periodCalOpen["month"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, month: o}))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDateMonth && "text-muted-foreground")}>
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {periodDateMonth ? format(periodDateMonth, "yyyy年M月") : "月を選択"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodDateMonth} onSelect={(d) => { setPeriodDateMonth(d); setPeriodCalOpen(p => ({...p, month: false})); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {/* 任意期間：開始〜終了 */}
+                {calcPeriodType === "custom" && (
+                  <div className="flex items-center gap-1.5">
+                    <Popover open={periodCalOpen["customFrom"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, customFrom: o}))}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDateCustomFrom && "text-muted-foreground")}>
+                          <CalendarIcon className="h-3.5 w-3.5" />
+                          {periodDateCustomFrom ? format(periodDateCustomFrom, "yyyy/MM/dd") : "開始日"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={periodDateCustomFrom} onSelect={(d) => { setPeriodDateCustomFrom(d); setPeriodCalOpen(p => ({...p, customFrom: false})); }} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-xs text-slate-400">〜</span>
+                    <Popover open={periodCalOpen["customTo"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, customTo: o}))}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs h-8", !periodDateCustomTo && "text-muted-foreground")}>
+                          <CalendarIcon className="h-3.5 w-3.5" />
+                          {periodDateCustomTo ? format(periodDateCustomTo, "yyyy/MM/dd") : "終了日"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={periodDateCustomTo} onSelect={(d) => { setPeriodDateCustomTo(d); setPeriodCalOpen(p => ({...p, customTo: false})); }} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
 
-        {(activeTab === "支払処理" && paymentSubTab === "計算結果") && (
+        {(activeTab === "賃金" && paymentSubTab === "計算結果") && (
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -504,8 +623,21 @@ export default function CalculationsPage() {
                   <CardTitle>計算結果一覧</CardTitle>
                   <CardDescription>各行の編集ボタンから賃金調整・理由記録が可能です</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => toast.success("CSVファイルをダウンロードしました")} className="w-full sm:w-auto">
-                  <Download className="mr-2 h-4 w-4" />CSV出力
+                <Button variant="outline" onClick={async () => {
+                  const { default: jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+                  doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
+                  doc.setFontSize(9);
+                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "プラス手当", "合計", "状態"];
+                  headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
+                  filteredResults.forEach((r, j) => {
+                    const y = 32 + j * 7;
+                    if (y > 195) return;
+                    [r.workerName, r.company, r.vehicleType, `¥${r.baseWage.toLocaleString()}`, `¥${r.overtimeWage.toLocaleString()}`, `¥${r.weeklyOvertimeWage.toLocaleString()}`, r.adjustment ? `¥${r.adjustment.toLocaleString()}` : "—", `¥${r.totalWage.toLocaleString()}`, r.status === "confirmed" ? "暫定" : "計算済み"].forEach((v, i) => doc.text(String(v), 10 + i * 30, y));
+                  });
+                  doc.save("計算結果一覧.pdf");
+                }} className="w-full sm:w-auto">
+                  <FileText className="mr-2 h-4 w-4" />PDF出力
                 </Button>
               </div>
             </CardHeader>
@@ -523,11 +655,31 @@ export default function CalculationsPage() {
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1.5">
-                  <Input type="date" className="w-[140px] text-sm" value={periodFrom} onChange={(e) => setPeriodFrom(e.target.value)} />
+                  <Popover open={periodFromOpen} onOpenChange={setPeriodFromOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-sm", !periodFrom && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                        {periodFrom ? format(periodFrom, "yyyy/MM/dd") : "開始日"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodFrom} onSelect={(d) => { setPeriodFrom(d); setPeriodFromOpen(false); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                   <span className="text-xs text-slate-400">〜</span>
-                  <Input type="date" className="w-[140px] text-sm" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
+                  <Popover open={periodToOpen} onOpenChange={setPeriodToOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-sm", !periodTo && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                        {periodTo ? format(periodTo, "yyyy/MM/dd") : "終了日"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={periodTo} onSelect={(d) => { setPeriodTo(d); setPeriodToOpen(false); }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                   {(periodFrom || periodTo) && (
-                    <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setPeriodFrom(""); setPeriodTo(""); }}>
+                    <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setPeriodFrom(undefined); setPeriodTo(undefined); }}>
                       解除
                     </Button>
                   )}
@@ -540,8 +692,8 @@ export default function CalculationsPage() {
                   <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="ステータス" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">すべて</SelectItem>
-                    <SelectItem value="paid">支払済み</SelectItem>
-                    <SelectItem value="unpaid">未払い</SelectItem>
+                    <SelectItem value="confirmed">暫定</SelectItem>
+                    <SelectItem value="calculated">計算済み</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -565,7 +717,7 @@ export default function CalculationsPage() {
                       <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">残業</TableHead>
                       <TableHead className="text-right whitespace-nowrap">週40h割増</TableHead>
-                      <TableHead className="text-right whitespace-nowrap">手動調整</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">プラス手当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">合計</TableHead>
                       <TableHead className="whitespace-nowrap">状態</TableHead>
                       <TableHead className="whitespace-nowrap"></TableHead>
@@ -620,8 +772,8 @@ export default function CalculationsPage() {
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
                 <div className="flex flex-wrap gap-3 sm:gap-6 text-sm">
                   <span>全 {filteredResults.length} 件</span>
-                  <span>確定: {filteredResults.filter((r) => r.status === "confirmed").length}件</span>
-                  <span>未確定: {filteredResults.filter((r) => r.status === "calculated").length}件</span>
+                  <span>暫定: {filteredResults.filter((r) => r.status === "confirmed").length}件</span>
+                  <span>計算済み: {filteredResults.filter((r) => r.status === "calculated").length}件</span>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">合計金額</p>
@@ -704,162 +856,111 @@ export default function CalculationsPage() {
         })()}
 
 
-        {activeTab === "支払処理" && paymentSubTab === "支払明細" && (
+        {activeTab === "賃金" && (paymentSubTab === "キャッシュマシン" || paymentSubTab === "振込") && (
           <>
-            {/* フィルター統合カード */}
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4 space-y-3">
-              {/* 集計期間 */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 shrink-0">
-                  <CalendarLucide className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-medium text-slate-600">集計期間</span>
-                </div>
-                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
-                  {([
-                    ["day",    "日払い"],
-                    ["3day",   "3日払い"],
-                    ["week",   "週払い"],
-                    ["month",  "月払い"],
-                    ["custom", "任意期間"],
-                  ] as const).map(([val, label]) => (
-                    <button key={val} onClick={() => setCalcPeriodType(val)}
-                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${calcPeriodType === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {calcPeriodType === "custom" ? (
-                  <div className="flex items-center gap-1.5">
-                    <input type="date" value={calcPeriodFrom} onChange={(e) => setCalcPeriodFrom(e.target.value)}
-                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                    <span className="text-xs text-slate-400">〜</span>
-                    <input type="date" value={calcPeriodTo} onChange={(e) => setCalcPeriodTo(e.target.value)}
-                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                    {(calcPeriodFrom || calcPeriodTo) && (
-                      <button onClick={() => { setCalcPeriodFrom(""); setCalcPeriodTo(""); }} className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-1">解除</button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <input type={calcPeriodType === "month" ? "month" : "date"}
-                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                    {(calcPeriodType === "3day" || calcPeriodType === "week") && (
-                      <>
-                        <span className="text-xs text-slate-400">〜</span>
-                        <input type="date" className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                      </>
-                    )}
-                  </div>
+            {/* ── ツールバー ── */}
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-slate-500">{adjustedPayment.length} 件</p>
+              <div className="flex items-center gap-2">
+                {selectedPaymentIds.length > 0 && (
+                  <span className="text-xs text-slate-500">{selectedPaymentIds.length}件選択中</span>
                 )}
-              </div>
-              {/* 区切り */}
-              <div className="border-t border-slate-100" />
-              {/* 検索・件数・PDF出力 */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="氏名で検索..." value={paymentSearch} onChange={(e) => setPaymentSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500 ml-auto">
-                  <FileText className="h-4 w-4" />
-                  <span>{filteredPayment.length} 件</span>
-                </div>
-                <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors shrink-0">
-                  <Download className="h-4 w-4" />PDF出力
-                </button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => toast.success("FBデータを出力しました")}
+                >
+                  <Download className="h-4 w-4" />
+                  FBデータ出力
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white"
+                  disabled={selectedPaymentIds.length === 0}
+                  onClick={async () => {
+                    const { default: jsPDF } = await import("jspdf");
+                    const rows = adjustedPayment.filter(r => selectedPaymentIds.includes(r.id));
+                    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                    rows.forEach((row, i) => {
+                      if (i > 0) doc.addPage();
+                      doc.setFontSize(16); doc.text("支払明細書", 105, 20, { align: "center" });
+                      doc.setFontSize(10);
+                      const lines = [
+                        ["氏名", row.name],
+                        ["対象期間", row.period],
+                        ["稼働日数", `${row.totalWork}日`],
+                        ["支払方法", row.paymentMethod],
+                        ["総支給額", `¥${row.grossPay.toLocaleString()}`],
+                        ["控除合計", `-¥${row.deductions.toLocaleString()}`],
+                        ["差引支給額", `¥${row.netPay.toLocaleString()}`],
+                        ["ステータス", row.status === "確定" ? "支払済み" : "未払い"],
+                      ];
+                      lines.forEach(([label, value], j) => {
+                        doc.text(`${label}：${value}`, 20, 40 + j * 10);
+                      });
+                    });
+                    doc.save(`支払明細_${rows.map(r => r.name).join("_")}.pdf`);
+                  }}
+                >
+                  <Upload className="h-4 w-4" />
+                  一括生成 {selectedPaymentIds.length > 0 ? `(${selectedPaymentIds.length})` : ""}
+                </Button>
               </div>
             </div>
+            {/* ── 統合一覧テーブル ── */}
             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["氏名","対象期間","稼働日数","総支給額","控除合計","差引支給額","支払方法","ステータス"].map((h) => (
+                      <th className="px-3 py-3 text-left w-10">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                          checked={selectedPaymentIds.length === adjustedPayment.length && adjustedPayment.length > 0}
+                          onChange={(e) => setSelectedPaymentIds(e.target.checked ? adjustedPayment.map(r => r.id) : [])}
+                        />
+                      </th>
+                      {["氏名","対象期間","稼働日数","支払方法","総支給額","控除合計","差引支給額","支払ステータス","振込ステータス","FB"].map((h) => (
                         <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["稼働日数","総支給額","控除合計","差引支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredPayment.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                    {adjustedPayment.map((row) => (
+                      <tr key={row.id} className={`hover:bg-blue-50/40 transition-colors cursor-pointer ${selectedPaymentIds.includes(row.id) ? "bg-blue-50/60" : ""}`} onClick={() => setSelectedPaymentRow(row)}>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                            checked={selectedPaymentIds.includes(row.id)}
+                            onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))}
+                          />
+                        </td>
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.period}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.totalWork}日</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono tabular-nums whitespace-nowrap">{formatAmount(row.grossPay)}円</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-600 font-mono tabular-nums whitespace-nowrap">-{formatAmount(row.deductions)}円</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">{formatAmount(row.netPay)}円</td>
+                        <td className="px-3 sm:px-4 py-3 text-slate-600 whitespace-nowrap">{row.period}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 whitespace-nowrap tabular-nums">{row.totalWork}日</td>
                         <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{row.paymentMethod}</span>
-                            </td>
-                            <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status === "確定" ? "支払済み" : "未払い"}</span>
-                            </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === "支払処理" && paymentSubTab === "振込データ" && (
-          <>
-            <div className="flex justify-end gap-2">
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <FileOutput className="h-4 w-4" />FBデータ出力
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
-                <Upload className="h-4 w-4" />一括生成
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { label: "振込件数", value: `${filteredTransfers.length}件`, icon: Building2, bg: "bg-blue-50", ic: "text-blue-600" },
-                { label: "振込総額", value: `${formatAmount(totalTransferAmount)}円`, icon: Building2, bg: "bg-slate-100", ic: "text-slate-600" },
-                { label: "FB生成済", value: `${transfersData.filter((r) => r.status === "生成済").length}件`, icon: FileOutput, bg: "bg-slate-100", ic: "text-slate-600" },
-              ].map(({ label, value, icon: Icon, bg, ic }) => (
-                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
-                    <div><p className="text-xs text-slate-500">{label}</p><p className="text-lg sm:text-xl font-semibold text-slate-900 tabular-nums">{value}</p></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="氏名・銀行名で検索..." value={transferSearch} onChange={(e) => setTransferSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                </div>
-                <div className="relative">
-                  <CalendarLucide className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="month" className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["氏名","銀行名","支店名","口座種別","口座番号","振込金額","ステータス"].map((h) => (
-                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${h === "振込金額" ? "text-right" : "text-left"}`}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredTransfers.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.bank}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.branch}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-500 whitespace-nowrap">{row.accountType}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 font-mono whitespace-nowrap">{row.accountNo}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold whitespace-nowrap tabular-nums">{formatAmount(row.amount)}円</td>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{row.paymentMethod}</span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-red-600 font-mono tabular-nums whitespace-nowrap">−¥{row.deductions.toLocaleString()}</td>
+                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
                         <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700">{row.status}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status === "確定" ? "支払済み" : "未払い"}</span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
+                          {(() => { const t = transfersData.find(t => t.name === row.name); return t ? <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${t.status === "生成済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}>{t.status}</span> : <span className="text-xs text-slate-300">—</span>; })()}
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                            onClick={() => toast.success(`${row.name}のFBデータを出力しました`)}
+                          >
+                            <Download className="h-3 w-3" />
+                            FB
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -870,137 +971,7 @@ export default function CalculationsPage() {
           </>
         )}
 
-        {activeTab === "支払処理" && paymentSubTab === "金種表" && (
-          <>
-            <div className="flex justify-end">
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
-                <Download className="h-4 w-4" />印刷 / PDF出力
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { label: "現金支給総額", value: `${formatAmount(denomTotals.netPay)}円`, icon: Coins, bg: "bg-blue-50", ic: "text-blue-600" },
-                { label: "対象人数", value: `${filteredDenomination.length}名`, icon: FileText, bg: "bg-slate-100", ic: "text-slate-600" },
-              ].map(({ label, value, icon: Icon, bg, ic }) => (
-                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
-                    <div><p className="text-xs text-slate-500">{label}</p><p className="text-xl font-semibold text-slate-900">{value}</p></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-sm">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input type="text" placeholder="氏名で検索..." value={denomSearch} onChange={(e) => setDenomSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">氏名</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">差引支給額</th>
-                      {["1万","5千","1千","500","100","50","10","5","1"].map((d) => (
-                        <th key={d} className="px-3 py-3 text-center text-xs font-medium text-slate-500 whitespace-nowrap">{d}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredDenomination.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">{formatAmount(row.netPay)}</td>
-                        {[row.man, row.gosen, row.sen, row.gohyaku, row.hyaku, row.goju, row.ju, row.go, row.ichi].map((v, i) => (
-                          <td key={i} className="px-3 py-3 text-center text-slate-700 font-mono tabular-nums whitespace-nowrap">{v || "—"}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-slate-200 bg-slate-50/80">
-                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-semibold whitespace-nowrap">合計</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-bold tabular-nums whitespace-nowrap">{formatAmount(denomTotals.netPay)}</td>
-                      {[denomTotals.man, denomTotals.gosen, denomTotals.sen, denomTotals.gohyaku, denomTotals.hyaku, denomTotals.goju, denomTotals.ju, denomTotals.go, denomTotals.ichi].map((v, i) => (
-                        <td key={i} className="px-3 py-3 text-center text-slate-900 font-mono font-semibold tabular-nums whitespace-nowrap">{v}</td>
-                      ))}
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
 
-        {activeTab === "支払処理" && paymentSubTab === "期間払い" && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { label: "支給済", value: `${periodPaymentData.filter((r) => r.status === "支給済").length}件`, icon: CheckCircle2, bg: "bg-emerald-50", ic: "text-emerald-600" },
-                { label: "計算済", value: `${periodPaymentData.filter((r) => r.status === "計算済").length}件`, icon: Clock, bg: "bg-blue-50", ic: "text-blue-600" },
-                { label: "未計算", value: `${periodPaymentData.filter((r) => r.status === "未計算").length}件`, icon: AlertCircle, bg: "bg-amber-50", ic: "text-amber-600" },
-              ].map(({ label, value, icon: Icon, bg, ic }) => (
-                <div key={label} className="rounded-xl border border-slate-200/60 bg-white p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded-lg ${bg} p-2`}><Icon className={`h-5 w-5 ${ic}`} /></div>
-                    <div><p className="text-xs text-slate-500">{label}</p><p className="text-lg sm:text-xl font-semibold text-slate-900">{value}</p></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="氏名で検索..." value={periodSearch} onChange={(e) => setPeriodSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                </div>
-                <div className="relative">
-                  <CalendarRange className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-8 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none">
-                    <option value="">すべてのステータス</option>
-                    <option value="支給済">支給済</option>
-                    <option value="計算済">計算済</option>
-                    <option value="未計算">未計算</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500"><FileText className="h-4 w-4" /><span>{filteredPeriodPayment.length} 件</span></div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["氏名","対象期間","稼働日数","合計時間","総支給額","控除合計","差引支給額","ステータス"].map((h) => (
-                        <th key={h} className={`px-3 sm:px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["稼働日数","合計時間","総支給額","控除合計","差引支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredPeriodPayment.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.period}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.workDays}日</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.totalHours.toFixed(1)}h</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono tabular-nums whitespace-nowrap">{formatAmount(row.grossPay)}円</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-600 font-mono tabular-nums whitespace-nowrap">-{formatAmount(row.deductions)}円</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">{formatAmount(row.netPay)}円</td>
-                        <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            row.status === "支給済" ? "bg-emerald-50 text-emerald-700" : row.status === "計算済" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"
-                          }`}>{row.status}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
 
       {/* ===== 集計 Tab ===== */}
       {activeTab === "集計" && (
@@ -1042,11 +1013,31 @@ export default function CalculationsPage() {
               <input type="text" placeholder="作業員の名前で検索..." value={aggSearchQuery} onChange={(e) => setAggSearchQuery(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
             </div>
             <div className="flex items-center gap-1.5">
-              <Input type="month" className="w-[150px] text-sm bg-white text-slate-900 [color-scheme:light]" value={aggPeriodFrom} onChange={(e) => setAggPeriodFrom(e.target.value)} />
+              <Popover open={aggFromOpen} onOpenChange={setAggFromOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal text-sm", !aggPeriodFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {aggPeriodFrom ? format(aggPeriodFrom, "yyyy年M月") : "開始月"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={aggPeriodFrom} onSelect={(d) => { setAggPeriodFrom(d); setAggFromOpen(false); }} initialFocus />
+                </PopoverContent>
+              </Popover>
               <span className="text-xs text-slate-400">〜</span>
-              <Input type="month" className="w-[150px] text-sm bg-white text-slate-900 [color-scheme:light]" value={aggPeriodTo} onChange={(e) => setAggPeriodTo(e.target.value)} />
+              <Popover open={aggToOpen} onOpenChange={setAggToOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal text-sm", !aggPeriodTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {aggPeriodTo ? format(aggPeriodTo, "yyyy年M月") : "終了月"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={aggPeriodTo} onSelect={(d) => { setAggPeriodTo(d); setAggToOpen(false); }} initialFocus />
+                </PopoverContent>
+              </Popover>
               {(aggPeriodFrom || aggPeriodTo) && (
-                <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setAggPeriodFrom(""); setAggPeriodTo(""); }}>解除</Button>
+                <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setAggPeriodFrom(undefined); setAggPeriodTo(undefined); }}>解除</Button>
               )}
             </div>
             <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"><Download className="h-4 w-4" />エクスポート</button>
@@ -1281,6 +1272,108 @@ export default function CalculationsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 支払詳細統合ポップアップ */}
+      {selectedPaymentRow && (() => {
+        const transfer = transfersData.find(t => t.name === selectedPaymentRow.name);
+        const denom = denominationData.find(d => d.name === selectedPaymentRow.name);
+        return (
+          <Dialog open={true} onOpenChange={() => { setSelectedPaymentRow(null); setPaymentDetailTab("支払明細"); }}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0 gap-0">
+              {/* ヘッダー */}
+              <div className="bg-white px-6 py-4 rounded-t-xl border-b border-slate-100">
+                <p className="text-xs text-slate-400 mb-0.5">支払詳細</p>
+                <h2 className="text-lg font-bold text-slate-900">{selectedPaymentRow.name}</h2>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-center">
+                    <p className="text-[10px] text-slate-400 mb-0.5">総支給額</p>
+                    <p className="text-sm font-bold text-slate-800 font-mono">¥{selectedPaymentRow.grossPay.toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-center">
+                    <p className="text-[10px] text-red-400 mb-0.5">控除合計</p>
+                    <p className="text-sm font-bold text-red-600 font-mono">−¥{selectedPaymentRow.deductions.toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2 text-center">
+                    <p className="text-[10px] text-blue-400 mb-0.5">差引支給額</p>
+                    <p className="text-base font-bold text-blue-700 font-mono">¥{selectedPaymentRow.netPay.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                {/* 内部タブ */}
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                  {(["支払明細", "振込データ", "金種表"] as const).map(t => (
+                    <button key={t} onClick={() => setPaymentDetailTab(t)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${paymentDetailTab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 支払明細 */}
+                {paymentDetailTab === "支払明細" && (
+                  <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                    <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500 w-28">対象期間</td><td className="px-4 py-2.5 text-slate-900">{selectedPaymentRow.period}</td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">稼働日数</td><td className="px-4 py-2.5 text-slate-900">{selectedPaymentRow.totalWork}日</td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">支払方法</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${selectedPaymentRow.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{selectedPaymentRow.paymentMethod}</span></td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">総支給額</td><td className="px-4 py-2.5 text-slate-900 font-mono font-medium">¥{selectedPaymentRow.grossPay.toLocaleString()}</td></tr>
+                      <tr className="bg-red-50/30"><td className="px-4 py-2.5 text-xs text-slate-500">控除合計</td><td className="px-4 py-2.5 text-red-600 font-mono">−¥{selectedPaymentRow.deductions.toLocaleString()}</td></tr>
+                      <tr className="bg-blue-50/30"><td className="px-4 py-2.5 text-xs text-slate-500 font-medium">差引支給額</td><td className="px-4 py-2.5 text-blue-700 font-mono font-bold">¥{selectedPaymentRow.netPay.toLocaleString()}</td></tr>
+                      <tr><td className="px-4 py-2.5 text-xs text-slate-500">ステータス</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedPaymentRow.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{selectedPaymentRow.status === "確定" ? "支払済み" : "未払い"}</span></td></tr>
+                    </tbody></table>
+                  </div>
+                )}
+
+                {/* 振込データ */}
+                {paymentDetailTab === "振込データ" && (
+                  transfer ? (
+                    <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                      <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
+                        <tr><td className="px-4 py-2.5 text-xs text-slate-500 w-28">銀行名</td><td className="px-4 py-2.5 text-slate-900 font-medium">{transfer.bank}</td></tr>
+                        <tr><td className="px-4 py-2.5 text-xs text-slate-500">支店名</td><td className="px-4 py-2.5 text-slate-900">{transfer.branch}</td></tr>
+                        <tr><td className="px-4 py-2.5 text-xs text-slate-500">口座種別</td><td className="px-4 py-2.5 text-slate-900">{transfer.accountType}</td></tr>
+                        <tr><td className="px-4 py-2.5 text-xs text-slate-500">口座番号</td><td className="px-4 py-2.5 text-slate-900 font-mono tracking-wider">{transfer.accountNo}</td></tr>
+                        <tr className="bg-blue-50/30"><td className="px-4 py-2.5 text-xs text-slate-500">振込金額</td><td className="px-4 py-2.5 text-blue-700 font-mono font-bold">¥{transfer.amount.toLocaleString()}</td></tr>
+                        <tr><td className="px-4 py-2.5 text-xs text-slate-500">FB状態</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${transfer.status === "生成済" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{transfer.status}</span></td></tr>
+                      </tbody></table>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400">振込データなし（現金払い）</div>
+                  )
+                )}
+
+                {/* 金種表 */}
+                {paymentDetailTab === "金種表" && (
+                  denom ? (
+                    <div className="space-y-2">
+                      <div className="rounded-xl bg-blue-600 px-4 py-3 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-blue-100">差引支給額</span>
+                        <span className="text-xl font-bold text-white font-mono">¥{denom.netPay.toLocaleString()}</span>
+                      </div>
+                      <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                        <div className="grid grid-cols-3 divide-y divide-slate-100">
+                          {([["1万円", denom.man], ["5千円", denom.gosen], ["1千円", denom.sen], ["500円", denom.gohyaku], ["100円", denom.hyaku], ["50円", denom.goju], ["10円", denom.ju], ["5円", denom.go], ["1円", denom.ichi]] as [string, number][]).map(([label, val], i) => (
+                            <div key={label} className={`flex items-center justify-between px-4 py-2.5 ${i % 3 !== 2 ? "border-r border-slate-100" : ""}`}>
+                              <span className="text-xs text-slate-500">{label}</span>
+                              <span className={`text-sm font-mono tabular-nums ${val > 0 ? "font-semibold text-slate-900" : "text-slate-300"}`}>{val > 0 ? `${val}枚` : "—"}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400">金種データなし</div>
+                  )
+                )}
+              </div>
+              <div className="px-5 pb-5">
+                <Button variant="outline" className="w-full" onClick={() => { setSelectedPaymentRow(null); setPaymentDetailTab("支払明細"); }}>閉じる</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
 
       {/* 個人別詳細ポップアップ */}
       <Dialog open={!!selectedPerson} onOpenChange={()=>setSelectedPerson(null)}>

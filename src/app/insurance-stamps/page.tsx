@@ -59,9 +59,12 @@ import {
   CalendarPlus,
   CalendarMinus,
   ArrowRight,
+  CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type StampEntry = {
   id: number; name: string; gradeNum: number; grade: string;
@@ -310,7 +313,8 @@ export default function InsuranceStampsPage() {
   const [personnelSubTab, setPersonnelSubTab] = useState<"all" | "hiyatoi" | "furikomi">("all");
   const [editingWorker, setEditingWorker] = useState<typeof mockWorkers[0] | null>(null);
   const [stampTypeFilter, setStampTypeFilter] = useState<"all" | "ledger-general" | "ledger-nursing" | "no-ledger">("all");
-  const [stampPeriodMonth, setStampPeriodMonth] = useState("2026/03");
+  const [stampPeriodMonth, setStampPeriodMonth] = useState<Date | undefined>(new Date("2026-03-01"));
+  const [stampPeriodOpen, setStampPeriodOpen] = useState(false);
   const [selectedStampRow, setSelectedStampRow] = useState<StampEntry | null>(null);
   const [stampDetailTab, setStampDetailTab] = useState<"stamp" | "worker" | "schedule" | "paidleave">("stamp");
   const [selectedPartTime, setSelectedPartTime] = useState<typeof mockPartTimeWorkers[0] | null>(null);
@@ -335,7 +339,7 @@ export default function InsuranceStampsPage() {
     const matchesSearch = d.name.includes(searchQuery);
     const matchesMethod = methodFilter === "all" || d.method === (methodFilter === "stamp" ? "印紙" : "現金");
     const matchesType = stampTypeFilter === "all" || d.stampType === stampTypeFilter;
-    const matchesPeriod = !stampPeriodMonth || d.month === stampPeriodMonth;
+    const matchesPeriod = !stampPeriodMonth || d.month === format(stampPeriodMonth, "yyyy/MM");
     return matchesSearch && matchesMethod && matchesType && matchesPeriod;
   });
 
@@ -422,9 +426,9 @@ export default function InsuranceStampsPage() {
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
               {([
                 ["all",            "全種別"],
-                ["ledger-general", "台帳あり(一般)"],
-                ["ledger-nursing", "台帳あり(介護含)"],
-                ["no-ledger",      "台帳なし"],
+                ["ledger-general", "手帳あり(一般)"],
+                ["ledger-nursing", "手帳あり(介護含)"],
+                ["no-ledger",      "手帳なし"],
               ] as const).map(([val, label]) => (
                 <button
                   key={val}
@@ -441,15 +445,20 @@ export default function InsuranceStampsPage() {
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 whitespace-nowrap">期間</span>
-                <input
-                  type="month"
-                  value={stampPeriodMonth ? stampPeriodMonth.replace("/", "-") : ""}
-                  onChange={(e) => setStampPeriodMonth(e.target.value ? e.target.value.replace("-", "/") : "")}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                />
+                <Popover open={stampPeriodOpen} onOpenChange={setStampPeriodOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal text-sm", !stampPeriodMonth && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                      {stampPeriodMonth ? format(stampPeriodMonth, "yyyy年M月") : "月を選択"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarPicker mode="single" selected={stampPeriodMonth} onSelect={(d) => { setStampPeriodMonth(d); setStampPeriodOpen(false); }} initialFocus />
+                  </PopoverContent>
+                </Popover>
                 {stampPeriodMonth && (
                   <button
-                    onClick={() => setStampPeriodMonth("")}
+                    onClick={() => setStampPeriodMonth(undefined)}
                     className="text-xs px-2 py-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                   >
                     全期間

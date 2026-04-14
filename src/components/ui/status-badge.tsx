@@ -20,11 +20,11 @@ const statusConfig: Record<Status, { label: string; className: string }> = {
     className: "bg-slate-100 text-slate-500",
   },
   calculated: {
-    label: "計算済",
+    label: "計算済み",
     className: "bg-blue-50 text-blue-600",
   },
   confirmed: {
-    label: "確定",
+    label: "暫定",
     className: "bg-slate-200 text-slate-700",
   },
   paid: {

@@ -39,7 +39,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Search, DollarSign, Calendar } from "lucide-react";
+import { Plus, Pencil, Search, DollarSign, Calendar as CalendarLucide, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // Mock data
 const mockWageRules = [
@@ -156,6 +159,16 @@ export default function WageRulesPage() {
   const [editingRule, setEditingRule] = useState<WageRule | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
+  // カレンダー状態（新規登録）
+  const [newEffectiveFrom, setNewEffectiveFrom] = useState<Date | undefined>(new Date("2024-01-01"));
+  const [newEffectiveTo, setNewEffectiveTo] = useState<Date | undefined>(undefined);
+  const [newFromOpen, setNewFromOpen] = useState(false);
+  const [newToOpen, setNewToOpen] = useState(false);
+  // カレンダー状態（編集）
+  const [editEffectiveFrom, setEditEffectiveFrom] = useState<Date | undefined>(undefined);
+  const [editEffectiveTo, setEditEffectiveTo] = useState<Date | undefined>(undefined);
+  const [editFromOpen, setEditFromOpen] = useState(false);
+  const [editToOpen, setEditToOpen] = useState(false);
 
   const filteredRules = mockWageRules.filter((rule) => {
     const matchesSearch =
@@ -228,11 +241,31 @@ export default function WageRulesPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
                         <Label>適用開始日</Label>
-                        <Input type="date" defaultValue="2024-01-01" />
+                        <Popover open={newFromOpen} onOpenChange={setNewFromOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className={cn("justify-start text-left font-normal", !newEffectiveFrom && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {newEffectiveFrom ? format(newEffectiveFrom, "yyyy/MM/dd") : "日付を選択"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={newEffectiveFrom} onSelect={(d) => { setNewEffectiveFrom(d); setNewFromOpen(false); }} initialFocus />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div className="grid gap-2">
                         <Label>適用終了日（任意）</Label>
-                        <Input type="date" />
+                        <Popover open={newToOpen} onOpenChange={setNewToOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className={cn("justify-start text-left font-normal", !newEffectiveTo && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {newEffectiveTo ? format(newEffectiveTo, "yyyy/MM/dd") : "日付を選択"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={newEffectiveTo} onSelect={(d) => { setNewEffectiveTo(d); setNewToOpen(false); }} initialFocus />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
 
@@ -349,7 +382,7 @@ export default function WageRulesPage() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
+                          <CalendarLucide className="h-3 w-3" />
                           {format(rule.effectiveFrom, "yyyy/MM/dd")}〜
                           {rule.effectiveTo
                             ? format(rule.effectiveTo, "yyyy/MM/dd")
@@ -364,7 +397,7 @@ export default function WageRulesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => setEditingRule(rule)}>
+                        <Button variant="ghost" size="icon" onClick={() => { setEditingRule(rule); setEditEffectiveFrom(rule.effectiveFrom); setEditEffectiveTo(rule.effectiveTo ?? undefined); }}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -418,11 +451,31 @@ export default function WageRulesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>適用開始日</Label>
-                <Input type="date" defaultValue={format(editingRule?.effectiveFrom ?? new Date(), "yyyy-MM-dd")} />
+                <Popover open={editFromOpen} onOpenChange={setEditFromOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("justify-start text-left font-normal", !editEffectiveFrom && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editEffectiveFrom ? format(editEffectiveFrom, "yyyy/MM/dd") : "日付を選択"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={editEffectiveFrom} onSelect={(d) => { setEditEffectiveFrom(d); setEditFromOpen(false); }} initialFocus />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid gap-2">
                 <Label>適用終了日（任意）</Label>
-                <Input type="date" defaultValue={editingRule?.effectiveTo ? format(editingRule.effectiveTo, "yyyy-MM-dd") : ""} />
+                <Popover open={editToOpen} onOpenChange={setEditToOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("justify-start text-left font-normal", !editEffectiveTo && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editEffectiveTo ? format(editEffectiveTo, "yyyy/MM/dd") : "日付を選択"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={editEffectiveTo} onSelect={(d) => { setEditEffectiveTo(d); setEditToOpen(false); }} initialFocus />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             <div className="border-t pt-4">

@@ -135,16 +135,13 @@ const weeklyOvertimeData = [
   { id: 5, name: "田中 美咲", weekStart: "2024-01-22", weekEnd: "2024-01-28", totalHours: 42.5, overHours: 2.5, rate: 1250, premium: 3906, status: "超過" },
 ];
 
-const TABS = ["計算結果", "支払処理", "集計", "分析"] as const;
+const TABS = ["支払処理", "集計", "分析"] as const;
 type Tab = (typeof TABS)[number];
 
 const CALC_SUBTABS = ["一括計算", "残業計算", "週40h割増"] as const;
 type CalcSubTab = (typeof CALC_SUBTABS)[number];
 
-const RESULT_SUBTABS = ["計算結果", "賃金台帳"] as const;
-type ResultSubTab = (typeof RESULT_SUBTABS)[number];
-
-const PAYMENT_SUBTABS = ["支払明細", "振込データ", "金種表", "期間払い"] as const;
+const PAYMENT_SUBTABS = ["計算結果", "支払明細", "振込データ", "金種表", "期間払い"] as const;
 type PaymentSubTab = (typeof PAYMENT_SUBTABS)[number];
 
 const paymentData = [
@@ -296,9 +293,8 @@ const monthlyTrend = [
 ];
 
 export default function CalculationsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("計算結果");
+  const [activeTab, setActiveTab] = useState<Tab>("支払処理");
   const [calcSubTab, setCalcSubTab] = useState<CalcSubTab>("一括計算");
-  const [resultSubTab, setResultSubTab] = useState<ResultSubTab>("計算結果");
   const [selectedEditId, setSelectedEditId] = useState<string | null>(null);
   const [editAdjustAmount, setEditAdjustAmount] = useState<string>("");
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
@@ -321,6 +317,9 @@ export default function CalculationsPage() {
   const [weeklyWeekFilter, setWeeklyWeekFilter] = useState("");
   const [paymentSearch, setPaymentSearch] = useState("");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "cash" | "transfer">("all");
+  const [calcPeriodType, setCalcPeriodType] = useState<"day" | "3day" | "week" | "month" | "custom">("month");
+  const [calcPeriodFrom, setCalcPeriodFrom] = useState("");
+  const [calcPeriodTo, setCalcPeriodTo] = useState("");
 
   // 集計・分析 states
   const [aggSearchQuery, setAggSearchQuery] = useState("");
@@ -376,7 +375,7 @@ export default function CalculationsPage() {
 
   const filteredResults = mockResults.filter((result) => {
     const matchesSearch = result.workerName.includes(searchQuery) || result.company.includes(searchQuery);
-    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || (statusFilter === "paid" && result.status === "confirmed") || (statusFilter === "unpaid" && result.status === "calculated");
     const d = result.workDate;
     const matchesFrom = !periodFrom || d >= new Date(periodFrom);
     const matchesTo = !periodTo || d <= new Date(periodTo + "T23:59:59");
@@ -469,38 +468,35 @@ export default function CalculationsPage() {
         </div>
 
         {/* Sub Tabs */}
-        {activeTab === "計算結果" && (
-          <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-            {RESULT_SUBTABS.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => setResultSubTab(sub)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  resultSubTab === sub ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
-          </div>
-        )}
         {activeTab === "支払処理" && (
-          <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-            {PAYMENT_SUBTABS.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => setPaymentSubTab(sub)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  paymentSubTab === sub ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+              {PAYMENT_SUBTABS.map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setPaymentSubTab(sub)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    paymentSubTab === sub ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+            {paymentSubTab === "支払明細" && (
+              <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
+                {([["all", "全員"], ["cash", "キャッシュマシン"], ["transfer", "振り込み"]] as const).map(([val, label]) => (
+                  <button key={val} onClick={() => setPaymentMethodFilter(val)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${paymentMethodFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === "計算結果" && resultSubTab === "計算結果" && (
+        {(activeTab === "支払処理" && paymentSubTab === "計算結果") && (
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -544,9 +540,8 @@ export default function CalculationsPage() {
                   <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="ステータス" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">すべて</SelectItem>
-                    <SelectItem value="calculated">計算済</SelectItem>
-                    <SelectItem value="confirmed">確定</SelectItem>
-                    <SelectItem value="paid">支払済</SelectItem>
+                    <SelectItem value="paid">支払済み</SelectItem>
+                    <SelectItem value="unpaid">未払い</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -708,105 +703,70 @@ export default function CalculationsPage() {
           );
         })()}
 
-        {activeTab === "計算結果" && resultSubTab === "賃金台帳" && (
-          <>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="氏名で検索..."
-                    value={wageLedgerSearch}
-                    onChange={(e) => setWageLedgerSearch(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="month"
-                    value={wageLedgerMonth}
-                    onChange={(e) => setWageLedgerMonth(e.target.value)}
-                    className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Calculator className="h-4 w-4" />
-                  <span>{filteredWageLedger.length} 件</span>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">氏名</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">作業日</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">基本給</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">早出手当</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">残業手当</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">休日手当</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">控除合計</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">差引支給額</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredWageLedger.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-3 sm:px-4 py-3 text-slate-700 font-mono whitespace-nowrap">{row.workDate}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono whitespace-nowrap tabular-nums">{formatNumber(row.base)}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">{formatNumber(row.early)}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">{formatNumber(row.overtime)}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono whitespace-nowrap tabular-nums">{formatNumber(row.holiday)}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-600 font-mono whitespace-nowrap tabular-nums">-{formatNumber(row.deduction)}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-semibold font-mono whitespace-nowrap tabular-nums">{formatNumber(row.net)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-slate-200 bg-slate-50/80">
-                      <td className="px-3 sm:px-4 py-3 text-slate-900 font-semibold whitespace-nowrap" colSpan={2}>合計</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold whitespace-nowrap tabular-nums">{formatNumber(wageLedgerTotals.base)}</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold whitespace-nowrap tabular-nums">{formatNumber(wageLedgerTotals.early)}</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold whitespace-nowrap tabular-nums">{formatNumber(wageLedgerTotals.overtime)}</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-slate-900 font-mono font-semibold whitespace-nowrap tabular-nums">{formatNumber(wageLedgerTotals.holiday)}</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-slate-600 font-mono font-semibold whitespace-nowrap tabular-nums">-{formatNumber(wageLedgerTotals.deduction)}</td>
-                      <td className="px-3 sm:px-4 py-3 text-right text-blue-700 font-mono font-bold whitespace-nowrap tabular-nums">{formatNumber(wageLedgerTotals.net)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
 
         {activeTab === "支払処理" && paymentSubTab === "支払明細" && (
           <>
-            <div className="flex items-center justify-between">
-              {/* No.24: キャッシュマシン/振り込みフィルタ */}
-              <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-                {([["all", "全員"], ["cash", "キャッシュマシン"], ["transfer", "振り込み"]] as const).map(([val, label]) => (
-                  <button key={val} onClick={() => setPaymentMethodFilter(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${paymentMethodFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
-                ))}
+            {/* フィルター統合カード */}
+            <div className="rounded-xl border border-slate-200/60 bg-white p-4 space-y-3">
+              {/* 集計期間 */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 shrink-0">
+                  <CalendarLucide className="h-4 w-4 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-600">集計期間</span>
+                </div>
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
+                  {([
+                    ["day",    "日払い"],
+                    ["3day",   "3日払い"],
+                    ["week",   "週払い"],
+                    ["month",  "月払い"],
+                    ["custom", "任意期間"],
+                  ] as const).map(([val, label]) => (
+                    <button key={val} onClick={() => setCalcPeriodType(val)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${calcPeriodType === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {calcPeriodType === "custom" ? (
+                  <div className="flex items-center gap-1.5">
+                    <input type="date" value={calcPeriodFrom} onChange={(e) => setCalcPeriodFrom(e.target.value)}
+                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                    <span className="text-xs text-slate-400">〜</span>
+                    <input type="date" value={calcPeriodTo} onChange={(e) => setCalcPeriodTo(e.target.value)}
+                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                    {(calcPeriodFrom || calcPeriodTo) && (
+                      <button onClick={() => { setCalcPeriodFrom(""); setCalcPeriodTo(""); }} className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-1">解除</button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <input type={calcPeriodType === "month" ? "month" : "date"}
+                      className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                    {(calcPeriodType === "3day" || calcPeriodType === "week") && (
+                      <>
+                        <span className="text-xs text-slate-400">〜</span>
+                        <input type="date" className="rounded-lg border border-slate-200 bg-white py-1.5 px-3 text-xs text-slate-900 [color-scheme:light] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
-                <Download className="h-4 w-4" />PDF出力
-              </button>
-            </div>
-            <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4">
+              {/* 区切り */}
+              <div className="border-t border-slate-100" />
+              {/* 検索・件数・PDF出力 */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="氏名で検索..." value={paymentSearch} onChange={(e) => setPaymentSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                  <input type="text" placeholder="氏名で検索..." value={paymentSearch} onChange={(e) => setPaymentSearch(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100" />
                 </div>
-                <div className="relative">
-                  <CalendarLucide className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="month" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                <div className="flex items-center gap-2 text-sm text-slate-500 ml-auto">
+                  <FileText className="h-4 w-4" />
+                  <span>{filteredPayment.length} 件</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500"><FileText className="h-4 w-4" /><span>{filteredPayment.length} 件</span></div>
+                <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors shrink-0">
+                  <Download className="h-4 w-4" />PDF出力
+                </button>
               </div>
             </div>
             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
@@ -832,7 +792,7 @@ export default function CalculationsPage() {
                               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{row.paymentMethod}</span>
                             </td>
                             <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status === "確定" ? "支払済み" : "未払い"}</span>
                             </td>
                       </tr>
                     ))}
@@ -1041,11 +1001,18 @@ export default function CalculationsPage() {
             </div>
           </>
         )}
-      </div>
 
       {/* ===== 集計 Tab ===== */}
       {activeTab === "集計" && (
-        <div className="space-y-6">
+        <>
+          {/* ビュー切り替えタブ（メインタブ直下） */}
+          <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+            {(["personal","dispatch","vehicle"] as AggView[]).map((v) => (
+              <button key={v} onClick={() => setView(v)} className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${view === v ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+                {v === "personal" ? "個人別月別" : v === "dispatch" ? "供給元別" : "車種別"}
+              </button>
+            ))}
+          </div>
           <div>
             <p className="text-sm text-slate-500">個人別月別・指定期間別・車種別集計</p>
           </div>
@@ -1081,13 +1048,6 @@ export default function CalculationsPage() {
               {(aggPeriodFrom || aggPeriodTo) && (
                 <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setAggPeriodFrom(""); setAggPeriodTo(""); }}>解除</Button>
               )}
-            </div>
-            <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden">
-              {(["personal","dispatch","vehicle"] as AggView[]).map((v) => (
-                <button key={v} onClick={() => setView(v)} className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${view === v ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}>
-                  {v === "personal" ? <><Users className="h-3.5 w-3.5" />個人別月別</> : v === "dispatch" ? <><Building2 className="h-3.5 w-3.5" />供給元別</> : <><TruckIcon className="h-3.5 w-3.5" />車種別</>}
-                </button>
-              ))}
             </div>
             <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"><Download className="h-4 w-4" />エクスポート</button>
           </div>
@@ -1197,7 +1157,7 @@ export default function CalculationsPage() {
               )}
             </>
           )}
-        </div>
+        </>
       )}
 
       {/* ===== 分析 Tab ===== */}
@@ -1387,6 +1347,7 @@ export default function CalculationsPage() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }

@@ -325,6 +325,8 @@ export default function CalculationsPage() {
   const [editAllowances, setEditAllowances] = useState<{ name: string; amount: number; isContinuous: boolean }[]>([]);
   const [editKurikoshi, setEditKurikoshi] = useState<Set<"overtime" | "weeklyOvertime">>(new Set());
   const [kurikoshiMap, setKurikoshiMap] = useState<Record<string, { overtime: number; weeklyOvertime: number }>>({});
+  const [editingKurikoshiRow, setEditingKurikoshiRow] = useState<string | null>(null);
+  const [kurikoshiInputAmount, setKurikoshiInputAmount] = useState<string>("");
   const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("計算結果");
   const [workerTypeFilter, setWorkerTypeFilter] = useState<Set<"日雇" | "常勤" | "繰越">>(new Set(["日雇", "常勤"]));
   const [paymentInnerTab, setPaymentInnerTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
@@ -1259,16 +1261,65 @@ export default function CalculationsPage() {
                             <td className="px-3 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "支払済み" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status}</span>
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap">
-                              {(() => {
+                            <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              {editingKurikoshiRow === row.name ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-slate-400">¥</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    autoFocus
+                                    value={kurikoshiInputAmount}
+                                    onChange={(e) => setKurikoshiInputAmount(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        const amt = parseInt(kurikoshiInputAmount || "0") || 0;
+                                        if (amt > 0) {
+                                          setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
+                                        } else {
+                                          setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
+                                        }
+                                        setEditingKurikoshiRow(null);
+                                        setKurikoshiInputAmount("");
+                                      } else if (e.key === "Escape") {
+                                        setEditingKurikoshiRow(null);
+                                        setKurikoshiInputAmount("");
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      const amt = parseInt(kurikoshiInputAmount || "0") || 0;
+                                      if (amt > 0) {
+                                        setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
+                                      } else {
+                                        setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
+                                      }
+                                      setEditingKurikoshiRow(null);
+                                      setKurikoshiInputAmount("");
+                                    }}
+                                    className="w-24 rounded border border-pink-300 px-2 py-0.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-pink-400"
+                                  />
+                                </div>
+                              ) : (() => {
                                 const k = kurikoshiMap[row.name];
                                 const total = (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
-                                if (total <= 0) return null;
+                                if (total > 0) {
+                                  return (
+                                    <button
+                                      className="inline-flex items-center gap-1 rounded-full border border-pink-400 px-2.5 py-0.5 text-xs font-semibold text-pink-600 hover:bg-pink-50 transition-colors"
+                                      onClick={() => { setEditingKurikoshiRow(row.name); setKurikoshiInputAmount(String(total)); }}
+                                    >
+                                      残業加算
+                                      <span className="font-mono font-normal text-pink-500">+{formatCurrency(total)}</span>
+                                    </button>
+                                  );
+                                }
                                 return (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-pink-400 px-2.5 py-0.5 text-xs font-semibold text-pink-600">
-                                    残業加算
-                                    <span className="font-mono font-normal text-pink-500">+{formatCurrency(total)}</span>
-                                  </span>
+                                  <button
+                                    className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-2.5 py-0.5 text-xs text-slate-400 hover:border-pink-300 hover:text-pink-500 transition-colors"
+                                    onClick={() => { setEditingKurikoshiRow(row.name); setKurikoshiInputAmount(""); }}
+                                  >
+                                    <Plus className="h-3 w-3" />追加
+                                  </button>
                                 );
                               })()}
                             </td>

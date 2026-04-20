@@ -96,11 +96,11 @@ interface CalculationResult {
 }
 
 const mockResults = [
-  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "A運輸", vehicleType: "4t", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 2.5, weeklyOvertimeHours: 1.0, baseWage: 11000, overtimeWage: 3750, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 16250, status: "confirmed" as Status, hasWarning: false },
-  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "A運輸", vehicleType: "2t", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 2, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 2800, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12800, status: "confirmed" as Status, hasWarning: false },
-  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流", vehicleType: "10t", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 4.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 6750, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 23500, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超" },
-  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸", vehicleType: "4t", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false },
-  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 3, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 4200, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 16300, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり" },
+  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "A運輸", vehicleType: "4t", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 2.5, weeklyOvertimeHours: 1.0, baseWage: 11000, overtimeWage: 3750, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 16250, status: "confirmed" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "A運輸", vehicleType: "2t", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 2, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 2800, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12800, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流", vehicleType: "10t", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 4.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 6750, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 23500, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸", vehicleType: "4t", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 3, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 4200, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 16300, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
 ];
 
 function formatCurrency(value: number): string {
@@ -323,7 +323,10 @@ export default function CalculationsPage() {
   const [editAdjustAmount, setEditAdjustAmount] = useState<string>("");
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
   const [editAllowances, setEditAllowances] = useState<{ name: string; amount: number; isContinuous: boolean }[]>([]);
-  const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("キャッシュマシン");
+  const [editKurikoshi, setEditKurikoshi] = useState<Set<"overtime" | "weeklyOvertime">>(new Set());
+  const [kurikoshiMap, setKurikoshiMap] = useState<Record<string, { overtime: number; weeklyOvertime: number }>>({});
+  const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("計算結果");
+  const [workerTypeFilter, setWorkerTypeFilter] = useState<Set<"日雇" | "常勤" | "繰越">>(new Set(["日雇", "常勤"]));
   const [paymentInnerTab, setPaymentInnerTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
   const [selectedTransferRow, setSelectedTransferRow] = useState<typeof transfersData[0] | null>(null);
   const [selectedPaymentRow, setSelectedPaymentRow] = useState<typeof paymentData[0] | null>(null);
@@ -421,7 +424,8 @@ export default function CalculationsPage() {
     const d = result.workDate;
     const matchesFrom = !periodFrom || d >= periodFrom;
     const matchesTo = !periodTo || d <= new Date(periodTo.getFullYear(), periodTo.getMonth(), periodTo.getDate(), 23, 59, 59);
-    return matchesSearch && matchesStatus && matchesFrom && matchesTo;
+    const matchesWorkerType = workerTypeFilter.has(result.workerType);
+    return matchesSearch && matchesStatus && matchesFrom && matchesTo && matchesWorkerType;
   });
 
   const totalAmount = filteredResults.reduce((sum, r) => sum + r.totalWage, 0);
@@ -534,15 +538,19 @@ export default function CalculationsPage() {
         {activeTab === "賃金" && (
           <div className="space-y-2">
             <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-              {PAYMENT_SUBTABS.map((sub) => (
+              {([
+                { sub: "計算結果" as PaymentSubTab, category: "計算" },
+                { sub: "キャッシュマシン" as PaymentSubTab, category: "日雇" },
+                { sub: "振込" as PaymentSubTab, category: "常勤" },
+              ] as const).map(({ sub, category }) => (
                 <button
                   key={sub}
                   onClick={() => setPaymentSubTab(sub)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded-md px-3 py-1.5 transition-colors flex flex-col items-center gap-0 ${
                     paymentSubTab === sub ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  {sub}
+                  <span className="text-xs font-semibold leading-tight">{category}</span>
                 </button>
               ))}
             </div>
@@ -671,6 +679,45 @@ export default function CalculationsPage() {
               </div>
             </CardHeader>
             <CardContent>
+              {/* 日雇/常勤/繰越 チェックボックスフィルター */}
+              <div className="mb-3 flex items-center gap-4">
+                {([
+                  { type: "日雇" as const, bg: "bg-rose-500", border: "border-rose-500", text: "text-rose-600" },
+                  { type: "常勤" as const, bg: "bg-violet-500", border: "border-violet-500", text: "text-violet-600" },
+                  { type: "繰越" as const, bg: "bg-orange-500", border: "border-orange-500", text: "text-orange-600" },
+                ]).map(({ type, bg, border, text }) => {
+                  const isChecked = workerTypeFilter.has(type);
+                  return (
+                    <label
+                      key={type}
+                      className="flex items-center gap-1.5 cursor-pointer select-none"
+                    >
+                      <div
+                        role="checkbox"
+                        aria-checked={isChecked}
+                        onClick={() => {
+                          setWorkerTypeFilter((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(type)) { next.delete(type); } else { next.add(type); }
+                            return next;
+                          });
+                        }}
+                        className={cn(
+                          "h-4 w-4 rounded flex items-center justify-center border-2 transition-colors cursor-pointer",
+                          isChecked ? cn(bg, border) : "bg-white border-slate-300"
+                        )}
+                      >
+                        {isChecked && (
+                          <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={cn("text-xs font-semibold", isChecked ? text : "text-slate-400")}>{type}</span>
+                    </label>
+                  );
+                })}
+              </div>
               <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -761,6 +808,9 @@ export default function CalculationsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{result.workerName}</span>
+                            {result.workerType === "常勤" && (
+                              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-violet-500 text-[9px] font-bold text-violet-600 leading-none">常</span>
+                            )}
                             {result.hasWarning && <AlertTriangle className="h-4 w-4 text-blue-500" />}
                           </div>
                           {result.hasWarning && <p className="text-xs text-blue-600">{result.warningMessage}</p>}
@@ -782,6 +832,11 @@ export default function CalculationsPage() {
                               setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
                               setEditAdjustReason(result.adjustReason || "");
                               setEditAllowances([]);
+                              const saved = kurikoshiMap[result.workerName];
+                              const restored = new Set<"overtime" | "weeklyOvertime">();
+                              if (saved?.overtime > 0) restored.add("overtime");
+                              if (saved?.weeklyOvertime > 0) restored.add("weeklyOvertime");
+                              setEditKurikoshi(restored);
                             }}
                           >
                             {result.adjustment > 0 ? (
@@ -802,6 +857,12 @@ export default function CalculationsPage() {
                               setSelectedEditId(result.id);
                               setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
                               setEditAdjustReason(result.adjustReason || "");
+                              setEditAllowances([]);
+                              const saved = kurikoshiMap[result.workerName];
+                              const restored = new Set<"overtime" | "weeklyOvertime">();
+                              if (saved?.overtime > 0) restored.add("overtime");
+                              if (saved?.weeklyOvertime > 0) restored.add("weeklyOvertime");
+                              setEditKurikoshi(restored);
                             }}
                           >
                             <Pencil className="mr-1 h-3 w-3" />編集
@@ -812,15 +873,41 @@ export default function CalculationsPage() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
-                <div className="flex flex-wrap gap-3 sm:gap-6 text-sm">
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
+                <div className="flex flex-wrap gap-3 sm:gap-6 text-sm self-center">
                   <span>全 {filteredResults.length} 件</span>
                   <span>暫定: {filteredResults.filter((r) => r.status === "confirmed").length}件</span>
                   <span>計算済み: {filteredResults.filter((r) => r.status === "calculated").length}件</span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">合計金額</p>
-                  <p className="text-xl sm:text-2xl font-bold whitespace-nowrap">{formatCurrency(totalAmount)}</p>
+                <div className="flex flex-wrap items-end gap-3">
+                  {/* 常勤振込合計 */}
+                  <div className="text-right min-w-[130px]">
+                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                      <span className="text-xs font-semibold text-violet-600">常勤</span>
+                    </div>
+                    <p className="text-xl font-bold text-violet-600 whitespace-nowrap tabular-nums">
+                      {formatCurrency(filteredResults.filter((r) => r.workerType === "常勤").reduce((s, r) => s + r.totalWage, 0))}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">日当＋残業＋プラス手当</p>
+                  </div>
+                  {/* 日雇い合計 */}
+                  <div className="text-right min-w-[120px]">
+                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                      <span className="text-xs text-slate-500">日雇い合計</span>
+                    </div>
+                    <p className="text-xl font-bold whitespace-nowrap tabular-nums">
+                      {formatCurrency(filteredResults.filter((r) => r.workerType === "日雇").reduce((s, r) => s + r.baseWage + r.adjustment, 0))}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">日当＋プラス手当</p>
+                  </div>
+                  {/* 表示合計 */}
+                  <div className="text-right min-w-[130px] border-l border-slate-200 pl-3">
+                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                      <span className="text-xs text-slate-500">表示合計</span>
+                    </div>
+                    <p className="text-2xl font-bold whitespace-nowrap tabular-nums">{formatCurrency(totalAmount)}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">日雇＋常勤<br />残業も含め 表示全部の合計</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -845,17 +932,71 @@ export default function CalculationsPage() {
                     <div className="flex justify-between text-slate-600">
                       <span>基本日当</span><span className="font-mono tabular-nums">{formatCurrency(result.baseWage)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>残業手当</span>
-                      <span className="font-mono tabular-nums text-blue-700">{result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : "—"}</span>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <span>残業手当</span>
+                        {result.overtimeWage > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setEditKurikoshi((prev) => { const next = new Set(prev); if (next.has("overtime")) { next.delete("overtime"); } else { next.add("overtime"); } return next; })}
+                            className={cn(
+                              "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold transition-all",
+                              editKurikoshi.has("overtime")
+                                ? "bg-orange-100 border-orange-400 text-orange-700"
+                                : "bg-white border-slate-300 text-slate-400 hover:border-orange-300 hover:text-orange-500"
+                            )}
+                          >
+                            繰越
+                          </button>
+                        )}
+                      </div>
+                      <span className={cn("font-mono tabular-nums", editKurikoshi.has("overtime") ? "text-slate-300 line-through" : "text-blue-700")}>
+                        {result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : "—"}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>週40h割増（{result.weeklyOvertimeHours}h）</span>
-                      <span className="font-mono tabular-nums text-amber-700">{result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : "—"}</span>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <span>週40h割増（{result.weeklyOvertimeHours}h）</span>
+                        {result.weeklyOvertimeWage > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setEditKurikoshi((prev) => { const next = new Set(prev); if (next.has("weeklyOvertime")) { next.delete("weeklyOvertime"); } else { next.add("weeklyOvertime"); } return next; })}
+                            className={cn(
+                              "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold transition-all",
+                              editKurikoshi.has("weeklyOvertime")
+                                ? "bg-orange-100 border-orange-400 text-orange-700"
+                                : "bg-white border-slate-300 text-slate-400 hover:border-orange-300 hover:text-orange-500"
+                            )}
+                          >
+                            繰越
+                          </button>
+                        )}
+                      </div>
+                      <span className={cn("font-mono tabular-nums", editKurikoshi.has("weeklyOvertime") ? "text-slate-300 line-through" : "text-amber-700")}>
+                        {result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : "—"}
+                      </span>
                     </div>
+                    {editKurikoshi.size > 0 && (
+                      <div className="flex justify-between text-[11px] text-orange-600 bg-orange-50 rounded px-2 py-1 mt-1">
+                        <span className="flex items-center gap-1">
+                          <span className="inline-flex items-center rounded-full bg-orange-100 border border-orange-400 px-1.5 text-[9px] font-bold">繰越</span>
+                          次期へ繰り越す金額
+                        </span>
+                        <span className="font-mono font-semibold">
+                          {formatCurrency(
+                            (editKurikoshi.has("overtime") ? result.overtimeWage : 0) +
+                            (editKurikoshi.has("weeklyOvertime") ? result.weeklyOvertimeWage : 0)
+                          )}
+                        </span>
+                      </div>
+                    )}
                     <div className="border-t border-slate-200 pt-1.5 flex justify-between font-semibold text-slate-900">
                       <span>計算合計</span>
-                      <span className="font-mono tabular-nums">{formatCurrency(result.baseWage + result.overtimeWage + result.weeklyOvertimeWage)}</span>
+                      <span className="font-mono tabular-nums">{formatCurrency(
+                        result.baseWage
+                        + (editKurikoshi.has("overtime") ? 0 : result.overtimeWage)
+                        + (editKurikoshi.has("weeklyOvertime") ? 0 : result.weeklyOvertimeWage)
+                      )}</span>
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -936,7 +1077,9 @@ export default function CalculationsPage() {
                     <span className="text-sm font-medium">調整後合計</span>
                     <span className="text-lg font-bold font-mono tabular-nums">
                       {formatCurrency(
-                        result.baseWage + result.overtimeWage + result.weeklyOvertimeWage
+                        result.baseWage
+                        + (editKurikoshi.has("overtime") ? 0 : result.overtimeWage)
+                        + (editKurikoshi.has("weeklyOvertime") ? 0 : result.weeklyOvertimeWage)
                         + (parseInt(editAdjustAmount || "0") || 0)
                         + editAllowances.reduce((s, a) => s + (a.amount || 0), 0)
                       )}
@@ -944,8 +1087,22 @@ export default function CalculationsPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); }}>キャンセル</Button>
-                  <Button onClick={() => { toast.success(`${result.workerName}の賃金調整・手当を保存しました`); setSelectedEditId(null); setEditAllowances([]); }}>保存する</Button>
+                  <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); setEditKurikoshi(new Set()); }}>キャンセル</Button>
+                  <Button onClick={() => {
+                    const kurikoshiAmounts = {
+                      overtime: editKurikoshi.has("overtime") ? result.overtimeWage : 0,
+                      weeklyOvertime: editKurikoshi.has("weeklyOvertime") ? result.weeklyOvertimeWage : 0,
+                    };
+                    if (kurikoshiAmounts.overtime > 0 || kurikoshiAmounts.weeklyOvertime > 0) {
+                      setKurikoshiMap(prev => ({ ...prev, [result.workerName]: kurikoshiAmounts }));
+                    } else {
+                      setKurikoshiMap(prev => { const next = { ...prev }; delete next[result.workerName]; return next; });
+                    }
+                    toast.success(`${result.workerName}の賃金調整・手当を保存しました`);
+                    setSelectedEditId(null);
+                    setEditAllowances([]);
+                    setEditKurikoshi(new Set());
+                  }}>保存する</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -1078,6 +1235,7 @@ export default function CalculationsPage() {
                             <th key={label} className="px-2 py-3 text-xs font-medium text-slate-400 text-right whitespace-nowrap">{label}円</th>
                           ))}
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">ステータス</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">残業加算</th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-right whitespace-nowrap">差引支給額</th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">更新日時</th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">PDF</th>
@@ -1100,6 +1258,19 @@ export default function CalculationsPage() {
                             ))}
                             <td className="px-3 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "支払済み" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status}</span>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              {(() => {
+                                const k = kurikoshiMap[row.name];
+                                const total = (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
+                                if (total <= 0) return null;
+                                return (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-pink-400 px-2.5 py-0.5 text-xs font-semibold text-pink-600">
+                                    残業加算
+                                    <span className="font-mono font-normal text-pink-500">+{formatCurrency(total)}</span>
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-3 text-right font-mono font-semibold text-blue-700 tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
                             <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">{row.updatedAt}</td>
@@ -1137,6 +1308,7 @@ export default function CalculationsPage() {
                               {totals[key] > 0 ? totals[key] : "—"}
                             </td>
                           ))}
+                          <td className="px-3 py-3" />
                           <td className="px-3 py-3" />
                           <td className="px-3 py-3 text-right font-mono font-bold text-blue-800 tabular-nums">¥{totalNet.toLocaleString()}</td>
                           <td colSpan={2} />

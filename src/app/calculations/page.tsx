@@ -1305,11 +1305,11 @@ export default function CalculationsPage() {
                                 if (total > 0) {
                                   return (
                                     <button
-                                      className="inline-flex items-center gap-1 rounded-full border border-pink-400 px-2.5 py-0.5 text-xs font-semibold text-pink-600 hover:bg-pink-50 transition-colors"
+                                      className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-2.5 py-0.5 text-xs font-semibold text-slate-400 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
                                       onClick={() => { setEditingKurikoshiRow(row.name); setKurikoshiInputAmount(String(total)); }}
                                     >
                                       残業加算
-                                      <span className="font-mono font-normal text-pink-500">+{formatCurrency(total)}</span>
+                                      <span className="font-mono font-normal">+{formatCurrency(total)}</span>
                                     </button>
                                   );
                                 }

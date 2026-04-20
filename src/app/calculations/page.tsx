@@ -327,6 +327,8 @@ export default function CalculationsPage() {
   const [kurikoshiMap, setKurikoshiMap] = useState<Record<string, { overtime: number; weeklyOvertime: number }>>({});
   const [editingKurikoshiRow, setEditingKurikoshiRow] = useState<string | null>(null);
   const [kurikoshiInputAmount, setKurikoshiInputAmount] = useState<string>("");
+  const [confirmKurikoshi, setConfirmKurikoshi] = useState<{ name: string; total: number; mode: "confirm" | "cancel" } | null>(null);
+  const [confirmedKurikoshi, setConfirmedKurikoshi] = useState<Set<string>>(new Set());
   const [paymentSubTab, setPaymentSubTab] = useState<PaymentSubTab>("計算結果");
   const [workerTypeFilter, setWorkerTypeFilter] = useState<Set<"日雇" | "常勤" | "繰越">>(new Set(["日雇", "常勤"]));
   const [paymentInnerTab, setPaymentInnerTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
@@ -916,6 +918,56 @@ export default function CalculationsPage() {
           </Card>
         )}
 
+        {/* 残業加算 確認ダイアログ */}
+        {confirmKurikoshi !== null && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setConfirmKurikoshi(null); }}>
+            <DialogContent className="sm:max-w-[360px]">
+              <DialogHeader>
+                <DialogTitle>{confirmKurikoshi.mode === "confirm" ? "残業加算の確定" : "残業加算の取り消し"}</DialogTitle>
+                <DialogDescription>
+                  {confirmKurikoshi.mode === "confirm"
+                    ? `${confirmKurikoshi.name} の残業加算を支払いに反映しますか？`
+                    : `${confirmKurikoshi.name} の残業加算を取り消しますか？`}
+                </DialogDescription>
+              </DialogHeader>
+              <div className={`rounded-lg border px-4 py-3 flex justify-between items-center ${confirmKurikoshi.mode === "confirm" ? "bg-orange-50 border-orange-200" : "bg-red-50 border-red-200"}`}>
+                <span className={`text-sm font-medium ${confirmKurikoshi.mode === "confirm" ? "text-orange-800" : "text-red-800"}`}>
+                  {confirmKurikoshi.mode === "confirm" ? "加算額" : "取り消し額"}
+                </span>
+                <span className={`text-lg font-bold font-mono tabular-nums ${confirmKurikoshi.mode === "confirm" ? "text-orange-700" : "text-red-700"}`}>
+                  {confirmKurikoshi.mode === "confirm" ? "+" : "-"}{formatCurrency(confirmKurikoshi.total)}
+                </span>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setConfirmKurikoshi(null)}>キャンセル</Button>
+                {confirmKurikoshi.mode === "confirm" ? (
+                  <Button
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => {
+                      setConfirmedKurikoshi(prev => new Set([...prev, confirmKurikoshi.name]));
+                      toast.success(`${confirmKurikoshi.name} の残業加算 ${formatCurrency(confirmKurikoshi.total)} を確定しました`);
+                      setConfirmKurikoshi(null);
+                    }}
+                  >
+                    加算確定
+                  </Button>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setConfirmedKurikoshi(prev => { const next = new Set(prev); next.delete(confirmKurikoshi.name); return next; });
+                      toast.success(`${confirmKurikoshi.name} の残業加算を取り消しました`);
+                      setConfirmKurikoshi(null);
+                    }}
+                  >
+                    取り消す
+                  </Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
         {/* 編集ダイアログ */}
         {selectedEditId !== null && (() => {
           const result = mockResults.find((r) => r.id === selectedEditId);
@@ -959,20 +1011,18 @@ export default function CalculationsPage() {
                     <div className="flex justify-between items-center text-slate-600">
                       <div className="flex items-center gap-1.5">
                         <span>週40h割増（{result.weeklyOvertimeHours}h）</span>
-                        {result.weeklyOvertimeWage > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => setEditKurikoshi((prev) => { const next = new Set(prev); if (next.has("weeklyOvertime")) { next.delete("weeklyOvertime"); } else { next.add("weeklyOvertime"); } return next; })}
-                            className={cn(
-                              "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold transition-all",
-                              editKurikoshi.has("weeklyOvertime")
-                                ? "bg-orange-100 border-orange-400 text-orange-700"
-                                : "bg-white border-slate-300 text-slate-400 hover:border-orange-300 hover:text-orange-500"
-                            )}
-                          >
-                            繰越
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditKurikoshi((prev) => { const next = new Set(prev); if (next.has("weeklyOvertime")) { next.delete("weeklyOvertime"); } else { next.add("weeklyOvertime"); } return next; })}
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold transition-all",
+                            editKurikoshi.has("weeklyOvertime")
+                              ? "bg-orange-100 border-orange-400 text-orange-700"
+                              : "bg-white border-slate-300 text-slate-400 hover:border-orange-300 hover:text-orange-500"
+                          )}
+                        >
+                          繰越
+                        </button>
                       </div>
                       <span className={cn("font-mono tabular-nums", editKurikoshi.has("weeklyOvertime") ? "text-slate-300 line-through" : "text-amber-700")}>
                         {result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : "—"}
@@ -1305,25 +1355,40 @@ export default function CalculationsPage() {
                                 if (total > 0) {
                                   return (
                                     <button
-                                      className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-2.5 py-0.5 text-xs font-semibold text-slate-400 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
-                                      onClick={() => { setEditingKurikoshiRow(row.name); setKurikoshiInputAmount(String(total)); }}
+                                      className={cn(
+                                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+                                        confirmedKurikoshi.has(row.name)
+                                          ? "border-orange-400 bg-orange-100 text-orange-700"
+                                          : "border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50"
+                                      )}
+                                      onClick={() => confirmedKurikoshi.has(row.name)
+                                        ? setConfirmKurikoshi({ name: row.name, total, mode: "cancel" })
+                                        : setConfirmKurikoshi({ name: row.name, total, mode: "confirm" })
+                                      }
                                     >
                                       残業加算
                                       <span className="font-mono font-normal">+{formatCurrency(total)}</span>
                                     </button>
                                   );
                                 }
+                                return null;
+                              })()}
+                            </td>
+                            <td className="px-3 py-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
+                              {(() => {
+                                const k = kurikoshiMap[row.name];
+                                const kurikoshiTotal = (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
+                                const isConfirmed = confirmedKurikoshi.has(row.name) && kurikoshiTotal > 0;
+                                const displayAmount = isConfirmed ? row.netPay + kurikoshiTotal : row.netPay;
                                 return (
-                                  <button
-                                    className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-2.5 py-0.5 text-xs text-slate-400 hover:border-pink-300 hover:text-pink-500 transition-colors"
-                                    onClick={() => { setEditingKurikoshiRow(row.name); setKurikoshiInputAmount(""); }}
-                                  >
-                                    <Plus className="h-3 w-3" />追加
-                                  </button>
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    <span className={isConfirmed ? "text-orange-700" : "text-blue-700"}>
+                                      ¥{displayAmount.toLocaleString()}
+                                    </span>
+                                  </div>
                                 );
                               })()}
                             </td>
-                            <td className="px-3 py-3 text-right font-mono font-semibold text-blue-700 tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
                             <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">{row.updatedAt}</td>
                             <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                               <button className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
@@ -1361,7 +1426,21 @@ export default function CalculationsPage() {
                           ))}
                           <td className="px-3 py-3" />
                           <td className="px-3 py-3" />
-                          <td className="px-3 py-3 text-right font-mono font-bold text-blue-800 tabular-nums">¥{totalNet.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold tabular-nums">
+                            {(() => {
+                              const confirmedExtra = rows.reduce((s, r) => {
+                                if (!confirmedKurikoshi.has(r.name)) return s;
+                                const k = kurikoshiMap[r.name];
+                                return s + (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
+                              }, 0);
+                              const displayTotal = totalNet + confirmedExtra;
+                              return (
+                                <span className={confirmedExtra > 0 ? "text-orange-700" : "text-blue-800"}>
+                                  ¥{displayTotal.toLocaleString()}
+                                </span>
+                              );
+                            })()}
+                          </td>
                           <td colSpan={2} />
                         </tr>
                       </tbody>

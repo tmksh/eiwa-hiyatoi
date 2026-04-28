@@ -660,28 +660,7 @@ export default function CalculationsPage() {
         {(activeTab === "賃金" && paymentSubTab === "計算結果") && (
           <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle>計算結果一覧</CardTitle>
-                  <CardDescription>各行の編集ボタンから賃金調整・理由記録が可能です</CardDescription>
-                </div>
-                <Button variant="outline" onClick={async () => {
-                  const { default: jsPDF } = await import("jspdf");
-                  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-                  doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
-                  doc.setFontSize(9);
-                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "プラス手当", "合計", "状態"];
-                  headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
-                  filteredResults.forEach((r, j) => {
-                    const y = 32 + j * 7;
-                    if (y > 195) return;
-                    [r.workerName, r.company, r.vehicleType, `¥${r.baseWage.toLocaleString()}`, `¥${r.overtimeWage.toLocaleString()}`, `¥${r.weeklyOvertimeWage.toLocaleString()}`, r.adjustment ? `¥${r.adjustment.toLocaleString()}` : "—", `¥${r.totalWage.toLocaleString()}`, r.status === "confirmed" ? "暫定" : "計算済み"].forEach((v, i) => doc.text(String(v), 10 + i * 30, y));
-                  });
-                  doc.save("計算結果一覧.pdf");
-                }} className="w-full sm:w-auto">
-                  <FileText className="mr-2 h-4 w-4" />PDF出力
-                </Button>
-              </div>
+              <CardTitle>計算結果一覧</CardTitle>
             </CardHeader>
             <CardContent>
               {/* 日雇/常勤/繰越 チェックボックスフィルター */}
@@ -747,6 +726,22 @@ export default function CalculationsPage() {
                     <SelectItem value="calculated">計算済み</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button variant="outline" onClick={async () => {
+                  const { default: jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+                  doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
+                  doc.setFontSize(9);
+                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "プラス手当", "合計", "状態"];
+                  headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
+                  filteredResults.forEach((r, j) => {
+                    const y = 32 + j * 7;
+                    if (y > 195) return;
+                    [r.workerName, r.company, r.vehicleType, `¥${r.baseWage.toLocaleString()}`, `¥${r.overtimeWage.toLocaleString()}`, `¥${r.weeklyOvertimeWage.toLocaleString()}`, r.adjustment ? `¥${r.adjustment.toLocaleString()}` : "—", `¥${r.totalWage.toLocaleString()}`, r.status === "confirmed" ? "暫定" : "計算済み"].forEach((v, i) => doc.text(String(v), 10 + i * 30, y));
+                  });
+                  doc.save("計算結果一覧.pdf");
+                }} className="w-full sm:w-auto">
+                  <FileText className="mr-2 h-4 w-4" />PDF出力
+                </Button>
               </div>
               {selectedIds.length > 0 && (
                 <div className="mb-4 flex items-center gap-2 rounded-lg bg-muted p-3">

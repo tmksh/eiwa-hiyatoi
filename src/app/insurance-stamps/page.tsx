@@ -112,12 +112,12 @@ const collectionLedgerData = [
   { id: 5, name: "田中 美咲", healthIns: 11200, pension: 19950, nursingIns: 2020, empIns: 1330, residentTax: 5200, total: 39700, updatedAt: "2024/01/25 16:55" },
 ];
 
-type MainTab = "人材系" | "車両系" | "運行系";
-const MAIN_TABS: MainTab[] = ["人材系", "車両系", "運行系"];
+type MainTab = "人" | "車" | "場";
+const MAIN_TABS: MainTab[] = ["人", "車", "場"];
 const SUB_TABS: Record<MainTab, string[]> = {
-  "人材系": ["印紙管理", "契約社員", "アルバイト", "会社", "仕訳"],
-  "車両系":        ["日当設定"],
-  "運行系":        ["運行実績", "各種設定"],
+  "人": ["印紙管理", "契約社員", "アルバイト", "会社", "仕訳"],
+  "車": ["日当設定"],
+  "場": ["運行実績", "各種設定"],
 };
 
 // --- Workers ---
@@ -290,14 +290,14 @@ const residentData = [
 ];
 
 export default function InsuranceStampsPage() {
-  const [activeMainTab, setActiveMainTab] = useState<MainTab>("人材系");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>("人");
   const [activeSubTab, setActiveSubTab] = useState<string>("印紙管理");
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
 
   // Master management states
   const [selectedLedgerId, setSelectedLedgerId] = useState<number | null>(null);
-  const [ledgerDetailTab, setLedgerDetailTab] = useState<"social" | "withholding" | "resident" | "schedule" | "paidleave">("social");
+  const [ledgerDetailTab, setLedgerDetailTab] = useState<"schedule" | "paidleave">("schedule");
   const [workerDialogOpen, setWorkerDialogOpen] = useState(false);
   const [workerSearch, setWorkerSearch] = useState("");
 
@@ -1127,7 +1127,7 @@ export default function InsuranceStampsPage() {
                       <tr
                         key={row.id}
                         className="hover:bg-blue-50/40 transition-colors cursor-pointer"
-                        onClick={() => { setSelectedLedgerId(row.id); setLedgerDetailTab("social"); }}
+                        onClick={() => { setSelectedLedgerId(row.id); setLedgerDetailTab("schedule"); }}
                       >
                         <td className="px-3 sm:px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
                         {(() => { const w = mockWorkers.find(x => x.name === row.name); return (<>
@@ -1145,117 +1145,24 @@ export default function InsuranceStampsPage() {
             {/* 詳細編集ダイアログ */}
             {selectedLedgerId !== null && (() => {
               const ledger = collectionLedgerData.find((d) => d.id === selectedLedgerId);
-              const wh = withholdingData.find((d) => d.name === ledger?.name);
-              const res = residentData.find((d) => d.name === ledger?.name);
               if (!ledger) return null;
               return (
-                <Dialog open={true} onOpenChange={(open) => { if (!open) { setSelectedLedgerId(null); setLedgerDetailTab("social"); } }}>
+                <Dialog open={true} onOpenChange={(open) => { if (!open) { setSelectedLedgerId(null); setLedgerDetailTab("schedule"); } }}>
                   <DialogContent className="sm:max-w-[560px]">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <span>{ledger.name}</span>
                         <span className="text-sm font-normal text-slate-500">— 契約社員詳細</span>
                       </DialogTitle>
-                      <DialogDescription>各種控除額を確認・編集できます</DialogDescription>
+                      <DialogDescription>週休スケジュール・有給休暇を確認できます</DialogDescription>
                     </DialogHeader>
 
                     {/* 内部タブ */}
                     <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit mt-1 flex-wrap">
-                      {([["social", "社会保険"], ["withholding", "源泉税"], ["resident", "住民税"], ["schedule", "週休"], ["paidleave", "有給休暇"]] as const).map(([val, label]) => (
+                      {([["schedule", "週休"], ["paidleave", "有給休暇"]] as const).map(([val, label]) => (
                         <button key={val} onClick={() => setLedgerDetailTab(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${ledgerDetailTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
                       ))}
                     </div>
-
-                    {/* 社会保険 */}
-                    {ledgerDetailTab === "social" && (
-                      <div className="grid grid-cols-2 gap-4 py-2">
-                        {[
-                          ["健康保険", ledger.healthIns],
-                          ["厚生年金", ledger.pension],
-                          ["介護保険", ledger.nursingIns],
-                          ["雇用保険", ledger.empIns],
-                          ["住民税控除", ledger.residentTax],
-                        ].map(([label, val]) => (
-                          <div key={label as string} className="grid gap-1.5">
-                            <Label className="text-xs text-slate-500">{label as string}</Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
-                              <Input defaultValue={(val as number).toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
-                            </div>
-                          </div>
-                        ))}
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">合計</Label>
-                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono font-semibold text-slate-900">
-                            ¥{ledger.total.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 源泉税 */}
-                    {ledgerDetailTab === "withholding" && wh && (
-                      <div className="grid grid-cols-2 gap-4 py-2">
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">対象月</Label>
-                          <Input defaultValue={wh.month} className="h-9 text-sm" />
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">ステータス</Label>
-                          <div className={`flex items-center rounded-lg border px-3 py-2 text-xs font-medium ${wh.status === "計算済" ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}>{wh.status}</div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">支給額</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
-                            <Input defaultValue={wh.grossPay.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
-                          </div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">源泉税額</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
-                            <Input defaultValue={wh.netTax.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 住民税 */}
-                    {ledgerDetailTab === "resident" && res && (
-                      <div className="grid grid-cols-2 gap-4 py-2">
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">市区町村</Label>
-                          <Input defaultValue={res.municipality} className="h-9 text-sm" />
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">ステータス</Label>
-                          <div className={`flex items-center rounded-lg border px-3 py-2 text-xs font-medium ${res.status === "徴収済" ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-amber-50 border-amber-200 text-amber-700"}`}>{res.status}</div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">月額</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
-                            <Input defaultValue={res.monthlyAmount.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
-                          </div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">年間額</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
-                            <Input defaultValue={res.annualAmount.toLocaleString()} className="pl-7 h-9 text-sm font-mono" />
-                          </div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">徴収済</Label>
-                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono text-slate-700">¥{res.collected.toLocaleString()}</div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label className="text-xs text-slate-500">残高</Label>
-                          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-mono font-semibold text-slate-900">¥{res.balance.toLocaleString()}</div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* 週休スケジュール（契約社員） */}
                     {ledgerDetailTab === "schedule" && (() => {

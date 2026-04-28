@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Table,
   TableBody,
   TableCell,
   TableFooter,
@@ -102,6 +101,11 @@ const mockResults = [
   { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流", vehicleType: "10t", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 4.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 6750, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 23500, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
   { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸", vehicleType: "4t", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
   { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 3, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 4200, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 16300, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "6", workDate: new Date("2024-01-28"), workerName: "伊藤 健太", company: "A運輸", vehicleType: "4t", startTime: "08:00", endTime: "18:00", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 1500, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "7", workDate: new Date("2024-01-28"), workerName: "渡辺 翼", company: "B物流", vehicleType: "10t", startTime: "05:30", endTime: "19:00", workHours: 12, overtimeHours: 4, weeklyOvertimeHours: 2, baseWage: 13000, overtimeWage: 6000, weeklyOvertimeWage: 3000, adjustment: 0, adjustReason: "", totalWage: 22000, status: "calculated" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "8", workDate: new Date("2024-01-28"), workerName: "中村 拓也", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "20:00", workHours: 10, overtimeHours: 2, weeklyOvertimeHours: 1, baseWage: 10000, overtimeWage: 2800, weeklyOvertimeWage: 1400, adjustment: 0, adjustReason: "", totalWage: 14200, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "9", workDate: new Date("2024-01-28"), workerName: "小林 未来", company: "A運輸", vehicleType: "4t", startTime: "07:30", endTime: "17:00", workHours: 8.5, overtimeHours: 0.5, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 750, weeklyOvertimeWage: 0, adjustment: 1000, adjustReason: "応援対応", totalWage: 12750, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "10", workDate: new Date("2024-01-28"), workerName: "加藤 真理", company: "D輸送", vehicleType: "2t", startTime: "08:30", endTime: "18:30", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1400, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11400, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
 ];
 
 function formatCurrency(value: number): string {
@@ -179,6 +183,11 @@ const workerInsuranceMap: Record<string, { socialInsuranceGrade: string; employm
   "佐藤 花子": { socialInsuranceGrade: "10等級（介護あり）", employmentInsuranceGrade: "7等級" },
   "高橋 健二": { socialInsuranceGrade: "6等級（介護あり）", employmentInsuranceGrade: "5等級" },
   "田中 美咲": { socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級" },
+  "伊藤 健太": { socialInsuranceGrade: "4等級（介護なし）", employmentInsuranceGrade: "3等級" },
+  "渡辺 翼": { socialInsuranceGrade: "8等級（介護あり）", employmentInsuranceGrade: "6等級" },
+  "中村 拓也": { socialInsuranceGrade: "2等級（介護なし）", employmentInsuranceGrade: "1等級" },
+  "小林 未来": { socialInsuranceGrade: "5等級（介護なし）", employmentInsuranceGrade: "4等級" },
+  "加藤 真理": { socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級" },
 };
 
 function calcDenom(amount: number) {
@@ -660,9 +669,6 @@ export default function CalculationsPage() {
 
         {(activeTab === "賃金" && paymentSubTab === "計算結果") && (
           <Card>
-            <CardHeader>
-              <CardTitle>計算結果一覧</CardTitle>
-            </CardHeader>
             <CardContent>
               {/* 日雇/常勤/繰越 チェックボックスフィルター */}
               <div className="mb-3 flex items-center gap-4">
@@ -751,9 +757,9 @@ export default function CalculationsPage() {
                   <Button size="sm" variant="outline" onClick={handleRecalculateSelected}><RefreshCw className="mr-2 h-4 w-4" />再計算</Button>
                 </div>
               )}
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
+              <div className="rounded-md border overflow-auto max-h-[440px]">
+                <table className="w-full caption-bottom text-sm">
+                  <TableHeader className="sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)] [&_th]:bg-white">
                     <TableRow>
                       <TableHead className="w-[50px]">
                         <Checkbox checked={selectedIds.length === filteredResults.length && filteredResults.length > 0} onCheckedChange={handleSelectAll} />
@@ -871,8 +877,8 @@ export default function CalculationsPage() {
                     const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
                     const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
                     return (
-                      <TableFooter className="bg-slate-50/80">
-                        <TableRow className="hover:bg-slate-50/80">
+                      <TableFooter className="sticky bottom-0 z-10 shadow-[0_-1px_0_0_var(--border)] [&_td]:bg-slate-50">
+                        <TableRow className="hover:bg-slate-50">
                           <TableCell colSpan={3} className="align-top text-xs font-medium text-slate-500">内訳</TableCell>
                           <TableCell className="align-top">
                             <div className="flex flex-col gap-1">
@@ -927,7 +933,7 @@ export default function CalculationsPage() {
                       </TableFooter>
                     );
                   })()}
-                </Table>
+                </table>
               </div>
               <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
                 <div className="flex flex-wrap gap-3 sm:gap-6 text-sm self-center">

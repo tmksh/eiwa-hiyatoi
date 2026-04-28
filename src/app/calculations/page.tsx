@@ -877,7 +877,7 @@ export default function CalculationsPage() {
                     const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
                     const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
                     return (
-                      <TableFooter className="sticky bottom-0 z-10 shadow-[0_-1px_0_0_var(--border)] [&_td]:bg-slate-50">
+                      <TableFooter className="sticky bottom-0 z-20 bg-slate-50 shadow-[0_-1px_0_0_var(--border)] [&_td]:bg-slate-50 [&_tr]:bg-slate-50 [&_tr]:border-b-0">
                         <TableRow className="hover:bg-slate-50">
                           <TableCell colSpan={3} className="align-top text-xs font-medium text-slate-500">内訳</TableCell>
                           <TableCell className="align-top">

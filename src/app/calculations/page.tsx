@@ -172,6 +172,14 @@ const denominationData = [
 
 const denomTotals = { netPay: 974950, man: 96, gosen: 1, sen: 8, gohyaku: 2, hyaku: 9, goju: 1, ju: 0, go: 0, ichi: 0 };
 
+const workerInsuranceMap: Record<string, { socialInsuranceGrade: string; employmentInsuranceGrade: string }> = {
+  "山田 太郎": { socialInsuranceGrade: "6等級（介護なし）", employmentInsuranceGrade: "4等級" },
+  "鈴木 一郎": { socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級" },
+  "佐藤 花子": { socialInsuranceGrade: "10等級（介護あり）", employmentInsuranceGrade: "7等級" },
+  "高橋 健二": { socialInsuranceGrade: "6等級（介護あり）", employmentInsuranceGrade: "5等級" },
+  "田中 美咲": { socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級" },
+};
+
 function calcDenom(amount: number) {
   const man = Math.floor(amount / 10000);
   const r1 = amount % 10000;
@@ -336,10 +344,6 @@ export default function CalculationsPage() {
   const [selectedPaymentRow, setSelectedPaymentRow] = useState<typeof paymentData[0] | null>(null);
   const [paymentDetailTab, setPaymentDetailTab] = useState<"支払明細" | "振込データ" | "金種表">("支払明細");
   const [date, setDate] = useState<Date>(new Date());
-  const [periodFrom, setPeriodFrom] = useState<Date | undefined>(undefined);
-  const [periodTo, setPeriodTo] = useState<Date | undefined>(undefined);
-  const [periodFromOpen, setPeriodFromOpen] = useState(false);
-  const [periodToOpen, setPeriodToOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -425,11 +429,8 @@ export default function CalculationsPage() {
   const filteredResults = mockResults.filter((result) => {
     const matchesSearch = result.workerName.includes(searchQuery) || result.company.includes(searchQuery);
     const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    const d = result.workDate;
-    const matchesFrom = !periodFrom || d >= periodFrom;
-    const matchesTo = !periodTo || d <= new Date(periodTo.getFullYear(), periodTo.getMonth(), periodTo.getDate(), 23, 59, 59);
     const matchesWorkerType = workerTypeFilter.has(result.workerType);
-    return matchesSearch && matchesStatus && matchesFrom && matchesTo && matchesWorkerType;
+    return matchesSearch && matchesStatus && matchesWorkerType;
   });
 
   const totalAmount = filteredResults.reduce((sum, r) => sum + r.totalWage, 0);
@@ -734,36 +735,6 @@ export default function CalculationsPage() {
                     <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
                   </PopoverContent>
                 </Popover>
-                <div className="flex items-center gap-1.5">
-                  <Popover open={periodFromOpen} onOpenChange={setPeriodFromOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-sm", !periodFrom && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                        {periodFrom ? format(periodFrom, "yyyy/MM/dd") : "開始日"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={periodFrom} onSelect={(d) => { setPeriodFrom(d); setPeriodFromOpen(false); }} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                  <span className="text-xs text-slate-400">〜</span>
-                  <Popover open={periodToOpen} onOpenChange={setPeriodToOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-sm", !periodTo && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                        {periodTo ? format(periodTo, "yyyy/MM/dd") : "終了日"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={periodTo} onSelect={(d) => { setPeriodTo(d); setPeriodToOpen(false); }} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                  {(periodFrom || periodTo) && (
-                    <Button variant="ghost" size="sm" className="text-xs text-slate-400 px-2" onClick={() => { setPeriodFrom(undefined); setPeriodTo(undefined); }}>
-                      解除
-                    </Button>
-                  )}
-                </div>
                 <div className="relative flex-1 min-w-0 sm:max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input placeholder="作業員名・会社名で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
@@ -791,7 +762,10 @@ export default function CalculationsPage() {
                       <TableHead className="w-[50px]">
                         <Checkbox checked={selectedIds.length === filteredResults.length && filteredResults.length > 0} onCheckedChange={handleSelectAll} />
                       </TableHead>
+                      <TableHead className="whitespace-nowrap">状態</TableHead>
                       <TableHead className="whitespace-nowrap">氏名</TableHead>
+                      <TableHead className="whitespace-nowrap">健保等級</TableHead>
+                      <TableHead className="whitespace-nowrap">雇保種別</TableHead>
                       <TableHead className="whitespace-nowrap">会社</TableHead>
                       <TableHead className="whitespace-nowrap">車種</TableHead>
                       <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
@@ -799,16 +773,29 @@ export default function CalculationsPage() {
                       <TableHead className="text-right whitespace-nowrap">週40h割増</TableHead>
                       <TableHead className="text-right whitespace-nowrap">プラス手当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">合計</TableHead>
-                      <TableHead className="whitespace-nowrap">状態</TableHead>
-                      <TableHead className="whitespace-nowrap"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredResults.map((result) => (
-                      <TableRow key={result.id} className={cn(result.hasWarning && "bg-blue-50")}>
-                        <TableCell>
+                      <TableRow
+                        key={result.id}
+                        className={cn("cursor-pointer", result.hasWarning && "bg-blue-50")}
+                        onClick={() => {
+                          setSelectedEditId(result.id);
+                          setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
+                          setEditAdjustReason(result.adjustReason || "");
+                          setEditAllowances([]);
+                          const saved = kurikoshiMap[result.workerName];
+                          const restored = new Set<"overtime" | "weeklyOvertime">();
+                          if (saved?.overtime > 0) restored.add("overtime");
+                          if (saved?.weeklyOvertime > 0) restored.add("weeklyOvertime");
+                          setEditKurikoshi(restored);
+                        }}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox checked={selectedIds.includes(result.id)} onCheckedChange={(checked) => handleSelect(result.id, checked as boolean)} />
                         </TableCell>
+                        <TableCell><StatusBadge status={result.status} /></TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{result.workerName}</span>
@@ -819,6 +806,26 @@ export default function CalculationsPage() {
                           </div>
                           {result.hasWarning && <p className="text-xs text-blue-600">{result.warningMessage}</p>}
                         </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {(() => {
+                            const w = workerInsuranceMap[result.workerName];
+                            return w ? (
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${w.socialInsuranceGrade.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>
+                                {w.socialInsuranceGrade}
+                              </span>
+                            ) : <span className="text-slate-300 text-xs">—</span>;
+                          })()}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {(() => {
+                            const w = workerInsuranceMap[result.workerName];
+                            return w ? (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+                                {w.employmentInsuranceGrade}
+                              </span>
+                            ) : <span className="text-slate-300 text-xs">—</span>;
+                          })()}
+                        </TableCell>
                         <TableCell>{result.company}</TableCell>
                         <TableCell>{result.vehicleType}</TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">{formatCurrency(result.baseWage)}</TableCell>
@@ -828,7 +835,7 @@ export default function CalculationsPage() {
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
                           {result.weeklyOvertimeWage > 0 ? <span className="text-amber-700">{formatCurrency(result.weeklyOvertimeWage)}</span> : <span className="text-slate-300">—</span>}
                         </TableCell>
-                        <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
+                        <TableCell className="text-right font-mono tabular-nums whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <button
                             className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-blue-50 transition-colors"
                             onClick={() => {
@@ -851,27 +858,6 @@ export default function CalculationsPage() {
                           </button>
                         </TableCell>
                         <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
-                        <TableCell><StatusBadge status={result.status} /></TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs text-slate-500 hover:text-slate-700"
-                            onClick={() => {
-                              setSelectedEditId(result.id);
-                              setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
-                              setEditAdjustReason(result.adjustReason || "");
-                              setEditAllowances([]);
-                              const saved = kurikoshiMap[result.workerName];
-                              const restored = new Set<"overtime" | "weeklyOvertime">();
-                              if (saved?.overtime > 0) restored.add("overtime");
-                              if (saved?.weeklyOvertime > 0) restored.add("weeklyOvertime");
-                              setEditKurikoshi(restored);
-                            }}
-                          >
-                            <Pencil className="mr-1 h-3 w-3" />編集
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1272,6 +1258,7 @@ export default function CalculationsPage() {
               const totals = DENOMS.reduce((acc, [, key]) => { acc[key] = rows.reduce((s, r) => s + r.denom[key], 0); return acc; }, {} as Record<string, number>);
               const totalNet = rows.reduce((s, r) => s + r.netPay, 0);
               return (
+                <>
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -1415,38 +1402,41 @@ export default function CalculationsPage() {
                             </td>
                           </tr>
                         ))}
-                        {/* 合計行 */}
-                        <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
-                          <td className="px-3 py-3" />
-                          <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
-                          {DENOMS.map(([, key]) => (
-                            <td key={key} className="px-2 py-3 text-right tabular-nums text-slate-700">
-                              {totals[key] > 0 ? totals[key] : "—"}
-                            </td>
-                          ))}
-                          <td className="px-3 py-3" />
-                          <td className="px-3 py-3" />
-                          <td className="px-3 py-3 text-right font-mono font-bold tabular-nums">
-                            {(() => {
-                              const confirmedExtra = rows.reduce((s, r) => {
-                                if (!confirmedKurikoshi.has(r.name)) return s;
-                                const k = kurikoshiMap[r.name];
-                                return s + (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
-                              }, 0);
-                              const displayTotal = totalNet + confirmedExtra;
-                              return (
-                                <span className={confirmedExtra > 0 ? "text-orange-700" : "text-blue-800"}>
-                                  ¥{displayTotal.toLocaleString()}
-                                </span>
-                              );
-                            })()}
-                          </td>
-                          <td colSpan={2} />
-                        </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-sm">
+                    <span className="text-slate-600 font-medium">全 {rows.length} 件</span>
+                    {DENOMS.map(([label, key]) => (
+                      <span key={key} className="tabular-nums">
+                        <span className="text-slate-400 text-xs mr-1">{label}円</span>
+                        <span className={`font-semibold ${totals[key] > 0 ? "text-slate-700" : "text-slate-300"}`}>
+                          {totals[key] > 0 ? totals[key] : "—"}
+                        </span>
+                        {totals[key] > 0 && <span className="text-slate-400 text-xs ml-0.5">枚</span>}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-right min-w-[140px]">
+                    <p className="text-xs text-slate-500 mb-0.5">支給額合計</p>
+                    {(() => {
+                      const confirmedExtra = rows.reduce((s, r) => {
+                        if (!confirmedKurikoshi.has(r.name)) return s;
+                        const k = kurikoshiMap[r.name];
+                        return s + (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
+                      }, 0);
+                      const displayTotal = totalNet + confirmedExtra;
+                      return (
+                        <p className={`text-xl font-bold whitespace-nowrap tabular-nums ${confirmedExtra > 0 ? "text-orange-700" : "text-blue-800"}`}>
+                          ¥{displayTotal.toLocaleString()}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                </div>
+                </>
               );
             })()}
 

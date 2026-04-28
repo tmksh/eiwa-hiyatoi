@@ -250,9 +250,9 @@ export default function VehiclesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[60px] whitespace-nowrap">順序</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="whitespace-nowrap">車種名</TableHead>
                     <TableHead className="whitespace-nowrap">会社</TableHead>
-                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -263,6 +263,13 @@ export default function VehiclesPage() {
                         {vehicle.displayOrder}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
+                        <Badge
+                          variant={vehicle.isActive ? "default" : "secondary"}
+                        >
+                          {vehicle.isActive ? "有効" : "無効"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Truck className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{vehicle.name}</span>
@@ -270,13 +277,6 @@ export default function VehiclesPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground whitespace-nowrap">
                         {vehicle.companyName}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge
-                          variant={vehicle.isActive ? "default" : "secondary"}
-                        >
-                          {vehicle.isActive ? "有効" : "無効"}
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Button

@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Pencil, Search, Trash2, Coins } from "lucide-react";
+import { Plus, Search, Trash2, Coins } from "lucide-react";
 
 // 社会保険等級（健康保険・厚生年金）。介護保険対象者（40〜64歳）は「介護あり」
 const SOCIAL_INSURANCE_GRADES = [
@@ -345,29 +345,30 @@ export default function WorkersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px] whitespace-nowrap">従業員番号</TableHead>
+                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
                     <TableHead className="whitespace-nowrap">氏名</TableHead>
+                    <TableHead className="whitespace-nowrap">社会保険等級</TableHead>
+                    <TableHead className="whitespace-nowrap">雇用保険等級</TableHead>
                     <TableHead className="whitespace-nowrap">フリガナ</TableHead>
                     <TableHead className="whitespace-nowrap">主な派遣先</TableHead>
                     <TableHead className="whitespace-nowrap">電話番号</TableHead>
-                    <TableHead className="whitespace-nowrap">社会保険等級</TableHead>
-                    <TableHead className="whitespace-nowrap">雇用保険等級</TableHead>
                     <TableHead className="whitespace-nowrap">手当</TableHead>
-                    <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
-                    <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredWorkers.map((worker) => (
-                    <TableRow key={worker.id}>
+                    <TableRow key={worker.id} className="cursor-pointer" onClick={() => { setEditingWorker(worker); setEditAllowances([...worker.allowances]); }}>
                       <TableCell className="font-mono whitespace-nowrap tabular-nums">
                         {worker.employeeCode}
                       </TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">{worker.name}</TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {worker.nameKana}
+                      <TableCell className="whitespace-nowrap">
+                        <Badge
+                          variant={worker.isActive ? "default" : "secondary"}
+                        >
+                          {worker.isActive ? "有効" : "無効"}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{worker.defaultCompany}</TableCell>
-                      <TableCell className="whitespace-nowrap">{worker.phone}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{worker.name}</TableCell>
                       <TableCell className="whitespace-nowrap">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${worker.socialInsuranceGrade.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>
                           {worker.socialInsuranceGrade}
@@ -378,6 +379,11 @@ export default function WorkersPage() {
                           {worker.employmentInsuranceGrade}
                         </span>
                       </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {worker.nameKana}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{worker.defaultCompany}</TableCell>
+                      <TableCell className="whitespace-nowrap">{worker.phone}</TableCell>
                       <TableCell className="whitespace-nowrap">
                         {worker.allowances.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
@@ -391,18 +397,6 @@ export default function WorkersPage() {
                         ) : (
                           <span className="text-xs text-slate-300">—</span>
                         )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge
-                          variant={worker.isActive ? "default" : "secondary"}
-                        >
-                          {worker.isActive ? "有効" : "無効"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => { setEditingWorker(worker); setEditAllowances([...worker.allowances]); }}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

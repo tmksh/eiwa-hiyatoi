@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 // Mock data - will be replaced with actual data from DB
 const mockCompanies = [
@@ -198,12 +198,11 @@ export default function CompaniesPage() {
                     <TableHead className="w-[120px] whitespace-nowrap">残業単位</TableHead>
                     <TableHead className="w-[120px] whitespace-nowrap">端数処理</TableHead>
                     <TableHead className="w-[80px] whitespace-nowrap">状態</TableHead>
-                    <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCompanies.map((company) => (
-                    <TableRow key={company.id}>
+                    <TableRow key={company.id} className="cursor-pointer" onClick={() => setEditingCompany(company)}>
                       <TableCell className="font-mono whitespace-nowrap">{company.code}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">
                         {company.name}
@@ -218,11 +217,6 @@ export default function CompaniesPage() {
                         >
                           {company.isActive ? "有効" : "無効"}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => setEditingCompany(company)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

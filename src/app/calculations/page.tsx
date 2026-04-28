@@ -871,16 +871,31 @@ export default function CalculationsPage() {
                     return acc;
                   }, {} as Record<string, number>);
                   return (
-                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
-                      {RESULT_DENOMS.map(([label, key]) => (
-                        <span key={key} className="tabular-nums">
-                          <span className="text-slate-400 text-xs mr-1">{label}円</span>
-                          <span className={`font-semibold ${denomTotals[key] > 0 ? "text-slate-700" : "text-slate-300"}`}>
-                            {denomTotals[key] > 0 ? denomTotals[key] : "—"}
-                          </span>
-                          {denomTotals[key] > 0 && <span className="text-slate-400 text-xs ml-0.5">枚</span>}
-                        </span>
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-500 mr-1 whitespace-nowrap">金種内訳</span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {RESULT_DENOMS.map(([label, key]) => {
+                          const count = denomTotals[key];
+                          const isActive = count > 0;
+                          return (
+                            <div
+                              key={key}
+                              className={cn(
+                                "flex flex-col items-center justify-center rounded-md px-2 py-1 min-w-[46px] border transition-colors",
+                                isActive
+                                  ? "bg-blue-50 border-blue-200"
+                                  : "bg-white border-slate-200"
+                              )}
+                            >
+                              <span className={cn("text-[10px] leading-none", isActive ? "text-blue-500" : "text-slate-300")}>{label}円</span>
+                              <span className={cn("text-sm font-bold tabular-nums leading-tight mt-0.5", isActive ? "text-blue-700" : "text-slate-300")}>
+                                {isActive ? count : "—"}
+                              </span>
+                              {isActive && <span className="text-[9px] text-blue-400 leading-none mt-px">枚</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })()}

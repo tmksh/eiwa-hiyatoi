@@ -17,6 +17,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -856,6 +857,76 @@ export default function CalculationsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
+                  {filteredResults.length > 0 && (() => {
+                    const socialCounts: Record<string, number> = {};
+                    const empCounts: Record<string, number> = {};
+                    filteredResults.forEach((r) => {
+                      const w = workerInsuranceMap[r.workerName];
+                      if (!w) return;
+                      socialCounts[w.socialInsuranceGrade] = (socialCounts[w.socialInsuranceGrade] ?? 0) + 1;
+                      empCounts[w.employmentInsuranceGrade] = (empCounts[w.employmentInsuranceGrade] ?? 0) + 1;
+                    });
+                    const socialEntries = Object.entries(socialCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
+                    const empEntries = Object.entries(empCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
+                    const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
+                    const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
+                    return (
+                      <TableFooter className="bg-slate-50/80">
+                        <TableRow className="hover:bg-slate-50/80">
+                          <TableCell colSpan={3} className="align-top text-xs font-medium text-slate-500">内訳</TableCell>
+                          <TableCell className="align-top">
+                            <div className="flex flex-col gap-1">
+                              {socialEntries.map(([grade, count]) => {
+                                const hasNursing = grade.includes("介護あり");
+                                return (
+                                  <div
+                                    key={grade}
+                                    className={cn(
+                                      "inline-flex items-center justify-between gap-2 rounded-md border px-2 py-0.5",
+                                      hasNursing ? "bg-amber-50 border-amber-200" : "bg-white border-slate-200"
+                                    )}
+                                  >
+                                    <span className={cn("text-[10px] leading-none", hasNursing ? "text-amber-700" : "text-slate-600")}>{grade}</span>
+                                    <span className={cn("text-xs font-bold tabular-nums leading-none", hasNursing ? "text-amber-800" : "text-slate-800")}>
+                                      {count}<span className={cn("text-[9px] font-normal ml-0.5", hasNursing ? "text-amber-400" : "text-slate-400")}>名</span>
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              <div className="inline-flex items-center justify-between gap-2 rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 mt-0.5">
+                                <span className="text-[10px] leading-none text-slate-600 font-semibold">合計</span>
+                                <span className="text-xs font-bold tabular-nums leading-none text-slate-900">
+                                  {socialTotal}<span className="text-[9px] font-normal ml-0.5 text-slate-500">名</span>
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="flex flex-col gap-1">
+                              {empEntries.map(([grade, count]) => (
+                                <div
+                                  key={grade}
+                                  className="inline-flex items-center justify-between gap-2 rounded-md border bg-blue-50 border-blue-200 px-2 py-0.5"
+                                >
+                                  <span className="text-[10px] leading-none text-blue-700">{grade}</span>
+                                  <span className="text-xs font-bold tabular-nums leading-none text-blue-800">
+                                    {count}<span className="text-[9px] font-normal ml-0.5 text-blue-400">名</span>
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="inline-flex items-center justify-between gap-2 rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 mt-0.5">
+                                <span className="text-[10px] leading-none text-slate-600 font-semibold">合計</span>
+                                <span className="text-xs font-bold tabular-nums leading-none text-slate-900">
+                                  {empTotal}<span className="text-[9px] font-normal ml-0.5 text-slate-500">名</span>
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell colSpan={7} />
+                        </TableRow>
+                      </TableFooter>
+                    );
+                  })()}
                 </Table>
               </div>
               <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
@@ -870,6 +941,7 @@ export default function CalculationsPage() {
                     acc[key] = filteredResults.reduce((s, r) => s + calcDenom(r.totalWage)[key], 0);
                     return acc;
                   }, {} as Record<string, number>);
+                  const totalPieces = RESULT_DENOMS.reduce((s, [, key]) => s + denomTotals[key], 0);
                   return (
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-slate-500 mr-1 whitespace-nowrap">金種内訳</span>
@@ -882,9 +954,7 @@ export default function CalculationsPage() {
                               key={key}
                               className={cn(
                                 "flex flex-col items-center justify-center rounded-md px-2 py-1 min-w-[46px] border transition-colors",
-                                isActive
-                                  ? "bg-blue-50 border-blue-200"
-                                  : "bg-white border-slate-200"
+                                isActive ? "bg-blue-50 border-blue-200" : "bg-white border-slate-200"
                               )}
                             >
                               <span className={cn("text-[10px] leading-none", isActive ? "text-blue-500" : "text-slate-300")}>{label}円</span>
@@ -895,6 +965,13 @@ export default function CalculationsPage() {
                             </div>
                           );
                         })}
+                        <div className="flex flex-col items-center justify-center rounded-md px-3 py-1 min-w-[60px] border border-slate-300 bg-slate-100 ml-1">
+                          <span className="text-[10px] leading-none text-slate-500">合計</span>
+                          <span className="text-sm font-bold tabular-nums leading-tight mt-0.5 text-slate-800">
+                            {totalPieces}
+                          </span>
+                          <span className="text-[9px] text-slate-400 leading-none mt-px">枚</span>
+                        </div>
                       </div>
                     </div>
                   );

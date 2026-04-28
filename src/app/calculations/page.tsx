@@ -864,36 +864,26 @@ export default function CalculationsPage() {
                   <span>暫定: {filteredResults.filter((r) => r.status === "confirmed").length}件</span>
                   <span>計算済み: {filteredResults.filter((r) => r.status === "calculated").length}件</span>
                 </div>
-                <div className="flex flex-wrap items-end gap-3">
-                  {/* 常勤振込合計 */}
-                  <div className="text-right min-w-[130px]">
-                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
-                      <span className="text-xs font-semibold text-violet-600">常勤</span>
+                {(() => {
+                  const RESULT_DENOMS: [string, keyof ReturnType<typeof calcDenom>][] = [["1万", "man"],["5千", "gosen"],["1千", "sen"],["500", "gohyaku"],["100", "hyaku"],["50", "goju"],["10", "ju"],["5", "go"],["1", "ichi"]];
+                  const denomTotals = RESULT_DENOMS.reduce((acc, [, key]) => {
+                    acc[key] = filteredResults.reduce((s, r) => s + calcDenom(r.totalWage)[key], 0);
+                    return acc;
+                  }, {} as Record<string, number>);
+                  return (
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
+                      {RESULT_DENOMS.map(([label, key]) => (
+                        <span key={key} className="tabular-nums">
+                          <span className="text-slate-400 text-xs mr-1">{label}円</span>
+                          <span className={`font-semibold ${denomTotals[key] > 0 ? "text-slate-700" : "text-slate-300"}`}>
+                            {denomTotals[key] > 0 ? denomTotals[key] : "—"}
+                          </span>
+                          {denomTotals[key] > 0 && <span className="text-slate-400 text-xs ml-0.5">枚</span>}
+                        </span>
+                      ))}
                     </div>
-                    <p className="text-xl font-bold text-violet-600 whitespace-nowrap tabular-nums">
-                      {formatCurrency(filteredResults.filter((r) => r.workerType === "常勤").reduce((s, r) => s + r.totalWage, 0))}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">日当＋残業＋プラス手当</p>
-                  </div>
-                  {/* 日雇い合計 */}
-                  <div className="text-right min-w-[120px]">
-                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
-                      <span className="text-xs text-slate-500">日雇い合計</span>
-                    </div>
-                    <p className="text-xl font-bold whitespace-nowrap tabular-nums">
-                      {formatCurrency(filteredResults.filter((r) => r.workerType === "日雇").reduce((s, r) => s + r.baseWage + r.adjustment, 0))}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">日当＋プラス手当</p>
-                  </div>
-                  {/* 表示合計 */}
-                  <div className="text-right min-w-[130px] border-l border-slate-200 pl-3">
-                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
-                      <span className="text-xs text-slate-500">表示合計</span>
-                    </div>
-                    <p className="text-2xl font-bold whitespace-nowrap tabular-nums">{formatCurrency(totalAmount)}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">日雇＋常勤<br />残業も含め 表示全部の合計</p>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
@@ -1253,7 +1243,6 @@ export default function CalculationsPage() {
               const totals = DENOMS.reduce((acc, [, key]) => { acc[key] = rows.reduce((s, r) => s + r.denom[key], 0); return acc; }, {} as Record<string, number>);
               const totalNet = rows.reduce((s, r) => s + r.netPay, 0);
               return (
-                <>
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -1397,41 +1386,38 @@ export default function CalculationsPage() {
                             </td>
                           </tr>
                         ))}
+                        {/* 合計行 */}
+                        <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
+                          {DENOMS.map(([, key]) => (
+                            <td key={key} className="px-2 py-3 text-right tabular-nums text-slate-700">
+                              {totals[key] > 0 ? totals[key] : "—"}
+                            </td>
+                          ))}
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3 text-right font-mono font-bold tabular-nums">
+                            {(() => {
+                              const confirmedExtra = rows.reduce((s, r) => {
+                                if (!confirmedKurikoshi.has(r.name)) return s;
+                                const k = kurikoshiMap[r.name];
+                                return s + (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
+                              }, 0);
+                              const displayTotal = totalNet + confirmedExtra;
+                              return (
+                                <span className={confirmedExtra > 0 ? "text-orange-700" : "text-blue-800"}>
+                                  ¥{displayTotal.toLocaleString()}
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td colSpan={2} />
+                        </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
-                  <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-sm">
-                    <span className="text-slate-600 font-medium">全 {rows.length} 件</span>
-                    {DENOMS.map(([label, key]) => (
-                      <span key={key} className="tabular-nums">
-                        <span className="text-slate-400 text-xs mr-1">{label}円</span>
-                        <span className={`font-semibold ${totals[key] > 0 ? "text-slate-700" : "text-slate-300"}`}>
-                          {totals[key] > 0 ? totals[key] : "—"}
-                        </span>
-                        {totals[key] > 0 && <span className="text-slate-400 text-xs ml-0.5">枚</span>}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="text-right min-w-[140px]">
-                    <p className="text-xs text-slate-500 mb-0.5">支給額合計</p>
-                    {(() => {
-                      const confirmedExtra = rows.reduce((s, r) => {
-                        if (!confirmedKurikoshi.has(r.name)) return s;
-                        const k = kurikoshiMap[r.name];
-                        return s + (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
-                      }, 0);
-                      const displayTotal = totalNet + confirmedExtra;
-                      return (
-                        <p className={`text-xl font-bold whitespace-nowrap tabular-nums ${confirmedExtra > 0 ? "text-orange-700" : "text-blue-800"}`}>
-                          ¥{displayTotal.toLocaleString()}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                </div>
-                </>
               );
             })()}
 

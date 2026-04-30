@@ -190,6 +190,20 @@ const workerInsuranceMap: Record<string, { socialInsuranceGrade: string; employm
   "加藤 真理": { socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級" },
 };
 
+// 印紙管理: 作業員ごとの 健保等級 / 雇保種別 (印紙管理ページのモックデータと同形式)
+const workerStampMap: Record<string, { grade: string; empGrade: string }> = {
+  "山田 太郎": { grade: "1級", empGrade: "第1種(176円)" },
+  "鈴木 一郎": { grade: "2級", empGrade: "第2種(146円)" },
+  "佐藤 花子": { grade: "3級", empGrade: "第1種(176円)" },
+  "高橋 健二": { grade: "1級", empGrade: "第1種(176円)" },
+  "田中 美咲": { grade: "4級", empGrade: "第2種(146円)" },
+  "伊藤 健太": { grade: "2級", empGrade: "第1種(176円)" },
+  "渡辺 翼": { grade: "3級", empGrade: "第2種(146円)" },
+  "中村 拓也": { grade: "1級", empGrade: "第1種(176円)" },
+  "小林 未来": { grade: "2級", empGrade: "第2種(146円)" },
+  "加藤 真理": { grade: "3級", empGrade: "第1種(176円)" },
+};
+
 function calcDenom(amount: number) {
   const man = Math.floor(amount / 10000);
   const r1 = amount % 10000;
@@ -1336,11 +1350,72 @@ export default function CalculationsPage() {
               const rows = adjustedPayment.map(row => {
                 const dInfo = denominationData.find(d => d.name === row.name);
                 const dCalc = calcDenom(row.netPay);
-                return { ...row, denom: dCalc, status: dInfo?.status ?? "報酬確定", updatedAt: dInfo?.updatedAt ?? "—" };
+                const stamp = workerStampMap[row.name];
+                return { ...row, denom: dCalc, status: dInfo?.status ?? "報酬確定", updatedAt: dInfo?.updatedAt ?? "—", grade: stamp?.grade ?? "—", empGrade: stamp?.empGrade ?? "—" };
               });
               const totals = DENOMS.reduce((acc, [, key]) => { acc[key] = rows.reduce((s, r) => s + r.denom[key], 0); return acc; }, {} as Record<string, number>);
               const totalNet = rows.reduce((s, r) => s + r.netPay, 0);
+              const gradeCounts = rows.reduce((acc, r) => {
+                if (r.grade !== "—") acc[r.grade] = (acc[r.grade] ?? 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
+              const empGradeCounts = rows.reduce((acc, r) => {
+                if (r.empGrade !== "—") acc[r.empGrade] = (acc[r.empGrade] ?? 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
               return (
+                <div className="space-y-3">
+                  {/* 印紙管理 サマリー */}
+                  <div className="rounded-xl border border-slate-200/60 bg-white p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">印紙管理</span>
+                      <span className="text-xs text-slate-500">各等級ごとの配付枚数</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1">
+                        <p className="text-[11px] font-medium text-slate-500 mb-2">健保等級</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.keys(gradeCounts).length === 0 ? (
+                            <span className="text-xs text-slate-300">—</span>
+                          ) : (
+                            Object.entries(gradeCounts)
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([g, n]) => (
+                                <span key={g} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                  {g}
+                                  <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
+                                </span>
+                              ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="hidden sm:block w-px bg-slate-200" />
+                      <div className="flex-1">
+                        <p className="text-[11px] font-medium text-slate-500 mb-2">雇保種別</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.keys(empGradeCounts).length === 0 ? (
+                            <span className="text-xs text-slate-300">—</span>
+                          ) : (
+                            Object.entries(empGradeCounts)
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([g, n]) => {
+                                const cls = g === "第1種(176円)"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : g === "第2種(146円)"
+                                  ? "bg-amber-50 text-amber-700"
+                                  : "bg-slate-100 text-slate-600";
+                                return (
+                                  <span key={g} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>
+                                    {g}
+                                    <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
+                                  </span>
+                                );
+                              })
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -1352,6 +1427,8 @@ export default function CalculationsPage() {
                               onChange={(e) => setSelectedPaymentIds(e.target.checked ? rows.map(r => r.id) : [])} />
                           </th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">氏名</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">健保等級</th>
+                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">雇保種別</th>
                           {DENOMS.map(([label]) => (
                             <th key={label} className="px-2 py-3 text-xs font-medium text-slate-400 text-right whitespace-nowrap">{label}円</th>
                           ))}
@@ -1372,6 +1449,20 @@ export default function CalculationsPage() {
                                 onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
                             </td>
                             <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{row.name}</td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              {row.grade !== "—" ? (
+                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{row.grade}</span>
+                              ) : <span className="text-slate-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              {row.empGrade !== "—" ? (
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  row.empGrade === "第1種(176円)" ? "bg-emerald-50 text-emerald-700"
+                                  : row.empGrade === "第2種(146円)" ? "bg-amber-50 text-amber-700"
+                                  : "bg-slate-100 text-slate-600"
+                                }`}>{row.empGrade}</span>
+                              ) : <span className="text-slate-300 text-xs">—</span>}
+                            </td>
                             {DENOMS.map(([, key]) => (
                               <td key={key} className="px-2 py-3 text-right tabular-nums whitespace-nowrap">
                                 <span className={row.denom[key] > 0 ? "font-semibold text-slate-800" : "text-slate-200"}>{row.denom[key] > 0 ? row.denom[key] : "—"}</span>
@@ -1484,10 +1575,12 @@ export default function CalculationsPage() {
                             </td>
                           </tr>
                         ))}
-                        {/* 合計行 */}
+                        {/* 合計行（末尾） */}
                         <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
                           <td className="px-3 py-3" />
                           <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
+                          <td className="px-3 py-3" />
+                          <td className="px-3 py-3" />
                           {DENOMS.map(([, key]) => (
                             <td key={key} className="px-2 py-3 text-right tabular-nums text-slate-700">
                               {totals[key] > 0 ? totals[key] : "—"}
@@ -1515,6 +1608,7 @@ export default function CalculationsPage() {
                       </tbody>
                     </table>
                   </div>
+                </div>
                 </div>
               );
             })()}

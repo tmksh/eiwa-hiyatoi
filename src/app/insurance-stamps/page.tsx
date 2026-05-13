@@ -86,13 +86,46 @@ const stampsData: StampEntry[] = [
   { id: 8, name: "田中 美咲", gradeNum: 4, grade: "4級",  empGrade: "第2種(146円)", method: "印紙", days: 18, amount: 6156, month: "2026/03", stampType: "ledger-nursing", stampsIssued: 18 },
 ];
 
-const ledgerData = [
-  { id: 1, date: "2024/01/04", type: "受入", grade1: 10, grade2: 10, grade3: 5, note: "月初受入" },
-  { id: 2, date: "2024/01/05", type: "払出", grade1: 3, grade2: 2, grade3: 1, note: "日雇保険貼付" },
-  { id: 3, date: "2024/01/10", type: "払出", grade1: 5, grade2: 4, grade3: 2, note: "日雇保険貼付" },
-  { id: 4, date: "2024/01/15", type: "受入", grade1: 20, grade2: 15, grade3: 10, note: "追加購入" },
-  { id: 5, date: "2024/01/20", type: "払出", grade1: 4, grade2: 3, grade3: 2, note: "日雇保険貼付" },
-  { id: 6, date: "2024/01/25", type: "払出", grade1: 6, grade2: 5, grade3: 3, note: "日雇保険貼付" },
+type EmpGradeDetail = { ukeire: number; haraidashi: number; zan: number; workers: number; stamps: number; wages: number; note: string };
+type HealthGradeDetail = {
+  // 左側: 適用
+  tekiyoMonth: number;     // 本月中の延べ人員
+  tekiyoCumul: number;     // 4月から本月まで延べ人員
+  // 左側: 除外
+  jokaiMonth: number;      // 本月中の延べ人員（除外）
+  jokaiCumul: number;      // 4月から本月まで延べ人員（除外）
+  // 右側: 印紙受払状況
+  prevBalance: number;     // 前月末の健保印紙保有枚数
+  ukeire: number;          // 本月中に購入した枚数
+  harifu: number;          // 本月中に貼り付けた枚数
+  monthEndBalance: number; // 本月末の健保印紙保有枚数
+  cumulative: number;      // 4月から本月までの累計枚数
+  cashPayment: number;     // 現金納付保険料（特別保険料を除く）
+  personDays: number;      // 人日
+};
+type LedgerRow = {
+  id: number; date: string; type: string; note: string;
+  emp1: EmpGradeDetail; emp2: EmpGradeDetail; emp3: EmpGradeDetail;
+  grade1: number; grade2: number; grade3: number;
+  hg1: number; hg2: number; hg3: number; hg4: number; hg5: number; hg6: number; hg7: number; hg8: number; hg9: number; hg10: number; hg11: number;
+  health: Record<string, HealthGradeDetail>;
+};
+const mkEmp = (u: number, h: number, z: number, w: number, s: number, wages: number): EmpGradeDetail => ({ ukeire: u, haraidashi: h, zan: z, workers: w, stamps: s, wages, note: "" });
+// [tekiyoMonth, tekiyoCumul, jokaiMonth, jokaiCumul, prevBalance, ukeire, harifu, monthEndBalance, cumulative, cashPayment, personDays]
+const mkH = (tm: number, tc: number, jm: number, jc: number, prev: number, u: number, har: number, end: number, cum: number, cash: number, pd: number): HealthGradeDetail =>
+  ({ tekiyoMonth: tm, tekiyoCumul: tc, jokaiMonth: jm, jokaiCumul: jc, prevBalance: prev, ukeire: u, harifu: har, monthEndBalance: end, cumulative: cum, cashPayment: cash, personDays: pd });
+const mkHealthGrades = (vals: [number,number,number,number,number,number,number,number,number,number,number][]): Record<string, HealthGradeDetail> => {
+  const keys = ["hg1","hg2","hg3","hg4","hg5","hg6","hg7","hg8","hg9","hg10","hg11"];
+  return Object.fromEntries(keys.map((k, i) => [k, mkH(...(vals[i] ?? [0,0,0,0,0,0,0,0,0,0,0] as [number,number,number,number,number,number,number,number,number,number,number]))]));
+};
+const ledgerData: LedgerRow[] = [
+  // [tekiyoMonth, tekiyoCumul, jokaiMonth, jokaiCumul, prevBalance, ukeire, harifu, monthEndBalance, cumulative, cashPayment, personDays]
+  { id: 1, date: "2024/01/04", type: "受入", note: "月初受入",    emp1: mkEmp(10,0,670,0,0,0), emp2: mkEmp(10,0,629,0,0,0), emp3: mkEmp(5,0,200,0,0,0), grade1:10, grade2:10, grade3:5,  hg1:8,  hg2:6,  hg3:10, hg4:4, hg5:2, hg6:3, hg7:2, hg8:1, hg9:1, hg10:0, hg11:0, health: mkHealthGrades([[0,0,0,0,0,8,0,8,8,0,0],[0,0,0,0,0,6,0,6,6,0,0],[0,0,0,0,0,10,0,10,10,0,0],[0,0,0,0,0,4,0,4,4,0,0],[0,0,0,0,0,2,0,2,2,0,0],[0,0,0,0,0,3,0,3,3,0,0],[0,0,0,0,0,2,0,2,2,0,0],[0,0,0,0,0,1,0,1,1,0,0],[0,0,0,0,0,1,0,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0]]) },
+  { id: 2, date: "2024/01/05", type: "払出", note: "日雇保険貼付", emp1: mkEmp(0,3,667,7,7,120855), emp2: mkEmp(0,2,627,0,0,0), emp3: mkEmp(0,1,199,0,0,0), grade1:3, grade2:2, grade3:1, hg1:2, hg2:1, hg3:3, hg4:1, hg5:0, hg6:1, hg7:0, hg8:0, hg9:0, hg10:0, hg11:0, health: mkHealthGrades([[7,7,0,0,8,0,2,6,6,0,7],[0,0,0,0,6,0,1,5,5,0,0],[0,0,0,0,10,0,3,7,7,0,0],[0,0,0,0,4,0,1,3,3,0,0],[0,0,0,0,2,0,0,2,2,0,0],[0,0,0,0,3,0,1,2,2,0,0],[0,0,0,0,2,0,0,2,2,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0]]) },
+  { id: 3, date: "2024/01/10", type: "払出", note: "日雇保険貼付", emp1: mkEmp(0,5,662,20,20,308286), emp2: mkEmp(0,4,623,0,0,0), emp3: mkEmp(0,2,197,0,0,0), grade1:5, grade2:4, grade3:2, hg1:1, hg2:2, hg3:4, hg4:2, hg5:1, hg6:1, hg7:1, hg8:0, hg9:0, hg10:0, hg11:0, health: mkHealthGrades([[20,27,0,0,6,0,1,5,5,0,20],[0,0,0,0,5,0,2,3,3,0,0],[0,0,0,0,7,0,4,3,3,0,0],[0,0,0,0,3,0,2,1,1,0,0],[0,0,0,0,2,0,1,1,1,0,0],[0,0,0,0,2,0,1,1,1,0,0],[0,0,0,0,2,0,1,1,1,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0]]) },
+  { id: 4, date: "2024/01/15", type: "受入", note: "追加購入",    emp1: mkEmp(20,0,682,0,0,0), emp2: mkEmp(15,0,638,0,0,0), emp3: mkEmp(10,0,207,0,0,0), grade1:20, grade2:15, grade3:10, hg1:15, hg2:12, hg3:18, hg4:8, hg5:5, hg6:6, hg7:4, hg8:3, hg9:2, hg10:1, hg11:1, health: mkHealthGrades([[0,27,0,0,5,15,0,20,20,0,0],[0,0,0,0,3,12,0,15,15,0,0],[0,0,0,0,3,18,0,21,21,0,0],[0,0,0,0,1,8,0,9,9,0,0],[0,0,0,0,1,5,0,6,6,0,0],[0,0,0,0,1,6,0,7,7,0,0],[0,0,0,0,1,4,0,5,5,0,0],[0,0,0,0,1,3,0,4,4,0,0],[0,0,0,0,1,2,0,3,3,0,0],[0,0,0,0,0,1,0,1,1,0,0],[0,0,0,0,0,1,0,1,1,0,0]]) },
+  { id: 5, date: "2024/01/20", type: "払出", note: "日雇保険貼付", emp1: mkEmp(0,4,678,29,29,441486), emp2: mkEmp(0,3,635,0,0,0), emp3: mkEmp(0,2,205,0,0,0), grade1:4, grade2:3, grade3:2, hg1:2, hg2:1, hg3:3, hg4:1, hg5:0, hg6:1, hg7:0, hg8:0, hg9:0, hg10:0, hg11:0, health: mkHealthGrades([[29,56,0,0,20,0,2,18,18,0,29],[0,0,0,0,15,0,1,14,14,0,0],[0,0,0,0,21,0,3,18,18,0,0],[0,0,0,0,9,0,1,8,8,0,0],[0,0,0,0,6,0,0,6,6,0,0],[0,0,0,0,7,0,1,6,6,0,0],[0,0,0,0,5,0,0,5,5,0,0],[0,0,0,0,4,0,0,4,4,0,0],[0,0,0,0,3,0,0,3,3,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,1,0,0,1,1,0,0]]) },
+  { id: 6, date: "2024/01/25", type: "払出", note: "日雇保険貼付", emp1: mkEmp(0,6,672,28,28,425843), emp2: mkEmp(0,5,630,0,0,0), emp3: mkEmp(0,3,202,0,0,0), grade1:6, grade2:5, grade3:3, hg1:3, hg2:2, hg3:5, hg4:2, hg5:1, hg6:2, hg7:1, hg8:1, hg9:0, hg10:0, hg11:0, health: mkHealthGrades([[28,84,0,0,18,0,3,15,15,0,28],[0,0,0,0,14,0,2,12,12,0,0],[0,0,0,0,18,0,5,13,13,0,0],[0,0,0,0,8,0,2,6,6,0,0],[0,0,0,0,6,0,1,5,5,0,0],[0,0,0,0,6,0,2,4,4,0,0],[0,0,0,0,5,0,1,4,4,0,0],[0,0,0,0,4,0,1,3,3,0,0],[0,0,0,0,3,0,0,3,3,0,0],[0,0,0,0,1,0,0,1,1,0,0],[0,0,0,0,1,0,0,1,1,0,0]]) },
 ];
 
 const balance = { g1: 12, g2: 11, g3: 7 };
@@ -294,6 +327,12 @@ export default function InsuranceStampsPage() {
   const [activeSubTab, setActiveSubTab] = useState<string>("印紙管理");
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
+  const [ledgerYearMonth, setLedgerYearMonth] = useState<{ year: number; month: number }>({ year: 2024, month: 1 });
+  const [ledgerYMOpen, setLedgerYMOpen] = useState(false);
+
+  // 受払簿 row detail
+  const [selectedLedgerRow, setSelectedLedgerRow] = useState<typeof ledgerData[0] | null>(null);
+  const [editLedgerRow, setEditLedgerRow] = useState<typeof ledgerData[0] | null>(null);
 
   // Master management states
   const [selectedLedgerId, setSelectedLedgerId] = useState<number | null>(null);
@@ -379,8 +418,10 @@ export default function InsuranceStampsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  const ledgerYMPrefix = `${ledgerYearMonth.year}/${String(ledgerYearMonth.month).padStart(2, "0")}`;
   const filteredLedger = ledgerData.filter((d) =>
-    d.note.includes(searchQuery) || d.date.includes(searchQuery)
+    d.date.startsWith(ledgerYMPrefix) &&
+    (d.note.includes(searchQuery) || d.date.includes(searchQuery))
   );
 
   const filteredCashPayments = cashPaymentData.filter((p) => p.name.includes(searchQuery));
@@ -616,7 +657,7 @@ export default function InsuranceStampsPage() {
                     <div className="space-y-4">
                       {/* タブ */}
                       <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 flex-wrap">
-                        {([["stamp","印紙情報"],["worker","作業員情報"],["schedule","週休"],["paidleave","有給休暇"]] as const).map(([val, label]) => (
+                        {([["stamp","印紙情報"],["worker","作業員情報"]] as const).map(([val, label]) => (
                           <button key={val} onClick={() => setStampDetailTab(val)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${stampDetailTab === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
                             {label}
@@ -780,74 +821,6 @@ export default function InsuranceStampsPage() {
                         </div>
                       )}
 
-                      {/* 週休スケジュール */}
-                      {stampDetailTab === "schedule" && (
-                        <div className="space-y-3">
-                          {schedule ? (
-                            <>
-                              <div className="grid grid-cols-3 gap-2">
-                                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500">社員No</p><p className="text-xs font-medium text-slate-900">{schedule.employeeNo}</p></div>
-                                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500">出勤日数</p><p className="text-xs font-medium text-slate-900">{schedule.workDays}日</p></div>
-                                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500">休日数</p><p className="text-xs font-medium text-slate-900">{schedule.offDays}日</p></div>
-                              </div>
-                              <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-                                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 text-xs font-medium text-slate-500">今月の週休スケジュール</div>
-                                <div className="flex items-center gap-2 px-4 py-3 flex-wrap">
-                                  {weekDays.map((day, i) => {
-                                    const type = schedule.schedule[day];
-                                    const cfg = dayTypeConfig[type];
-                                    return (
-                                      <div key={day} className="flex flex-col items-center gap-1">
-                                        <span className={`text-[10px] ${i >= 5 ? "text-blue-500" : "text-slate-400"}`}>{day}</span>
-                                        <span className={cn("inline-flex h-8 w-8 items-center justify-center rounded text-xs", cfg.className)}>{cfg.label}</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
-                                {Object.entries(dayTypeConfig).map(([key, cfg]) => (
-                                  <div key={key} className="flex items-center gap-1.5">
-                                    <span className={cn("inline-flex h-5 w-5 items-center justify-center rounded text-[10px]", cfg.className)}>{cfg.label}</span>
-                                    <span>{key === "work" ? "出勤" : key === "off" ? "休日" : key === "half" ? "半休" : "有給"}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </>
-                          ) : <p className="text-sm text-slate-400">スケジュール情報が見つかりません</p>}
-                        </div>
-                      )}
-
-                      {/* 有給休暇 */}
-                      {stampDetailTab === "paidleave" && (
-                        <div className="space-y-3">
-                          {paidLeave ? (
-                            <>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-lg bg-blue-50 px-3 py-2.5"><p className="text-[10px] text-blue-500">付与日数</p><p className="text-lg font-bold text-blue-700">{paidLeave.granted}日</p></div>
-                                <div className="rounded-lg bg-slate-50 px-3 py-2.5"><p className="text-[10px] text-slate-500">残日数</p><p className={`text-lg font-bold ${paidLeave.remaining <= 2 ? "text-blue-600" : "text-slate-900"}`}>{paidLeave.remaining}日</p></div>
-                              </div>
-                              <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
-                                <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">付与日</td><td className="px-4 py-2.5 text-slate-900 text-xs">{paidLeave.grantDate}</td></tr>
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">付与日数</td><td className="px-4 py-2.5 text-slate-900 font-mono">{paidLeave.granted}日</td></tr>
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">取得日数</td><td className="px-4 py-2.5 text-slate-900 font-mono">{paidLeave.used}日</td></tr>
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">残日数</td><td className="px-4 py-2.5 font-mono font-semibold"><span className={paidLeave.remaining <= 2 ? "text-blue-600" : "text-slate-900"}>{paidLeave.remaining}日</span></td></tr>
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">有効期限</td><td className="px-4 py-2.5 text-slate-700 text-xs">{paidLeave.expiry}</td></tr>
-                                  <tr><td className="px-4 py-2.5 text-slate-500 text-xs">消化率</td><td className="px-4 py-2.5">
-                                    <div className="flex items-center gap-2">
-                                      <div className="h-2 w-24 rounded-full bg-slate-100 overflow-hidden">
-                                        <div className={`h-full rounded-full ${Math.round(paidLeave.used/paidLeave.granted*100)>=80?"bg-slate-900":Math.round(paidLeave.used/paidLeave.granted*100)>=50?"bg-blue-500":"bg-slate-300"}`} style={{width:`${Math.round(paidLeave.used/paidLeave.granted*100)}%`}} />
-                                      </div>
-                                      <span className="text-xs text-slate-500">{Math.round(paidLeave.used/paidLeave.granted*100)}%</span>
-                                    </div>
-                                  </td></tr>
-                                </tbody></table>
-                              </div>
-                            </>
-                          ) : <p className="text-sm text-slate-400">有給休暇情報が見つかりません</p>}
-                        </div>
-                      )}
                     </div>
                   );
                 })()}
@@ -910,10 +883,61 @@ export default function InsuranceStampsPage() {
                   className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                <BookOpen className="h-4 w-4" />
-                月別表示
-              </button>
+              <Popover open={ledgerYMOpen} onOpenChange={setLedgerYMOpen}>
+                <PopoverTrigger asChild>
+                  <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                    <CalendarDays className="h-4 w-4" />
+                    {ledgerYearMonth.year}年{String(ledgerYearMonth.month).padStart(2,"0")}月
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-4" align="start">
+                  <p className="text-xs font-medium text-slate-500 mb-3">年月を選択</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      onClick={() => setLedgerYearMonth(prev => prev.year > 2020 || prev.month > 1
+                        ? prev.month === 1 ? { year: prev.year - 1, month: 12 } : { year: prev.year, month: prev.month - 1 }
+                        : prev)}
+                      className="rounded p-1 hover:bg-slate-100 transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4 text-slate-500" />
+                    </button>
+                    <Select
+                      value={String(ledgerYearMonth.year)}
+                      onValueChange={(v) => setLedgerYearMonth(prev => ({ ...prev, year: Number(v) }))}
+                    >
+                      <SelectTrigger className="w-24 h-7 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 10 }, (_, i) => 2020 + i).map(y => (
+                          <SelectItem key={y} value={String(y)}>{y}年</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      onClick={() => setLedgerYearMonth(prev => prev.month === 12 ? { year: prev.year + 1, month: 1 } : { year: prev.year, month: prev.month + 1 })}
+                      className="rounded p-1 hover:bg-slate-100 transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4 text-slate-500" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <button
+                        key={m}
+                        onClick={() => { setLedgerYearMonth(prev => ({ ...prev, month: m })); setLedgerYMOpen(false); }}
+                        className={`rounded py-1.5 text-xs font-medium transition-colors ${
+                          ledgerYearMonth.month === m
+                            ? "bg-blue-600 text-white"
+                            : "hover:bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {m}月
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                 <Download className="h-4 w-4" />
                 エクスポート
@@ -923,18 +947,38 @@ export default function InsuranceStampsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
+                    <tr className="border-b-0 bg-slate-50/50">
+                      <th className="px-3 sm:px-4 py-2" rowSpan={2} />
+                      <th className="px-3 sm:px-4 py-2" rowSpan={2} />
+                      <th colSpan={3} className="px-3 py-1.5 text-center text-[10px] font-semibold text-emerald-700 bg-emerald-50 border-b border-emerald-100 whitespace-nowrap">雇用保険</th>
+                      <th colSpan={11} className="px-3 py-1.5 text-center text-[10px] font-semibold text-blue-700 bg-blue-50 border-b border-blue-100 whitespace-nowrap">健康保険</th>
+                      <th className="px-3 sm:px-4 py-2" rowSpan={2} />
+                    </tr>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">日付</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">区分</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">1級(枚)</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">2級(枚)</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-slate-500 whitespace-nowrap">3級(枚)</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-slate-500 whitespace-nowrap">摘要</th>
+                      <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-slate-500 whitespace-nowrap" colSpan={2} style={{display:"none"}} />
+                      <th className="px-3 py-2 text-right text-xs font-medium text-emerald-600 bg-emerald-50/60 whitespace-nowrap">第1種</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-emerald-600 bg-emerald-50/60 whitespace-nowrap">第2種</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-emerald-600 bg-emerald-50/60 whitespace-nowrap">第3種</th>
+                      {[1,2,3,4,5,6,7,8,9,10,11].map(n => (
+                        <th key={n} className="px-3 py-2 text-right text-xs font-medium text-blue-600 bg-blue-50/60 whitespace-nowrap">{n}級</th>
+                      ))}
+                    </tr>
+                    <tr className="border-b border-slate-100 bg-slate-50/80">
+                      <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-slate-500 whitespace-nowrap">日付</th>
+                      <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-slate-500 whitespace-nowrap">区分</th>
+                      <th className="px-3 py-2 text-right text-[10px] font-medium text-slate-400 whitespace-nowrap bg-emerald-50/30">(枚)</th>
+                      <th className="px-3 py-2 text-right text-[10px] font-medium text-slate-400 whitespace-nowrap bg-emerald-50/30">(枚)</th>
+                      <th className="px-3 py-2 text-right text-[10px] font-medium text-slate-400 whitespace-nowrap bg-emerald-50/30">(枚)</th>
+                      {[1,2,3,4,5,6,7,8,9,10,11].map(n => (
+                        <th key={n} className="px-3 py-2 text-right text-[10px] font-medium text-slate-400 whitespace-nowrap bg-blue-50/30">(枚)</th>
+                      ))}
+                      <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-slate-500 whitespace-nowrap">摘要</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredLedger.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={row.id} className="hover:bg-blue-50/30 transition-colors cursor-pointer"
+                        onClick={() => { setSelectedLedgerRow(row); setEditLedgerRow({ ...row }); }}>
                         <td className="px-3 sm:px-4 py-3 text-slate-700 whitespace-nowrap">{row.date}</td>
                         <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -943,9 +987,14 @@ export default function InsuranceStampsPage() {
                             {row.type}
                           </span>
                         </td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.grade1}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.grade2}</td>
-                        <td className="px-3 sm:px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.grade3}</td>
+                        <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap bg-emerald-50/20"><span className={row.grade1 > 0 ? "text-emerald-700 font-semibold" : "text-slate-300"}>{row.grade1 > 0 ? row.grade1 : "—"}</span></td>
+                        <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap bg-emerald-50/20"><span className={row.grade2 > 0 ? "text-emerald-700 font-semibold" : "text-slate-300"}>{row.grade2 > 0 ? row.grade2 : "—"}</span></td>
+                        <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap bg-emerald-50/20"><span className={row.grade3 > 0 ? "text-emerald-700 font-semibold" : "text-slate-300"}>{row.grade3 > 0 ? row.grade3 : "—"}</span></td>
+                        {([row.hg1,row.hg2,row.hg3,row.hg4,row.hg5,row.hg6,row.hg7,row.hg8,row.hg9,row.hg10,row.hg11] as number[]).map((v, i) => (
+                          <td key={i} className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap bg-blue-50/20">
+                            <span className={v > 0 ? "text-blue-700 font-semibold" : "text-slate-300"}>{v > 0 ? v : "—"}</span>
+                          </td>
+                        ))}
                         <td className="px-3 sm:px-4 py-3 text-slate-600 whitespace-nowrap">{row.note}</td>
                       </tr>
                     ))}
@@ -954,6 +1003,202 @@ export default function InsuranceStampsPage() {
               </div>
             </div>
             <div className="text-sm text-slate-500">全 {filteredLedger.length} 件</div>
+
+            {/* 受払簿 詳細ダイアログ */}
+            <Dialog open={!!selectedLedgerRow} onOpenChange={(open) => { if (!open) { setSelectedLedgerRow(null); setEditLedgerRow(null); } }}>
+              <DialogContent className="!w-[95vw] !max-w-[1400px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{selectedLedgerRow?.date} — {selectedLedgerRow?.type}詳細</DialogTitle>
+                  <DialogDescription>各等級の枚数を確認・編集できます</DialogDescription>
+                </DialogHeader>
+                {editLedgerRow && (
+                  <div className="space-y-5 py-2">
+                    {/* 基本情報 */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                        <p className="text-[10px] text-slate-500 mb-1">日付</p>
+                        <p className="text-sm font-medium text-slate-900">{editLedgerRow.date}</p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                        <p className="text-[10px] text-slate-500 mb-1">区分</p>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${editLedgerRow.type === "受入" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{editLedgerRow.type}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                        <p className="text-[10px] text-slate-500 mb-1">摘要</p>
+                        <p className="text-sm font-medium text-slate-900">{editLedgerRow.note}</p>
+                      </div>
+                    </div>
+
+                    {/* 雇用保険 */}
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">雇用保険</span>
+                        <span className="text-xs text-slate-500">種別ごとの7項目</span>
+                      </div>
+                      <div className="space-y-2">
+                        {([
+                          ["emp1", "第1種（176円）", "border-emerald-200 bg-emerald-50/40", "text-emerald-700", "focus:ring-emerald-300"],
+                          ["emp2", "第2種（146円）", "border-amber-200 bg-amber-50/40",     "text-amber-700",   "focus:ring-amber-300"],
+                          ["emp3", "第3種（96円）",  "border-slate-200 bg-slate-50/40",     "text-slate-600",   "focus:ring-slate-300"],
+                        ] as const).map(([empKey, label, cardCls, titleCls, focusCls]) => {
+                          const empData = editLedgerRow[empKey];
+                          const setField = (field: keyof EmpGradeDetail, val: string | number) =>
+                            setEditLedgerRow(prev => prev ? { ...prev, [empKey]: { ...prev[empKey], [field]: typeof val === "string" ? val : Number(val) || 0 } } : prev);
+                          return (
+                            <div key={empKey} className={`rounded-lg border p-3 ${cardCls}`}>
+                              <p className={`text-xs font-semibold mb-2 ${titleCls}`}>{label}</p>
+                              <div className="flex flex-wrap gap-2 items-end">
+                                {([
+                                  ["ukeire",    "受",       "枚"],
+                                  ["haraidashi","払",       "枚"],
+                                  ["zan",       "残",       "枚"],
+                                  ["workers",   "日雇労働者数","名"],
+                                  ["stamps",    "印紙貼付数",  "枚"],
+                                ] as const).map(([field, flabel, unit]) => (
+                                  <div key={field} className="rounded bg-white border border-slate-200 px-2 py-1.5 min-w-[80px]">
+                                    <p className="text-[10px] text-slate-500 mb-1 whitespace-nowrap">{flabel}</p>
+                                    <div className="flex items-center gap-0.5">
+                                      <input type="number" min="0"
+                                        value={empData[field] ?? 0}
+                                        onChange={(e) => setField(field, e.target.value)}
+                                        className={`w-full rounded border border-slate-200 px-1.5 py-0.5 text-xs font-mono text-right focus:outline-none focus:ring-1 ${focusCls}`}
+                                      />
+                                      <span className="text-[10px] text-slate-400 shrink-0">{unit}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                                <div className="rounded bg-white border border-slate-200 px-2 py-1.5 min-w-[120px]">
+                                  <p className="text-[10px] text-slate-500 mb-1 whitespace-nowrap">支払賃金総額</p>
+                                  <div className="flex items-center gap-0.5">
+                                    <span className="text-[10px] text-slate-400 shrink-0">¥</span>
+                                    <input type="number" min="0"
+                                      value={empData.wages ?? 0}
+                                      onChange={(e) => setField("wages", e.target.value)}
+                                      className={`w-full rounded border border-slate-200 px-1.5 py-0.5 text-xs font-mono text-right focus:outline-none focus:ring-1 ${focusCls}`}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="rounded bg-white border border-slate-200 px-2 py-1.5 flex-1 min-w-[140px]">
+                                  <p className="text-[10px] text-slate-500 mb-1 whitespace-nowrap">備考</p>
+                                  <input type="text"
+                                    value={empData.note ?? ""}
+                                    onChange={(e) => setField("note", e.target.value)}
+                                    placeholder="備考を入力"
+                                    className={`w-full rounded border border-slate-200 px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 ${focusCls}`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 健康保険 */}
+                    <div className="rounded-xl border border-blue-200 bg-blue-50/30 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">健康保険</span>
+                        <span className="text-xs text-slate-500">日雇特例被保険者 健康保険印紙受払状況等</span>
+                      </div>
+                      {/* 列ヘッダー */}
+                      <div className="mb-2">
+                        <table className="w-full text-[10px] border-collapse">
+                          <thead>
+                            <tr className="bg-slate-100">
+                              <th className="border border-slate-300 px-2 py-1 text-left text-slate-600 whitespace-nowrap w-20">級別</th>
+                              {/* 適用 */}
+                              <th colSpan={2} className="border border-slate-300 px-2 py-1 text-center text-blue-700 bg-blue-50">適用</th>
+                              {/* 除外 */}
+                              <th colSpan={2} className="border border-slate-300 px-2 py-1 text-center text-slate-600 bg-slate-50">除外</th>
+                              {/* 印紙受払 */}
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">前月末<br/>保有枚数</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">本月<br/>受入枚数</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">本月<br/>貼付枚数</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">本月末<br/>保有枚数</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">4月～本月<br/>累計枚数</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600 whitespace-nowrap">現金納付<br/>保険料</th>
+                              <th className="border border-slate-300 px-2 py-1 text-center text-slate-600">人日</th>
+                            </tr>
+                            <tr className="bg-slate-50 text-[9px] text-slate-500">
+                              <th className="border border-slate-300 px-2 py-0.5"></th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center whitespace-nowrap">本月中<br/>延べ人員</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center whitespace-nowrap">4月～本月<br/>延べ人員</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center whitespace-nowrap">本月中<br/>延べ人員</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center whitespace-nowrap">4月～本月<br/>延べ人員</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(枚)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(枚)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(枚)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(枚)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(枚)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center">(円)</th>
+                              <th className="border border-slate-300 px-2 py-0.5 text-center"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {([
+                              ["hg1","第1級"],["hg2","第2級"],["hg3","第3級"],["hg4","第4級"],
+                              ["hg5","第5級"],["hg6","第6級"],["hg7","第7級"],["hg8","第8級"],
+                              ["hg9","第9級"],["hg10","第10級"],["hg11","第11級"],
+                            ] as const).map(([key, label]) => {
+                              const empty: HealthGradeDetail = { tekiyoMonth:0, tekiyoCumul:0, jokaiMonth:0, jokaiCumul:0, prevBalance:0, ukeire:0, harifu:0, monthEndBalance:0, cumulative:0, cashPayment:0, personDays:0 };
+                              const hd: HealthGradeDetail = editLedgerRow.health?.[key] ?? empty;
+                              const setHField = (field: keyof HealthGradeDetail, val: string) =>
+                                setEditLedgerRow(prev => prev ? { ...prev, health: { ...prev.health, [key]: { ...(prev.health?.[key] ?? empty), [field]: Number(val) || 0 } } } : prev);
+                              const cellCls = "border border-slate-200";
+                              const inputCls = "w-full text-right text-[11px] font-mono bg-transparent focus:bg-blue-50 focus:outline-none px-1 py-0.5";
+                              return (
+                                <tr key={key} className="hover:bg-blue-50/30 transition-colors">
+                                  <td className={`${cellCls} px-2 py-1 text-xs font-medium text-blue-700 whitespace-nowrap bg-blue-50/40`}>{label}</td>
+                                  {/* 適用 */}
+                                  <td className={`${cellCls} px-1 py-0.5 bg-blue-50/20`}><input type="number" min="0" value={hd.tekiyoMonth} onChange={e=>setHField("tekiyoMonth",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5 bg-blue-50/20`}><input type="number" min="0" value={hd.tekiyoCumul} onChange={e=>setHField("tekiyoCumul",e.target.value)} className={inputCls} /></td>
+                                  {/* 除外 */}
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.jokaiMonth} onChange={e=>setHField("jokaiMonth",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.jokaiCumul} onChange={e=>setHField("jokaiCumul",e.target.value)} className={inputCls} /></td>
+                                  {/* 印紙受払 */}
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.prevBalance} onChange={e=>setHField("prevBalance",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.ukeire} onChange={e=>setHField("ukeire",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.harifu} onChange={e=>setHField("harifu",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.monthEndBalance} onChange={e=>setHField("monthEndBalance",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.cumulative} onChange={e=>setHField("cumulative",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.cashPayment} onChange={e=>setHField("cashPayment",e.target.value)} className={inputCls} /></td>
+                                  <td className={`${cellCls} px-1 py-0.5`}><input type="number" min="0" value={hd.personDays} onChange={e=>setHField("personDays",e.target.value)} className={inputCls} /></td>
+                                </tr>
+                              );
+                            })}
+                            {/* 計 行 */}
+                            {(() => {
+                              const keys = ["hg1","hg2","hg3","hg4","hg5","hg6","hg7","hg8","hg9","hg10","hg11"];
+                              const sum = (f: keyof HealthGradeDetail) => keys.reduce((acc, k) => acc + (editLedgerRow.health?.[k]?.[f] ?? 0), 0);
+                              return (
+                                <tr className="bg-slate-100 font-semibold text-[11px]">
+                                  <td className="border border-slate-300 px-2 py-1 text-slate-700">計</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("tekiyoMonth")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("tekiyoCumul")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("jokaiMonth")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("jokaiCumul")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("prevBalance")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("ukeire")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("harifu")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("monthEndBalance")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("cumulative")}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("cashPayment").toLocaleString()}</td>
+                                  <td className="border border-slate-300 px-2 py-1 text-right font-mono">{sum("personDays")}</td>
+                                </tr>
+                              );
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => { setSelectedLedgerRow(null); setEditLedgerRow(null); }}>キャンセル</Button>
+                  <Button onClick={() => { setSelectedLedgerRow(null); setEditLedgerRow(null); }}>保存する</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
 

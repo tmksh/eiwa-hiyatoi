@@ -355,6 +355,9 @@ export default function CalculationsPage() {
   const [editAdjustAmount, setEditAdjustAmount] = useState<string>("");
   const [editAdjustReason, setEditAdjustReason] = useState<string>("");
   const [editAllowances, setEditAllowances] = useState<{ name: string; amount: number; isContinuous: boolean }[]>([]);
+  const [editSpecialAllowances, setEditSpecialAllowances] = useState<{ holiday: number; sunday: number; other: number }>({ holiday: 0, sunday: 0, other: 0 });
+  const [editSpecialKurikoshi, setEditSpecialKurikoshi] = useState<Set<"holiday" | "sunday" | "other">>(new Set());
+  const [specialAllowanceOpen, setSpecialAllowanceOpen] = useState(false);
   const [editKurikoshi, setEditKurikoshi] = useState<Set<"overtime" | "weeklyOvertime">>(new Set());
   const [kurikoshiMap, setKurikoshiMap] = useState<Record<string, { overtime: number; weeklyOvertime: number }>>({});
   const [editingKurikoshiRow, setEditingKurikoshiRow] = useState<string | null>(null);
@@ -752,7 +755,7 @@ export default function CalculationsPage() {
                   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
                   doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
                   doc.setFontSize(9);
-                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "プラス手当", "合計", "状態"];
+                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "特別手当", "合計", "状態"];
                   headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
                   filteredResults.forEach((r, j) => {
                     const y = 32 + j * 7;
@@ -787,7 +790,7 @@ export default function CalculationsPage() {
                       <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">残業</TableHead>
                       <TableHead className="text-right whitespace-nowrap">週40h割増</TableHead>
-                      <TableHead className="text-right whitespace-nowrap">プラス手当</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">特別手当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">合計</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -801,6 +804,8 @@ export default function CalculationsPage() {
                           setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
                           setEditAdjustReason(result.adjustReason || "");
                           setEditAllowances([]);
+                          setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 });
+                          setEditSpecialKurikoshi(new Set());
                           const saved = kurikoshiMap[result.workerName];
                           const restored = new Set<"overtime" | "weeklyOvertime">();
                           if (saved?.overtime > 0) restored.add("overtime");
@@ -859,6 +864,8 @@ export default function CalculationsPage() {
                               setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
                               setEditAdjustReason(result.adjustReason || "");
                               setEditAllowances([]);
+                              setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 });
+                              setEditSpecialKurikoshi(new Set());
                               const saved = kurikoshiMap[result.workerName];
                               const restored = new Set<"overtime" | "weeklyOvertime">();
                               if (saved?.overtime > 0) restored.add("overtime");
@@ -877,78 +884,83 @@ export default function CalculationsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                  {filteredResults.length > 0 && (() => {
-                    const socialCounts: Record<string, number> = {};
-                    const empCounts: Record<string, number> = {};
-                    filteredResults.forEach((r) => {
-                      const w = workerInsuranceMap[r.workerName];
-                      if (!w) return;
-                      socialCounts[w.socialInsuranceGrade] = (socialCounts[w.socialInsuranceGrade] ?? 0) + 1;
-                      empCounts[w.employmentInsuranceGrade] = (empCounts[w.employmentInsuranceGrade] ?? 0) + 1;
-                    });
-                    const socialEntries = Object.entries(socialCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
-                    const empEntries = Object.entries(empCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
-                    const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
-                    const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
-                    return (
-                      <TableFooter className="sticky bottom-0 z-20 bg-slate-50 shadow-[0_-1px_0_0_var(--border)] [&_td]:bg-slate-50 [&_tr]:bg-slate-50 [&_tr]:border-b-0">
-                        <TableRow className="hover:bg-slate-50">
-                          <TableCell colSpan={3} className="align-top text-xs font-medium text-slate-500">内訳</TableCell>
-                          <TableCell className="align-top">
-                            <div className="flex flex-col gap-1">
-                              {socialEntries.map(([grade, count]) => {
-                                const hasNursing = grade.includes("介護あり");
-                                return (
-                                  <div
-                                    key={grade}
-                                    className={cn(
-                                      "inline-flex items-center justify-between gap-2 rounded-md border px-2 py-0.5",
-                                      hasNursing ? "bg-amber-50 border-amber-200" : "bg-white border-slate-200"
-                                    )}
-                                  >
-                                    <span className={cn("text-[10px] leading-none", hasNursing ? "text-amber-700" : "text-slate-600")}>{grade}</span>
-                                    <span className={cn("text-xs font-bold tabular-nums leading-none", hasNursing ? "text-amber-800" : "text-slate-800")}>
-                                      {count}<span className={cn("text-[9px] font-normal ml-0.5", hasNursing ? "text-amber-400" : "text-slate-400")}>名</span>
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                              <div className="inline-flex items-center justify-between gap-2 rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 mt-0.5">
-                                <span className="text-[10px] leading-none text-slate-600 font-semibold">合計</span>
-                                <span className="text-xs font-bold tabular-nums leading-none text-slate-900">
-                                  {socialTotal}<span className="text-[9px] font-normal ml-0.5 text-slate-500">名</span>
-                                </span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="flex flex-col gap-1">
-                              {empEntries.map(([grade, count]) => (
-                                <div
-                                  key={grade}
-                                  className="inline-flex items-center justify-between gap-2 rounded-md border bg-blue-50 border-blue-200 px-2 py-0.5"
-                                >
-                                  <span className="text-[10px] leading-none text-blue-700">{grade}</span>
-                                  <span className="text-xs font-bold tabular-nums leading-none text-blue-800">
-                                    {count}<span className="text-[9px] font-normal ml-0.5 text-blue-400">名</span>
-                                  </span>
-                                </div>
-                              ))}
-                              <div className="inline-flex items-center justify-between gap-2 rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 mt-0.5">
-                                <span className="text-[10px] leading-none text-slate-600 font-semibold">合計</span>
-                                <span className="text-xs font-bold tabular-nums leading-none text-slate-900">
-                                  {empTotal}<span className="text-[9px] font-normal ml-0.5 text-slate-500">名</span>
-                                </span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell colSpan={7} />
-                        </TableRow>
-                      </TableFooter>
-                    );
-                  })()}
                 </table>
               </div>
+              {/* 等級内訳（テーブル外・スクロール枠の下） */}
+              {filteredResults.length > 0 && (() => {
+                const socialCounts: Record<string, number> = {};
+                const empCounts: Record<string, number> = {};
+                filteredResults.forEach((r) => {
+                  const w = workerInsuranceMap[r.workerName];
+                  if (!w) return;
+                  socialCounts[w.socialInsuranceGrade] = (socialCounts[w.socialInsuranceGrade] ?? 0) + 1;
+                  empCounts[w.employmentInsuranceGrade] = (empCounts[w.employmentInsuranceGrade] ?? 0) + 1;
+                });
+                const socialEntries = Object.entries(socialCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
+                const empEntries = Object.entries(empCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
+                const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
+                const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
+                return (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* 健保等級 */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+                          <span className="text-xs font-semibold text-slate-700">健保等級</span>
+                        </div>
+                        <span className="text-xs text-slate-400">合計 <span className="font-bold text-slate-700 tabular-nums">{socialTotal}</span> 名</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {socialEntries.map(([grade, count]) => {
+                          const hasNursing = grade.includes("介護あり");
+                          const pct = Math.round((count / socialTotal) * 100);
+                          return (
+                            <div key={grade}>
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span className={cn("text-[11px] font-medium", hasNursing ? "text-amber-700" : "text-slate-600")}>{grade}</span>
+                                <span className={cn("text-xs font-bold tabular-nums", hasNursing ? "text-amber-800" : "text-slate-800")}>{count}<span className="text-[10px] font-normal text-slate-400 ml-0.5">名</span></span>
+                              </div>
+                              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                <div
+                                  className={cn("h-full rounded-full transition-all", hasNursing ? "bg-amber-400" : "bg-slate-300")}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* 雇保種別 */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-block h-2 w-2 rounded-full bg-blue-400" />
+                          <span className="text-xs font-semibold text-slate-700">雇保種別</span>
+                        </div>
+                        <span className="text-xs text-slate-400">合計 <span className="font-bold text-slate-700 tabular-nums">{empTotal}</span> 名</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {empEntries.map(([grade, count]) => {
+                          const pct = Math.round((count / empTotal) * 100);
+                          return (
+                            <div key={grade}>
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span className="text-[11px] font-medium text-blue-700">{grade}</span>
+                                <span className="text-xs font-bold tabular-nums text-blue-800">{count}<span className="text-[10px] font-normal text-blue-400 ml-0.5">名</span></span>
+                              </div>
+                              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full rounded-full bg-blue-300 transition-all" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 rounded-lg bg-muted/50 p-4">
                 <div className="flex flex-wrap gap-3 sm:gap-6 text-sm self-center">
                   <span>全 {filteredResults.length} 件</span>
@@ -1111,7 +1123,60 @@ export default function CalculationsPage() {
                         {result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : "—"}
                       </span>
                     </div>
-                    {editKurikoshi.size > 0 && (
+                    {/* 特別手当（親ラベル・クリックで展開） */}
+                    <button
+                      type="button"
+                      onClick={() => setSpecialAllowanceOpen(o => !o)}
+                      className="flex justify-between items-center w-full text-slate-600 hover:text-slate-800 transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>特別手当</span>
+                        <span className="text-[10px] text-slate-400">{specialAllowanceOpen ? "▲" : "▼"}</span>
+                      </div>
+                      <span className={cn("font-mono tabular-nums", (editSpecialAllowances.holiday + editSpecialAllowances.sunday + editSpecialAllowances.other) > 0 ? "text-violet-700" : "text-slate-300")}>
+                        {(editSpecialAllowances.holiday + editSpecialAllowances.sunday + editSpecialAllowances.other) > 0
+                          ? formatCurrency(editSpecialAllowances.holiday + editSpecialAllowances.sunday + editSpecialAllowances.other)
+                          : "—"}
+                      </span>
+                    </button>
+                    {/* 特別手当 子項目 */}
+                    {specialAllowanceOpen && ([
+                      ["holiday", "祝日手当"],
+                      ["sunday", "日曜手当"],
+                      ["other", "その他手当"],
+                    ] as const).map(([key, label]) => (
+                      <div key={key} className="flex justify-between items-center text-slate-500 pl-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-slate-400">・</span>
+                          <span className="text-xs">{label}</span>
+                          <button
+                            type="button"
+                            onClick={() => setEditSpecialKurikoshi((prev) => { const next = new Set(prev); if (next.has(key)) { next.delete(key); } else { next.add(key); } return next; })}
+                            className={cn(
+                              "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold transition-all",
+                              editSpecialKurikoshi.has(key)
+                                ? "bg-orange-100 border-orange-400 text-orange-700"
+                                : "bg-white border-slate-300 text-slate-400 hover:border-orange-300 hover:text-orange-500"
+                            )}
+                          >
+                            繰越
+                          </button>
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editSpecialAllowances[key] || ""}
+                          onChange={(e) => setEditSpecialAllowances(prev => ({ ...prev, [key]: Number(e.target.value) || 0 }))}
+                          placeholder="—"
+                          className={cn(
+                            "w-[90px] bg-transparent text-right font-mono tabular-nums text-sm border-none outline-none focus:bg-white/80 focus:ring-1 focus:ring-violet-200 rounded px-1",
+                            editSpecialKurikoshi.has(key) ? "text-slate-300 line-through" : "text-violet-700",
+                            "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          )}
+                        />
+                      </div>
+                    ))}
+                    {(editKurikoshi.size > 0 || editSpecialKurikoshi.size > 0) && (
                       <div className="flex justify-between text-[11px] text-orange-600 bg-orange-50 rounded px-2 py-1 mt-1">
                         <span className="flex items-center gap-1">
                           <span className="inline-flex items-center rounded-full bg-orange-100 border border-orange-400 px-1.5 text-[9px] font-bold">繰越</span>
@@ -1120,7 +1185,10 @@ export default function CalculationsPage() {
                         <span className="font-mono font-semibold">
                           {formatCurrency(
                             (editKurikoshi.has("overtime") ? result.overtimeWage : 0) +
-                            (editKurikoshi.has("weeklyOvertime") ? result.weeklyOvertimeWage : 0)
+                            (editKurikoshi.has("weeklyOvertime") ? result.weeklyOvertimeWage : 0) +
+                            (editSpecialKurikoshi.has("holiday") ? editSpecialAllowances.holiday : 0) +
+                            (editSpecialKurikoshi.has("sunday") ? editSpecialAllowances.sunday : 0) +
+                            (editSpecialKurikoshi.has("other") ? editSpecialAllowances.other : 0)
                           )}
                         </span>
                       </div>
@@ -1131,6 +1199,9 @@ export default function CalculationsPage() {
                         result.baseWage
                         + (editKurikoshi.has("overtime") ? 0 : result.overtimeWage)
                         + (editKurikoshi.has("weeklyOvertime") ? 0 : result.weeklyOvertimeWage)
+                        + (editSpecialKurikoshi.has("holiday") ? 0 : editSpecialAllowances.holiday)
+                        + (editSpecialKurikoshi.has("sunday") ? 0 : editSpecialAllowances.sunday)
+                        + (editSpecialKurikoshi.has("other") ? 0 : editSpecialAllowances.other)
                       )}</span>
                     </div>
                   </div>
@@ -1222,7 +1293,7 @@ export default function CalculationsPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); setEditKurikoshi(new Set()); }}>キャンセル</Button>
+                  <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 }); setEditSpecialKurikoshi(new Set()); setSpecialAllowanceOpen(false); setEditKurikoshi(new Set()); }}>キャンセル</Button>
                   <Button onClick={() => {
                     const kurikoshiAmounts = {
                       overtime: editKurikoshi.has("overtime") ? result.overtimeWage : 0,
@@ -1236,6 +1307,9 @@ export default function CalculationsPage() {
                     toast.success(`${result.workerName}の賃金調整・手当を保存しました`);
                     setSelectedEditId(null);
                     setEditAllowances([]);
+                    setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 });
+                    setEditSpecialKurikoshi(new Set());
+                    setSpecialAllowanceOpen(false);
                     setEditKurikoshi(new Set());
                   }}>保存する</Button>
                 </DialogFooter>
@@ -1254,24 +1328,58 @@ export default function CalculationsPage() {
                 {selectedPaymentIds.length > 0 && (
                   <span className="text-xs text-slate-500">{selectedPaymentIds.length}件選択中</span>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={async () => {
-                    if (paymentSubTab === "振込") {
-                      const rows = adjustedPayment;
-                      const lines = rows.map(row => {
-                        const t = transfersData.find(t => t.name === row.name);
-                        return `${row.name}\t${t?.bank ?? ""}\t${t?.branch ?? ""}\t${t?.accountType ?? ""}\t${t?.accountNo ?? ""}\t${row.netPay}`;
-                      });
-                      const blob = new Blob([["氏名\t銀行\t支店\t種別\t口座番号\t金額", ...lines].join("\n")], { type: "text/plain;charset=utf-8" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a"); a.href = url; a.download = `FB一括データ_${new Date().toLocaleDateString("ja-JP")}.txt`; a.click();
-                      URL.revokeObjectURL(url);
-                      toast.success("FBデータを出力しました");
-                    } else {
-                      // キャッシュマシン：全員まとめてPDF
+                {paymentSubTab === "振込" ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={async () => {
+                        const { default: jsPDF } = await import("jspdf");
+                        const rows = adjustedPayment;
+                        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                        rows.forEach((row, i) => {
+                          if (i > 0) doc.addPage();
+                          const t = transfersData.find(t => t.name === row.name);
+                          doc.setFontSize(16); doc.text("振込明細書", 105, 18, { align: "center" });
+                          doc.setFontSize(10);
+                          doc.text(`氏名：${row.name}`, 20, 32);
+                          doc.text(`銀行：${t?.bank ?? "—"} ${t?.branch ?? ""}`, 20, 40);
+                          doc.text(`口座：${t?.accountType ?? ""}  ${t?.accountNo ?? ""}`, 20, 48);
+                          doc.text(`振込金額：¥${row.netPay.toLocaleString()}`, 20, 56);
+                        });
+                        doc.save(`振込明細_${new Date().toLocaleDateString("ja-JP")}.pdf`);
+                        toast.success("PDFを出力しました");
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => {
+                        const rows = adjustedPayment;
+                        const lines = rows.map(row => {
+                          const t = transfersData.find(t => t.name === row.name);
+                          return [row.name, t?.bank ?? "", t?.branch ?? "", t?.accountType ?? "", t?.accountNo ?? "", row.netPay].join(",");
+                        });
+                        const blob = new Blob([["氏名,銀行,支店,種別,口座番号,金額", ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href = url; a.download = `振込データ_${new Date().toLocaleDateString("ja-JP")}.csv`; a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("CSVを出力しました");
+                      }}
+                    >
+                      <Download className="h-4 w-4" />CSV
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={async () => {
                       const { default: jsPDF } = await import("jspdf");
                       const denomLabels: [string, keyof ReturnType<typeof calcDenom>][] = [["1万円","man"],["5千円","gosen"],["1千円","sen"],["500円","gohyaku"],["100円","hyaku"],["50円","goju"],["10円","ju"],["5円","go"],["1円","ichi"]];
                       const rows = adjustedPayment;
@@ -1293,12 +1401,11 @@ export default function CalculationsPage() {
                         });
                       });
                       doc.save(`金種表一括_${new Date().toLocaleDateString("ja-JP")}.pdf`);
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  {paymentSubTab === "キャッシュマシン" ? "PDF出力" : "FBデータ出力"}
-                </Button>
+                    }}
+                  >
+                    <Download className="h-4 w-4" />PDF出力
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white"
@@ -1433,10 +1540,8 @@ export default function CalculationsPage() {
                             <th key={label} className="px-2 py-3 text-xs font-medium text-slate-400 text-right whitespace-nowrap">{label}円</th>
                           ))}
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">ステータス</th>
-                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">残業加算</th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-right whitespace-nowrap">差引支給額</th>
                           <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">更新日時</th>
-                          <th className="px-3 py-3 text-xs font-medium text-slate-500 text-left whitespace-nowrap">PDF</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -1471,108 +1576,75 @@ export default function CalculationsPage() {
                             <td className="px-3 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.status === "支払済み" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{row.status}</span>
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                              {editingKurikoshiRow === row.name ? (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-slate-400">¥</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    autoFocus
-                                    value={kurikoshiInputAmount}
-                                    onChange={(e) => setKurikoshiInputAmount(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        const amt = parseInt(kurikoshiInputAmount || "0") || 0;
-                                        if (amt > 0) {
-                                          setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
-                                        } else {
-                                          setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
-                                        }
-                                        setEditingKurikoshiRow(null);
-                                        setKurikoshiInputAmount("");
-                                      } else if (e.key === "Escape") {
-                                        setEditingKurikoshiRow(null);
-                                        setKurikoshiInputAmount("");
-                                      }
-                                    }}
-                                    onBlur={() => {
-                                      const amt = parseInt(kurikoshiInputAmount || "0") || 0;
-                                      if (amt > 0) {
-                                        setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
-                                      } else {
-                                        setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
-                                      }
-                                      setEditingKurikoshiRow(null);
-                                      setKurikoshiInputAmount("");
-                                    }}
-                                    className="w-24 rounded border border-pink-300 px-2 py-0.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-pink-400"
-                                  />
-                                </div>
-                              ) : (() => {
-                                const k = kurikoshiMap[row.name];
-                                const total = (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
-                                if (total > 0) {
-                                  return (
-                                    <button
-                                      className={cn(
-                                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-                                        confirmedKurikoshi.has(row.name)
-                                          ? "border-orange-400 bg-orange-100 text-orange-700"
-                                          : "border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50"
-                                      )}
-                                      onClick={() => confirmedKurikoshi.has(row.name)
-                                        ? setConfirmKurikoshi({ name: row.name, total, mode: "cancel" })
-                                        : setConfirmKurikoshi({ name: row.name, total, mode: "confirm" })
-                                      }
-                                    >
-                                      残業加算
-                                      <span className="font-mono font-normal">+{formatCurrency(total)}</span>
-                                    </button>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </td>
-                            <td className="px-3 py-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
+                            <td className="px-3 py-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                               {(() => {
                                 const k = kurikoshiMap[row.name];
                                 const kurikoshiTotal = (k?.overtime ?? 0) + (k?.weeklyOvertime ?? 0);
                                 const isConfirmed = confirmedKurikoshi.has(row.name) && kurikoshiTotal > 0;
                                 const displayAmount = isConfirmed ? row.netPay + kurikoshiTotal : row.netPay;
                                 return (
-                                  <div className="flex flex-col items-end gap-0.5">
+                                  <div className="flex flex-col items-end gap-1">
                                     <span className={isConfirmed ? "text-orange-700" : "text-blue-700"}>
                                       ¥{displayAmount.toLocaleString()}
                                     </span>
+                                    {editingKurikoshiRow === row.name ? (
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-slate-400">¥</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          autoFocus
+                                          value={kurikoshiInputAmount}
+                                          onChange={(e) => setKurikoshiInputAmount(e.target.value)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                              const amt = parseInt(kurikoshiInputAmount || "0") || 0;
+                                              if (amt > 0) {
+                                                setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
+                                              } else {
+                                                setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
+                                              }
+                                              setEditingKurikoshiRow(null);
+                                              setKurikoshiInputAmount("");
+                                            } else if (e.key === "Escape") {
+                                              setEditingKurikoshiRow(null);
+                                              setKurikoshiInputAmount("");
+                                            }
+                                          }}
+                                          onBlur={() => {
+                                            const amt = parseInt(kurikoshiInputAmount || "0") || 0;
+                                            if (amt > 0) {
+                                              setKurikoshiMap(prev => ({ ...prev, [row.name]: { overtime: amt, weeklyOvertime: 0 } }));
+                                            } else {
+                                              setKurikoshiMap(prev => { const next = { ...prev }; delete next[row.name]; return next; });
+                                            }
+                                            setEditingKurikoshiRow(null);
+                                            setKurikoshiInputAmount("");
+                                          }}
+                                          className="w-24 rounded border border-pink-300 px-2 py-0.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-pink-400"
+                                        />
+                                      </div>
+                                    ) : kurikoshiTotal > 0 ? (
+                                      <button
+                                        className={cn(
+                                          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
+                                          isConfirmed
+                                            ? "border-orange-400 bg-orange-100 text-orange-700"
+                                            : "border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50"
+                                        )}
+                                        onClick={() => isConfirmed
+                                          ? setConfirmKurikoshi({ name: row.name, total: kurikoshiTotal, mode: "cancel" })
+                                          : setConfirmKurikoshi({ name: row.name, total: kurikoshiTotal, mode: "confirm" })
+                                        }
+                                      >
+                                        残業加算 <span className="font-mono font-normal">+{formatCurrency(kurikoshiTotal)}</span>
+                                      </button>
+                                    ) : null}
                                   </div>
                                 );
                               })()}
                             </td>
                             <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">{row.updatedAt}</td>
-                            <td className="px-3 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                              <button className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
-                                onClick={async () => {
-                                  const { default: jsPDF } = await import("jspdf");
-                                  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-                                  doc.setFontSize(16); doc.text("支払明細書（金種表）", 105, 18, { align: "center" });
-                                  doc.setFontSize(10);
-                                  doc.text(`氏名：${row.name}`, 20, 32);
-                                  doc.text(`対象期間：${row.period}`, 20, 40);
-                                  doc.text(`差引支給額：¥${row.netPay.toLocaleString()}`, 20, 48);
-                                  doc.text(`ステータス：${row.status}`, 20, 56);
-                                  doc.line(20, 60, 190, 60);
-                                  doc.text("金種内訳", 20, 68);
-                                  const denomLabels: [string, keyof ReturnType<typeof calcDenom>][] = [["1万円", "man"],["5千円", "gosen"],["1千円", "sen"],["500円", "gohyaku"],["100円", "hyaku"],["50円", "goju"],["10円", "ju"],["5円", "go"],["1円", "ichi"]];
-                                  denomLabels.forEach(([label, key], i) => {
-                                    const val = row.denom[key];
-                                    doc.text(`${label}：${val > 0 ? `${val}枚` : "—"}`, 25, 76 + i * 8);
-                                  });
-                                  doc.save(`金種表_${row.name}.pdf`);
-                                }}>
-                                <FileText className="h-3 w-3" />PDF
-                              </button>
-                            </td>
                           </tr>
                         ))}
                         {/* 合計行（末尾） */}
@@ -1586,7 +1658,6 @@ export default function CalculationsPage() {
                               {totals[key] > 0 ? totals[key] : "—"}
                             </td>
                           ))}
-                          <td className="px-3 py-3" />
                           <td className="px-3 py-3" />
                           <td className="px-3 py-3 text-right font-mono font-bold tabular-nums">
                             {(() => {
@@ -1603,7 +1674,7 @@ export default function CalculationsPage() {
                               );
                             })()}
                           </td>
-                          <td colSpan={2} />
+                          <td />
                         </tr>
                       </tbody>
                     </table>
@@ -1634,7 +1705,7 @@ export default function CalculationsPage() {
                               checked={selectedPaymentIds.length === rows.length && rows.length > 0}
                               onChange={(e) => setSelectedPaymentIds(e.target.checked ? rows.map(r => r.id) : [])} />
                           </th>
-                          {[["氏名","left"],["対象期間","left"],["日当合計","right"],["残業手当","right"],["特別手当","right"],["総計","right"],["振込ステータス","left"],["FB","left"]].map(([h, align]) => (
+                          {[["氏名","left"],["対象期間","left"],["日当合計","right"],["残業手当","right"],["特別手当","right"],["総計","right"],["振込ステータス","left"],["PDF","left"]].map(([h, align]) => (
                             <th key={h} className={`px-3 py-3 text-xs font-medium text-slate-500 whitespace-nowrap text-${align}`}>{h}</th>
                           ))}
                         </tr>
@@ -1667,7 +1738,7 @@ export default function CalculationsPage() {
                                   URL.revokeObjectURL(url);
                                   toast.success(`${row.name}のFBデータを出力しました`);
                                 }}>
-                                <Download className="h-3 w-3" />FB
+                                <FileText className="h-3 w-3" />PDF
                               </button>
                             </td>
                           </tr>

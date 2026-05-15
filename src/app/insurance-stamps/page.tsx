@@ -370,6 +370,90 @@ export default function InsuranceStampsPage() {
   const [editingWageRule2, setEditingWageRule2] = useState<typeof mockWageRules[0] | null>(null);
   const [settingsSubTab, setSettingsSubTab] = useState<"rate-tables" | "general">("rate-tables");
 
+  // 供給先別早出時間マスタ（unitPrice: 早出単価 円）
+  const mkSup = (id: number, sc: number, sn: string, oc: number, on: string, em: number, up: number) =>
+    ({ id, supplierCode: sc, supplierName: sn, subOfficeCode: oc, subOfficeName: on, earlyMinutes: em, unitPrice: up, isActive: true, memo: "" });
+  const [supplierEarlyData, setSupplierEarlyData] = useState([
+    mkSup( 1,   1, "千代田清掃事務所",              999, "本所",            60, 2000),
+    mkSup( 2,   5, "みなと清掃事務所",              999, "本所",            40, 1500),
+    mkSup( 3,   7, "新宿清掃事務所",                999, "本所",            20,  800),
+    mkSup( 4,   8, "新宿清掃事務所新宿東SS",        999, "本所",            10,  500),
+    mkSup( 5,   9, "文京清掃事務所",                 91, "小石川リサイクル", 20,  800),
+    mkSup( 6,   9, "文京清掃事務所",                999, "本所",            20,  800),
+    mkSup( 7,  14, "本所清掃事務所",                999, "本所",            60, 2000),
+    mkSup( 8,  17, "品川清掃事務所",                999, "本所",            40, 1500),
+    mkSup( 9,  18, "品川区清掃事務所 荏原庁舎",     999, "本所",            40, 1500),
+    mkSup(10,  20, "蒲田清掃事務所(調布地区)",      999, "本所",            40, 1500),
+    mkSup(11,  24, "目黒区清掃事務所",              999, "本所",            20,  800),
+    mkSup(12,  25, "世田谷清掃事務所",              251, "弦巻第一分室",    20,  800),
+    mkSup(13,  25, "世田谷清掃事務所",              252, "弦巻第二分室",    20,  800),
+    mkSup(14,  25, "世田谷清掃事務所",              253, "世田谷リサイクル", 40, 1500),
+    mkSup(15,  25, "世田谷清掃事務所",              999, "本所",            20,  800),
+    mkSup(16,  27, "玉川清掃事務所",                999, "本所",            30, 1200),
+    mkSup(17,  28, "渋谷清掃事務所",                281, "宇田川分室",      20,  800),
+    mkSup(18,  28, "渋谷清掃事務所",                282, "代々木分室",      10,  500),
+    mkSup(19,  28, "渋谷清掃事務所",                999, "本所",            20,  800),
+    mkSup(20,  32, "豊島清掃事務所",                999, "本所",            20,  800),
+    mkSup(21,  34, "板橋東清掃事務所",              999, "本所",            30, 1200),
+    mkSup(22,  35, "板橋西清掃事務所",              999, "本所",            30, 1200),
+    mkSup(23,  37, "石神井清掃事務所",              999, "本所",            20,  800),
+    mkSup(24,  38, "蒲田清掃事務所(蒲田地区)",      999, "本所",            40, 1500),
+    mkSup(25,  39, "足立西清掃事務所",              999, "本所",            50, 1800),
+    mkSup(26,  45, "中防処理施設管理事務所",        999, "本所",            60, 2000),
+    mkSup(27,  46, "品川清掃工場",                  999, "本所",            40, 1500),
+    mkSup(28,  47, "中防処理施設管理事務所(溶融）", 999, "本所",            60, 2000),
+    mkSup(29,  49, "大田清掃工場",                  999, "本所",            60, 2000),
+    mkSup(30,  51, "練馬清掃工場",                  999, "本所",            30, 1200),
+    mkSup(31,  52, "板橋清掃工場",                  999, "本所",            30, 1200),
+    mkSup(32,  53, "足立清掃工場",                  999, "本所",            60, 2000),
+    mkSup(33,  54, "葛飾清掃工場",                  999, "本所",            60, 2000),
+    mkSup(34,  56, "北清掃工場",                    999, "本所",            30, 1200),
+    mkSup(35,  57, "世田谷清掃工場",                999, "本所",            20,  800),
+    mkSup(36,  58, "千歳清掃工場",                  999, "本所",            60, 2000),
+    mkSup(37,  59, "多摩川清掃工場",                999, "本所",            40, 1500),
+    mkSup(38,  60, "大井清掃工場",                  999, "本所",            40, 1500),
+    mkSup(39,  61, "新江東清掃工場",                999, "本所",            60, 2000),
+    mkSup(40,  63, "大田清掃工場第一工場",          999, "本所",            60, 2000),
+    mkSup(41,  64, "目黒清掃工場",                  999, "本所",            20,  800),
+    mkSup(42,  65, "光が丘清掃工場",                999, "本所",            30, 1200),
+    mkSup(43,  66, "有明清掃工場",                  999, "本所",            60, 2000),
+    mkSup(44,  67, "墨田清掃工場",                  999, "本所",            60, 2000),
+    mkSup(45,  68, "港清掃工場",                    999, "本所",            40, 1500),
+    mkSup(46,  69, "豊島清掃工場",                  999, "本所",            30, 1200),
+    mkSup(47,  70, "中央清掃工場",                  999, "本所",            60, 2000),
+    mkSup(48,  71, "渋谷清掃工場",                  999, "本所",            20,  800),
+    mkSup(49,  87, "世田谷清掃事務所（資源）",      999, "本所",            20,  800),
+    mkSup(50,  89, "玉川清掃事務所",                999, "本所",            30, 1200),
+    mkSup(51,  91, "渋谷清掃事務所",                282, "代々木分室",      10,  500),
+    mkSup(52,  91, "渋谷清掃事務所",                999, "本所",            20,  800),
+    mkSup(53, 460, "杉並東破砕作業",                999, "本所",            10,  500),
+  ]);
+  const [supplierEarlySearch, setSupplierEarlySearch] = useState("");
+  const [supplierEarlySortKey, setSupplierEarlySortKey] = useState<"supplierCode" | "earlyMinutes">("supplierCode");
+  const [supplierEarlySortAsc, setSupplierEarlySortAsc] = useState(true);
+  const [editingSupplierEarly, setEditingSupplierEarly] = useState<typeof supplierEarlyData[0] | null>(null);
+  const [isNewSupplierEarlyOpen, setIsNewSupplierEarlyOpen] = useState(false);
+  const [newSupplierEarly, setNewSupplierEarly] = useState({ supplierCode: 0, supplierName: "", subOfficeCode: 999, subOfficeName: "本所", earlyMinutes: 20, isActive: true, memo: "" });
+
+  const filteredSupplierEarly = supplierEarlyData
+    .filter(s => s.supplierName.includes(supplierEarlySearch) || s.subOfficeName.includes(supplierEarlySearch) || String(s.supplierCode).includes(supplierEarlySearch))
+    .sort((a, b) => {
+      const v = supplierEarlySortAsc ? 1 : -1;
+      return (a[supplierEarlySortKey] > b[supplierEarlySortKey] ? 1 : -1) * v;
+    });
+
+  function toggleSupplierEarlySort(key: "supplierCode" | "earlyMinutes") {
+    if (supplierEarlySortKey === key) setSupplierEarlySortAsc(p => !p);
+    else { setSupplierEarlySortKey(key); setSupplierEarlySortAsc(true); }
+  }
+
+  function earlyMinBadgeCls(min: number) {
+    if (min >= 60) return "bg-red-100 text-red-700 border-red-200";
+    if (min >= 40) return "bg-orange-100 text-orange-700 border-orange-200";
+    if (min >= 20) return "bg-amber-100 text-amber-700 border-amber-200";
+    return "bg-slate-100 text-slate-600 border-slate-200";
+  }
+
   // 移動タブ states
   const [operationDate, setOperationDate] = useState("2026-03-19");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -1984,44 +2068,239 @@ export default function InsuranceStampsPage() {
           </>
         )}
 
-        {/* ── 各種設定（早出手当ルール） ── */}
+        {/* ── 各種設定（供給先別早出時間マスタ） ── */}
         {activeSubTab === "各種設定" && (
           <>
-            <p className="text-sm text-slate-500">行き先ごとの早出手当ルール（車種別・基本給倍率）</p>
-            <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-xs text-blue-700">
-              <span className="font-semibold">早出手当の計算方式：</span>
-              基本給 × 倍率（車種ごとに設定した倍率を基本給に乗じる方式）
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {[
-                { id: "d1", name: "東京中央市場", prefecture: "東京都", hours: 2.5, rules: [{ vt: "2tトラック", min: 30, mult: 0.25 }, { vt: "4tトラック", min: 30, mult: 0.25 }, { vt: "10tトラック", min: 30, mult: 0.30 }], memo: "" },
-                { id: "d2", name: "横浜港物流センター", prefecture: "神奈川県", hours: 3.0, rules: [{ vt: "4tトラック", min: 45, mult: 0.30 }, { vt: "10tトラック", min: 45, mult: 0.35 }, { vt: "大型トラック", min: 45, mult: 0.35 }], memo: "港湾早出は45分基準" },
-                { id: "d3", name: "埼玉北部営業所", prefecture: "埼玉県", hours: 1.5, rules: [{ vt: "2tトラック", min: 30, mult: 0.20 }, { vt: "4tトラック", min: 30, mult: 0.25 }], memo: "" },
-                { id: "d4", name: "千葉南倉庫", prefecture: "千葉県", hours: 2.0, rules: [{ vt: "4tトラック", min: 30, mult: 0.25 }, { vt: "10tトラック", min: 30, mult: 0.30 }], memo: "現在使用停止" },
-              ].map(dest => (
-                <div key={dest.id} className="rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition-all">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-slate-900 text-sm">{dest.name}</p>
-                      <p className="text-xs text-slate-500">{dest.prefecture} · 標準 {dest.hours}h</p>
-                    </div>
-                    <button className="rounded p-1 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5 text-slate-400" /></button>
-                  </div>
-                  <div className="space-y-1 mb-2">
-                    {dest.rules.map((rule, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-slate-600">{rule.vt}</span>
-                        <span className="text-slate-500">{rule.min}分〜 <span className="font-semibold text-blue-700">×{rule.mult}</span></span>
-                      </div>
-                    ))}
-                  </div>
-                  {dest.memo && <p className="text-[11px] text-slate-400 border-t border-slate-100 pt-1.5">{dest.memo}</p>}
+            {/* 供給先別早出時間マスタ */}
+            <div className="mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-slate-500" />
+                    供給先別早出時間マスタ
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">供給先・分室ごとの早出時間（分）— 全{supplierEarlyData.length}件</p>
                 </div>
-              ))}
+                <button
+                  onClick={() => { setNewSupplierEarly({ supplierCode: 0, supplierName: "", subOfficeCode: 999, subOfficeName: "本所", earlyMinutes: 20, isActive: true, memo: "" }); setIsNewSupplierEarlyOpen(true); }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />新規登録
+                </button>
+              </div>
+
+              {/* 凡例 */}
+              <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-slate-400">早出：</span>
+                {[["10〜15分","bg-slate-100 text-slate-600 border-slate-200"],["20〜30分","bg-amber-100 text-amber-700 border-amber-200"],["40〜50分","bg-orange-100 text-orange-700 border-orange-200"],["60分","bg-red-100 text-red-700 border-red-200"]].map(([l,c]) => (
+                  <span key={l} className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${c}`}>{l}</span>
+                ))}
+              </div>
+
+              {/* 検索 */}
+              <div className="mb-3 relative max-w-sm">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="供給先名・分室名・コードで検索..."
+                  value={supplierEarlySearch}
+                  onChange={e => setSupplierEarlySearch(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <div className="rounded-xl border border-slate-200/60 overflow-clip bg-white">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 whitespace-nowrap cursor-pointer hover:text-blue-600 select-none" onClick={() => toggleSupplierEarlySort("supplierCode")}>
+                        コード {supplierEarlySortKey==="supplierCode" ? (supplierEarlySortAsc ? "↑" : "↓") : ""}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 whitespace-nowrap">供給先名</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 whitespace-nowrap">分室名</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap cursor-pointer hover:text-blue-600 select-none" onClick={() => toggleSupplierEarlySort("earlyMinutes")}>
+                        早出時間 {supplierEarlySortKey==="earlyMinutes" ? (supplierEarlySortAsc ? "↑" : "↓") : ""}
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 whitespace-nowrap">早出単価</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSupplierEarly.map((s, idx) => (
+                      <tr
+                        key={s.id}
+                        className={`border-b border-slate-100 last:border-0 cursor-pointer hover:bg-blue-50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}
+                        onClick={() => setEditingSupplierEarly({ ...s })}
+                      >
+                        <td className="px-4 py-2.5 font-mono text-xs font-semibold text-slate-500 whitespace-nowrap">{String(s.supplierCode).padStart(3,"0")}</td>
+                        <td className="px-4 py-2.5 font-medium text-slate-800 whitespace-nowrap">{s.supplierName}</td>
+                        <td className="px-4 py-2.5 text-sm text-slate-500 whitespace-nowrap">
+                          {s.subOfficeCode === 999
+                            ? <span className="text-xs text-slate-400">本所</span>
+                            : <span className="inline-flex items-center gap-1.5">
+                                <span className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-500">{s.subOfficeCode}</span>
+                                <span className="text-sm">{s.subOfficeName}</span>
+                              </span>
+                          }
+                        </td>
+                        <td className="px-4 py-2.5 text-center whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${earlyMinBadgeCls(s.earlyMinutes)}`}>
+                            <Clock className="h-3 w-3" />{s.earlyMinutes}分
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap font-mono font-semibold text-slate-700">
+                          ¥{s.unitPrice.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredSupplierEarly.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">該当する供給先が見つかりません</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-400">{filteredSupplierEarly.length} / {supplierEarlyData.length} 件表示</p>
             </div>
           </>
         )}
       </div>
+
+      {/* ── 供給先別早出時間 編集ダイアログ ── */}
+      <Dialog open={!!editingSupplierEarly} onOpenChange={o => !o && setEditingSupplierEarly(null)}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-500" />供給先を編集</DialogTitle>
+            <DialogDescription>早出時間・状態を編集して保存してください</DialogDescription>
+          </DialogHeader>
+          {editingSupplierEarly && (
+            <div className="grid gap-4 py-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>供給先コード</Label>
+                  <Input type="number" value={editingSupplierEarly.supplierCode} onChange={e => setEditingSupplierEarly(p => p ? { ...p, supplierCode: Number(e.target.value) } : p)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>供給先名</Label>
+                  <Input value={editingSupplierEarly.supplierName} onChange={e => setEditingSupplierEarly(p => p ? { ...p, supplierName: e.target.value } : p)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>分室コード</Label>
+                  <Input type="number" value={editingSupplierEarly.subOfficeCode} onChange={e => setEditingSupplierEarly(p => p ? { ...p, subOfficeCode: Number(e.target.value) } : p)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>分室名称</Label>
+                  <Input value={editingSupplierEarly.subOfficeName} onChange={e => setEditingSupplierEarly(p => p ? { ...p, subOfficeName: e.target.value } : p)} />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-slate-400" />早出時間（分）</Label>
+                <div className="relative">
+                  <Input type="number" min={0} step={5} value={editingSupplierEarly.earlyMinutes} onChange={e => setEditingSupplierEarly(p => p ? { ...p, earlyMinutes: Number(e.target.value) } : p)} className="pr-8" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">分</span>
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {[10,20,30,40,50,60].map(m => (
+                    <button key={m} type="button" onClick={() => setEditingSupplierEarly(p => p ? { ...p, earlyMinutes: m } : p)}
+                      className={`rounded px-2 py-0.5 text-xs border transition-colors ${editingSupplierEarly.earlyMinutes === m ? earlyMinBadgeCls(m) + " font-semibold" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                      {m}分
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>早出単価（円）</Label>
+                  <div className="relative">
+                    <Input type="number" min={0} step={100} value={editingSupplierEarly.unitPrice} onChange={e => setEditingSupplierEarly(p => p ? { ...p, unitPrice: Number(e.target.value) } : p)} className="pl-5" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">¥</span>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label>メモ</Label>
+                  <Input value={editingSupplierEarly.memo} onChange={e => setEditingSupplierEarly(p => p ? { ...p, memo: e.target.value } : p)} placeholder="任意" />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingSupplierEarly(null)}>キャンセル</Button>
+            <Button onClick={() => {
+              if (!editingSupplierEarly) return;
+              setSupplierEarlyData(prev => prev.map(s => s.id === editingSupplierEarly.id ? editingSupplierEarly : s));
+              setEditingSupplierEarly(null);
+            }}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 供給先別早出時間 新規登録ダイアログ ── */}
+      <Dialog open={isNewSupplierEarlyOpen} onOpenChange={o => !o && setIsNewSupplierEarlyOpen(false)}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-500" />供給先を新規登録</DialogTitle>
+            <DialogDescription>供給先コード・名称・早出時間を入力してください</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>供給先コード</Label>
+                <Input type="number" value={newSupplierEarly.supplierCode || ""} onChange={e => setNewSupplierEarly(p => ({ ...p, supplierCode: Number(e.target.value) }))} placeholder="例: 100" />
+              </div>
+              <div className="grid gap-2">
+                <Label>供給先名</Label>
+                <Input value={newSupplierEarly.supplierName} onChange={e => setNewSupplierEarly(p => ({ ...p, supplierName: e.target.value }))} placeholder="例: ○○清掃事務所" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>分室コード</Label>
+                <Input type="number" value={newSupplierEarly.subOfficeCode} onChange={e => setNewSupplierEarly(p => ({ ...p, subOfficeCode: Number(e.target.value) }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>分室名称</Label>
+                <Input value={newSupplierEarly.subOfficeName} onChange={e => setNewSupplierEarly(p => ({ ...p, subOfficeName: e.target.value }))} placeholder="例: 本所" />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-slate-400" />早出時間（分）</Label>
+              <div className="relative">
+                <Input type="number" min={0} step={5} value={newSupplierEarly.earlyMinutes} onChange={e => setNewSupplierEarly(p => ({ ...p, earlyMinutes: Number(e.target.value) }))} className="pr-8" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">分</span>
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {[10,20,30,40,50,60].map(m => (
+                  <button key={m} type="button" onClick={() => setNewSupplierEarly(p => ({ ...p, earlyMinutes: m }))}
+                    className={`rounded px-2 py-0.5 text-xs border transition-colors ${newSupplierEarly.earlyMinutes === m ? earlyMinBadgeCls(m) + " font-semibold" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                    {m}分
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>早出単価（円）</Label>
+                <div className="relative">
+                  <Input type="number" min={0} step={100} value={(newSupplierEarly as {unitPrice?: number}).unitPrice ?? 0} onChange={e => setNewSupplierEarly(p => ({ ...p, unitPrice: Number(e.target.value) }))} className="pl-5" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">¥</span>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>メモ</Label>
+                <Input value={newSupplierEarly.memo} onChange={e => setNewSupplierEarly(p => ({ ...p, memo: e.target.value }))} placeholder="任意" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewSupplierEarlyOpen(false)}>キャンセル</Button>
+            <Button onClick={() => {
+              const newId = Math.max(...supplierEarlyData.map(s => s.id)) + 1;
+              setSupplierEarlyData(prev => [...prev, { ...newSupplierEarly, unitPrice: (newSupplierEarly as {unitPrice?: number}).unitPrice ?? 0, id: newId }]);
+              setIsNewSupplierEarlyOpen(false);
+            }}>登録する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── アルバイト新規登録ダイアログ ── */}
       <Dialog open={partTimeNewOpen} onOpenChange={setPartTimeNewOpen}>

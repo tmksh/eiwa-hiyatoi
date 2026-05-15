@@ -34,7 +34,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
 
       <div
         className={`transition-all duration-300 ${
-          collapsed ? "lg:pl-14" : "lg:pl-64"
+          collapsed ? "lg:pl-14" : "lg:pl-[210px]"
         }`}
       >
         <Header

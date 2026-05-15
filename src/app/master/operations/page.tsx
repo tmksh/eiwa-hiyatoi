@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Search, MapPin, Clock, Percent, Truck } from "lucide-react";
+import { Plus, Pencil, Search, MapPin, Clock, Percent, Truck, Building2, ChevronUp, ChevronDown } from "lucide-react";
 
 const VEHICLE_TYPES = ["2tトラック", "4tトラック", "10tトラック", "大型トラック", "ウイングトラック"];
 
@@ -116,6 +116,82 @@ const mockDestinations: OperationDestination[] = [
     memo: "現在使用停止",
   },
 ];
+
+// ─── 供給先別早出時間マスタ ────────────────────────────────────────────────
+interface SupplierEarlyTime {
+  id: number;
+  supplierCode: number;
+  supplierName: string;
+  subOfficeCode: number;
+  subOfficeName: string;
+  earlyMinutes: number;
+  isActive: boolean;
+  memo: string;
+}
+
+const supplierEarlyTimeData: SupplierEarlyTime[] = [
+  { id:  1, supplierCode:   1, supplierName: "千代田清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id:  2, supplierCode:   5, supplierName: "みなと清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id:  3, supplierCode:   7, supplierName: "新宿清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id:  4, supplierCode:   8, supplierName: "新宿清掃事務所新宿東SS",        subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 10, isActive: true, memo: "" },
+  { id:  5, supplierCode:   9, supplierName: "文京清掃事務所",                subOfficeCode:  91, subOfficeName: "小石川リサイクル", earlyMinutes: 20, isActive: true, memo: "" },
+  { id:  6, supplierCode:   9, supplierName: "文京清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id:  7, supplierCode:  14, supplierName: "本所清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id:  8, supplierCode:  17, supplierName: "品川清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id:  9, supplierCode:  18, supplierName: "品川区清掃事務所 荏原庁舎",     subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 10, supplierCode:  20, supplierName: "蒲田清掃事務所(調布地区)",      subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 11, supplierCode:  24, supplierName: "目黒区清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 12, supplierCode:  25, supplierName: "世田谷清掃事務所",              subOfficeCode: 251, subOfficeName: "弦巻第一分室",  earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 13, supplierCode:  25, supplierName: "世田谷清掃事務所",              subOfficeCode: 252, subOfficeName: "弦巻第二分室",  earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 14, supplierCode:  25, supplierName: "世田谷清掃事務所",              subOfficeCode: 253, subOfficeName: "世田谷リサイクル", earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 15, supplierCode:  25, supplierName: "世田谷清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 16, supplierCode:  27, supplierName: "玉川清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 17, supplierCode:  28, supplierName: "渋谷清掃事務所",                subOfficeCode: 281, subOfficeName: "宇田川分室",    earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 18, supplierCode:  28, supplierName: "渋谷清掃事務所",                subOfficeCode: 282, subOfficeName: "代々木分室",    earlyMinutes: 10, isActive: true, memo: "" },
+  { id: 19, supplierCode:  28, supplierName: "渋谷清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 20, supplierCode:  32, supplierName: "豊島清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 21, supplierCode:  34, supplierName: "板橋東清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 22, supplierCode:  35, supplierName: "板橋西清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 23, supplierCode:  37, supplierName: "石神井清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 24, supplierCode:  38, supplierName: "蒲田清掃事務所(蒲田地区)",      subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 25, supplierCode:  39, supplierName: "足立西清掃事務所",              subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 50, isActive: true, memo: "" },
+  { id: 26, supplierCode:  45, supplierName: "中防処理施設管理事務所",        subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 27, supplierCode:  46, supplierName: "品川清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 28, supplierCode:  47, supplierName: "中防処理施設管理事務所(溶融）", subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 29, supplierCode:  49, supplierName: "大田清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 30, supplierCode:  51, supplierName: "練馬清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 31, supplierCode:  52, supplierName: "板橋清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 32, supplierCode:  53, supplierName: "足立清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 33, supplierCode:  54, supplierName: "葛飾清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 34, supplierCode:  56, supplierName: "北清掃工場",                    subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 35, supplierCode:  57, supplierName: "世田谷清掃工場",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 36, supplierCode:  58, supplierName: "千歳清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 37, supplierCode:  59, supplierName: "多摩川清掃工場",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 38, supplierCode:  60, supplierName: "大井清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 39, supplierCode:  61, supplierName: "新江東清掃工場",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 40, supplierCode:  63, supplierName: "大田清掃工場第一工場",          subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 41, supplierCode:  64, supplierName: "目黒清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 42, supplierCode:  65, supplierName: "光が丘清掃工場",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 43, supplierCode:  66, supplierName: "有明清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 44, supplierCode:  67, supplierName: "墨田清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 45, supplierCode:  68, supplierName: "港清掃工場",                    subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 40, isActive: true, memo: "" },
+  { id: 46, supplierCode:  69, supplierName: "豊島清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 47, supplierCode:  70, supplierName: "中央清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 60, isActive: true, memo: "" },
+  { id: 48, supplierCode:  71, supplierName: "渋谷清掃工場",                  subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 49, supplierCode:  87, supplierName: "世田谷清掃事務所（資源）",      subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 50, supplierCode:  89, supplierName: "玉川清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 30, isActive: true, memo: "" },
+  { id: 51, supplierCode:  91, supplierName: "渋谷清掃事務所",                subOfficeCode: 282, subOfficeName: "代々木分室",    earlyMinutes: 10, isActive: true, memo: "" },
+  { id: 52, supplierCode:  91, supplierName: "渋谷清掃事務所",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 20, isActive: true, memo: "" },
+  { id: 53, supplierCode: 460, supplierName: "杉並東破砕作業",                subOfficeCode: 999, subOfficeName: "本所",          earlyMinutes: 10, isActive: true, memo: "" },
+];
+
+// 早出時間バッジ色
+function earlyMinutesBadge(min: number) {
+  if (min >= 60) return "bg-red-100 text-red-700 border-red-200";
+  if (min >= 40) return "bg-orange-100 text-orange-700 border-orange-200";
+  if (min >= 20) return "bg-amber-100 text-amber-700 border-amber-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+}
 
 // ─── ルールエディタ（コンポーネント外で定義） ────────────────────────────
 function RuleEditor({
@@ -215,6 +291,40 @@ export default function OperationsPage() {
     { vehicleType: "4tトラック", thresholdMinutes: 30, multiplier: 0.25 },
   ]);
   const [editRules, setEditRules] = useState<EarlyDepartureRule[]>([]);
+
+  // 供給先早出時間マスタ
+  const [supplierData, setSupplierData] = useState<SupplierEarlyTime[]>(supplierEarlyTimeData);
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [supplierSortKey, setSupplierSortKey] = useState<"supplierCode" | "earlyMinutes">("supplierCode");
+  const [supplierSortAsc, setSupplierSortAsc] = useState(true);
+  const [editingSupplier, setEditingSupplier] = useState<SupplierEarlyTime | null>(null);
+  const [isNewSupplierOpen, setIsNewSupplierOpen] = useState(false);
+  const [newSupplier, setNewSupplier] = useState<Omit<SupplierEarlyTime, "id">>({
+    supplierCode: 0, supplierName: "", subOfficeCode: 999, subOfficeName: "本所", earlyMinutes: 20, isActive: true, memo: "",
+  });
+
+  const filteredSupplier = supplierData
+    .filter(s =>
+      s.supplierName.includes(supplierSearch) ||
+      s.subOfficeName.includes(supplierSearch) ||
+      String(s.supplierCode).includes(supplierSearch)
+    )
+    .sort((a, b) => {
+      const v = supplierSortAsc ? 1 : -1;
+      return (a[supplierSortKey] > b[supplierSortKey] ? 1 : -1) * v;
+    });
+
+  function toggleSupplierSort(key: typeof supplierSortKey) {
+    if (supplierSortKey === key) setSupplierSortAsc(p => !p);
+    else { setSupplierSortKey(key); setSupplierSortAsc(true); }
+  }
+
+  function SortIcon({ k }: { k: typeof supplierSortKey }) {
+    if (supplierSortKey !== k) return <ChevronUp className="h-3 w-3 text-slate-300" />;
+    return supplierSortAsc
+      ? <ChevronUp className="h-3 w-3 text-blue-500" />
+      : <ChevronDown className="h-3 w-3 text-blue-500" />;
+  }
 
   const filtered = mockDestinations.filter(
     (d) => d.name.includes(searchQuery) || d.prefecture.includes(searchQuery)
@@ -336,6 +446,112 @@ export default function OperationsPage() {
             <div className="mt-4 text-sm text-muted-foreground">全 {filtered.length} 件</div>
           </CardContent>
         </Card>
+
+        {/* ── 供給先別早出時間マスタ ── */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-slate-500" />
+                  供給先別早出時間マスタ
+                </CardTitle>
+                <CardDescription>供給先・分室ごとの早出時間（分）を管理します（全{supplierData.length}件）</CardDescription>
+              </div>
+              <Button onClick={() => { setNewSupplier({ supplierCode: 0, supplierName: "", subOfficeCode: 999, subOfficeName: "本所", earlyMinutes: 20, isActive: true, memo: "" }); setIsNewSupplierOpen(true); }}>
+                <Plus className="mr-2 h-4 w-4" />新規登録
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* 凡例 */}
+            <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-slate-500">早出時間：</span>
+              {[["10〜15分", "bg-slate-100 text-slate-600 border-slate-200"], ["20〜30分", "bg-amber-100 text-amber-700 border-amber-200"], ["40〜50分", "bg-orange-100 text-orange-700 border-orange-200"], ["60分", "bg-red-100 text-red-700 border-red-200"]].map(([label, cls]) => (
+                <span key={label} className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${cls}`}>{label}</span>
+              ))}
+            </div>
+            {/* 検索 */}
+            <div className="mb-4 relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="供給先名・分室名・コードで検索..."
+                value={supplierSearch}
+                onChange={(e) => setSupplierSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            {/* テーブル */}
+            <div className="rounded-xl border border-slate-200/70 overflow-clip">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th
+                      className="px-4 py-2.5 text-left text-xs font-medium text-slate-500 whitespace-nowrap cursor-pointer select-none hover:text-slate-700"
+                      onClick={() => toggleSupplierSort("supplierCode")}
+                    >
+                      <span className="inline-flex items-center gap-1">コード <SortIcon k="supplierCode" /></span>
+                    </th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-500 whitespace-nowrap">供給先名</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-500 whitespace-nowrap">分室</th>
+                    <th
+                      className="px-4 py-2.5 text-center text-xs font-medium text-slate-500 whitespace-nowrap cursor-pointer select-none hover:text-slate-700"
+                      onClick={() => toggleSupplierSort("earlyMinutes")}
+                    >
+                      <span className="inline-flex items-center gap-1">早出時間 <SortIcon k="earlyMinutes" /></span>
+                    </th>
+                    <th className="px-4 py-2.5 text-center text-xs font-medium text-slate-500 whitespace-nowrap">状態</th>
+                    <th className="px-4 py-2.5 text-right text-xs font-medium text-slate-500 whitespace-nowrap">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredSupplier.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="hover:bg-blue-50/30 transition-colors cursor-pointer"
+                      onClick={() => setEditingSupplier({ ...s })}
+                    >
+                      <td className="px-4 py-2.5 font-mono text-xs text-slate-500 whitespace-nowrap">{String(s.supplierCode).padStart(3, "0")}</td>
+                      <td className="px-4 py-2.5 font-medium text-slate-800 whitespace-nowrap">{s.supplierName}</td>
+                      <td className="px-4 py-2.5 text-slate-500 text-xs whitespace-nowrap">
+                        {s.subOfficeCode === 999 ? (
+                          <span className="text-slate-400">—</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-mono text-[10px] text-slate-400">{s.subOfficeCode}</span>
+                            <span>{s.subOfficeName}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${earlyMinutesBadge(s.earlyMinutes)}`}>
+                          <Clock className="h-3 w-3" />{s.earlyMinutes}分
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center whitespace-nowrap">
+                        <Badge variant={s.isActive ? "default" : "secondary"} className="text-[10px]">
+                          {s.isActive ? "有効" : "停止中"}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-2.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="rounded p-1 hover:bg-slate-100 transition-colors"
+                          onClick={() => setEditingSupplier({ ...s })}
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-slate-400" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredSupplier.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">該当する供給先が見つかりません</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 text-xs text-slate-400">{filteredSupplier.length} / {supplierData.length} 件表示</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── 詳細ポップアップ ── */}
@@ -450,6 +666,144 @@ export default function OperationsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={closeEdit}>キャンセル</Button>
             <Button onClick={closeEdit}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 供給先 編集ダイアログ ── */}
+      <Dialog open={!!editingSupplier} onOpenChange={(o) => !o && setEditingSupplier(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-slate-500" />
+              供給先を編集
+            </DialogTitle>
+            <DialogDescription>早出時間・状態を編集して保存してください</DialogDescription>
+          </DialogHeader>
+          {editingSupplier && (
+            <div className="grid gap-4 py-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>供給先コード</Label>
+                  <Input type="number" value={editingSupplier.supplierCode} onChange={e => setEditingSupplier(p => p ? { ...p, supplierCode: Number(e.target.value) } : p)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>供給先名</Label>
+                  <Input value={editingSupplier.supplierName} onChange={e => setEditingSupplier(p => p ? { ...p, supplierName: e.target.value } : p)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>分室コード</Label>
+                  <Input type="number" value={editingSupplier.subOfficeCode} onChange={e => setEditingSupplier(p => p ? { ...p, subOfficeCode: Number(e.target.value) } : p)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>分室名称</Label>
+                  <Input value={editingSupplier.subOfficeName} onChange={e => setEditingSupplier(p => p ? { ...p, subOfficeName: e.target.value } : p)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-slate-400" />早出時間（分）</Label>
+                  <div className="relative">
+                    <Input type="number" min={0} step={5} value={editingSupplier.earlyMinutes} onChange={e => setEditingSupplier(p => p ? { ...p, earlyMinutes: Number(e.target.value) } : p)} className="pr-8" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">分</span>
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {[10, 20, 30, 40, 50, 60].map(m => (
+                      <button key={m} type="button" onClick={() => setEditingSupplier(p => p ? { ...p, earlyMinutes: m } : p)}
+                        className={`rounded px-2 py-0.5 text-xs border transition-colors ${editingSupplier.earlyMinutes === m ? earlyMinutesBadge(m) + " font-semibold" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                        {m}分
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label>状態</Label>
+                  <Select value={editingSupplier.isActive ? "active" : "inactive"} onValueChange={v => setEditingSupplier(p => p ? { ...p, isActive: v === "active" } : p)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">有効</SelectItem>
+                      <SelectItem value="inactive">停止中</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>メモ</Label>
+                <Input value={editingSupplier.memo} onChange={e => setEditingSupplier(p => p ? { ...p, memo: e.target.value } : p)} placeholder="任意メモ" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingSupplier(null)}>キャンセル</Button>
+            <Button onClick={() => {
+              if (!editingSupplier) return;
+              setSupplierData(prev => prev.map(s => s.id === editingSupplier.id ? editingSupplier : s));
+              setEditingSupplier(null);
+            }}>保存する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 供給先 新規登録ダイアログ ── */}
+      <Dialog open={isNewSupplierOpen} onOpenChange={(o) => !o && setIsNewSupplierOpen(false)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-slate-500" />
+              供給先を新規登録
+            </DialogTitle>
+            <DialogDescription>供給先コード・名称・早出時間を入力してください</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>供給先コード</Label>
+                <Input type="number" value={newSupplier.supplierCode || ""} onChange={e => setNewSupplier(p => ({ ...p, supplierCode: Number(e.target.value) }))} placeholder="例: 100" />
+              </div>
+              <div className="grid gap-2">
+                <Label>供給先名</Label>
+                <Input value={newSupplier.supplierName} onChange={e => setNewSupplier(p => ({ ...p, supplierName: e.target.value }))} placeholder="例: ○○清掃事務所" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>分室コード</Label>
+                <Input type="number" value={newSupplier.subOfficeCode} onChange={e => setNewSupplier(p => ({ ...p, subOfficeCode: Number(e.target.value) }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>分室名称</Label>
+                <Input value={newSupplier.subOfficeName} onChange={e => setNewSupplier(p => ({ ...p, subOfficeName: e.target.value }))} placeholder="例: 本所" />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-slate-400" />早出時間（分）</Label>
+              <div className="relative">
+                <Input type="number" min={0} step={5} value={newSupplier.earlyMinutes} onChange={e => setNewSupplier(p => ({ ...p, earlyMinutes: Number(e.target.value) }))} className="pr-8" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">分</span>
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {[10, 20, 30, 40, 50, 60].map(m => (
+                  <button key={m} type="button" onClick={() => setNewSupplier(p => ({ ...p, earlyMinutes: m }))}
+                    className={`rounded px-2 py-0.5 text-xs border transition-colors ${newSupplier.earlyMinutes === m ? earlyMinutesBadge(m) + " font-semibold" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                    {m}分
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>メモ</Label>
+              <Input value={newSupplier.memo} onChange={e => setNewSupplier(p => ({ ...p, memo: e.target.value }))} placeholder="任意メモ" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewSupplierOpen(false)}>キャンセル</Button>
+            <Button onClick={() => {
+              const newId = Math.max(...supplierData.map(s => s.id)) + 1;
+              setSupplierData(prev => [...prev, { ...newSupplier, id: newId }]);
+              setIsNewSupplierOpen(false);
+            }}>登録する</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

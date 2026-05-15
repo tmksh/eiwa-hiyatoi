@@ -50,7 +50,7 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-50 flex flex-col glass-sidebar transition-all duration-300",
-        collapsed ? "w-14" : "w-64",
+        collapsed ? "w-14" : "w-[210px]",
         open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
@@ -75,7 +75,7 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
               </div>
               <div>
                 <h1 className="text-sm font-bold text-slate-800">賃金管理</h1>
-                <p className="text-[11px] text-slate-400">栄和清運株式会社</p>
+                <p className="text-[11px] text-slate-400 whitespace-nowrap">栄和清運株式会社</p>
               </div>
             </div>
             <button
@@ -121,9 +121,9 @@ export function Sidebar({ collapsed = false, onToggle, open = true, onClose }: S
                 )} />
                 {!collapsed && (
                   <>
-                    <span>{item.name}</span>
+                    <span className="whitespace-nowrap">{item.name}</span>
                     {active && (
-                      <ChevronRight className="ml-auto h-3.5 w-3.5 text-white/70" />
+                      <ChevronRight className="ml-auto shrink-0 h-3.5 w-3.5 text-white/70" />
                     )}
                   </>
                 )}

@@ -552,40 +552,69 @@ export default function CalculationsPage() {
     <MainLayout title="賃金・支払">
       <div className="space-y-6">
         {/* Main Tabs */}
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
-                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                  activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Sub Tabs（集計タブ時） */}
+          {activeTab === "集計" && (
+            <div className="flex items-center gap-1.5">
+              <svg className="h-3 w-3 text-slate-300 shrink-0" viewBox="0 0 12 12" fill="none">
+                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="flex gap-0.5 rounded-md bg-slate-100/60 border border-slate-200/60 p-0.5">
+                {(["personal","dispatch","vehicle"] as AggView[]).map((v) => (
+                  <button key={v} onClick={() => setView(v)}
+                    className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${view === v ? "bg-white text-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-500"}`}>
+                    {v === "personal" ? "個人別月別" : v === "dispatch" ? "供給元別" : "車種別"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sub Tabs（賃金タブ時のみ横並び） */}
+          {activeTab === "賃金" && (
+            <div className="flex items-center gap-1.5">
+              <svg className="h-3 w-3 text-slate-300 shrink-0" viewBox="0 0 12 12" fill="none">
+                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="flex gap-0.5 rounded-md bg-slate-100/60 border border-slate-200/60 p-0.5">
+                {([
+                  { sub: "計算結果" as PaymentSubTab, category: "計算" },
+                  { sub: "キャッシュマシン" as PaymentSubTab, category: "日雇" },
+                  { sub: "振込" as PaymentSubTab, category: "常勤" },
+                ] as const).map(({ sub, category }) => (
+                  <button
+                    key={sub}
+                    onClick={() => setPaymentSubTab(sub)}
+                    className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                      paymentSubTab === sub
+                        ? "bg-white text-slate-700 shadow-sm"
+                        : "text-slate-400 hover:text-slate-500"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Sub Tabs */}
         {activeTab === "賃金" && (
           <div className="space-y-2">
-            <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit">
-              {([
-                { sub: "計算結果" as PaymentSubTab, category: "計算" },
-                { sub: "キャッシュマシン" as PaymentSubTab, category: "日雇" },
-                { sub: "振込" as PaymentSubTab, category: "常勤" },
-              ] as const).map(({ sub, category }) => (
-                <button
-                  key={sub}
-                  onClick={() => setPaymentSubTab(sub)}
-                  className={`rounded-md px-3 py-1.5 transition-colors flex flex-col items-center gap-0 ${
-                    paymentSubTab === sub ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                >
-                  <span className="text-xs font-semibold leading-tight">{category}</span>
-                </button>
-              ))}
-            </div>
             {/* 集計期間セレクター */}
             {(paymentSubTab === "キャッシュマシン" || paymentSubTab === "振込") && (
               <div className="flex flex-wrap items-center gap-2">
@@ -1766,14 +1795,6 @@ export default function CalculationsPage() {
       {/* ===== 集計 Tab ===== */}
       {activeTab === "集計" && (
         <>
-          {/* ビュー切り替えタブ（メインタブ直下） */}
-          <div className="flex gap-1 rounded-xl bg-slate-100 p-1 w-fit flex-wrap">
-            {(["personal","dispatch","vehicle"] as AggView[]).map((v) => (
-              <button key={v} onClick={() => setView(v)} className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${view === v ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-                {v === "personal" ? "個人別月別" : v === "dispatch" ? "供給元別" : "車種別"}
-              </button>
-            ))}
-          </div>
           <div>
             <p className="text-sm text-slate-500">個人別月別・指定期間別・車種別集計</p>
           </div>

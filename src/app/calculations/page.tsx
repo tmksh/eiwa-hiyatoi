@@ -896,68 +896,66 @@ export default function CalculationsPage() {
                   socialCounts[w.socialInsuranceGrade] = (socialCounts[w.socialInsuranceGrade] ?? 0) + 1;
                   empCounts[w.employmentInsuranceGrade] = (empCounts[w.employmentInsuranceGrade] ?? 0) + 1;
                 });
-                const socialEntries = Object.entries(socialCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
+                // 健康保険: 一般（介護なし）/ 介護含（介護あり）に分割
+                const healthGeneral = Object.entries(socialCounts).filter(([g]) => !g.includes("介護あり")).sort(([a],[b]) => a.localeCompare(b,"ja"));
+                const healthNursing = Object.entries(socialCounts).filter(([g]) => g.includes("介護あり")).sort(([a],[b]) => a.localeCompare(b,"ja"));
                 const empEntries = Object.entries(empCounts).sort(([a], [b]) => a.localeCompare(b, "ja"));
-                const socialTotal = socialEntries.reduce((s, [, c]) => s + c, 0);
+                const genTotal = healthGeneral.reduce((s,[,c])=>s+c,0);
+                const nurTotal = healthNursing.reduce((s,[,c])=>s+c,0);
                 const empTotal = empEntries.reduce((s, [, c]) => s + c, 0);
+
+                // 等級ラベルから番号だけ抽出（例: "3等級（介護なし）" → "3等級"）
+                const shortGrade = (g: string) => g.replace(/（.*?）/, "").trim();
+
+                const ChipSection = ({
+                  title, total, entries, chipCls, headerCls, emptyDot,
+                }: {
+                  title: string; total: number; entries: [string,number][];
+                  chipCls: string; headerCls: string; emptyDot: string;
+                }) => (
+                  <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
+                    <div className={`flex items-center justify-between px-3 py-2 border-b border-slate-100 ${headerCls}`}>
+                      <span className="text-[11px] font-semibold tracking-wide">{title}</span>
+                      <span className="text-[11px] font-bold tabular-nums">
+                        {total}<span className="font-normal opacity-60 ml-0.5">枚</span>
+                      </span>
+                    </div>
+                    <div className="px-3 py-2.5 flex flex-wrap gap-1.5">
+                      {entries.length === 0 ? (
+                        <span className={`text-xs ${emptyDot}`}>—</span>
+                      ) : (
+                        entries.map(([g, c]) => (
+                          <div key={g} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border ${chipCls}`}>
+                            <span>{shortGrade(g)}</span>
+                            <span className="font-bold tabular-nums">{c}</span>
+                            <span className="opacity-50 text-[9px]">枚</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+
                 return (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* 健保等級 */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
-                          <span className="text-xs font-semibold text-slate-700">健保等級</span>
-                        </div>
-                        <span className="text-xs text-slate-400">合計 <span className="font-bold text-slate-700 tabular-nums">{socialTotal}</span> 名</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {socialEntries.map(([grade, count]) => {
-                          const hasNursing = grade.includes("介護あり");
-                          const pct = Math.round((count / socialTotal) * 100);
-                          return (
-                            <div key={grade}>
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span className={cn("text-[11px] font-medium", hasNursing ? "text-amber-700" : "text-slate-600")}>{grade}</span>
-                                <span className={cn("text-xs font-bold tabular-nums", hasNursing ? "text-amber-800" : "text-slate-800")}>{count}<span className="text-[10px] font-normal text-slate-400 ml-0.5">名</span></span>
-                              </div>
-                              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                                <div
-                                  className={cn("h-full rounded-full transition-all", hasNursing ? "bg-amber-400" : "bg-slate-300")}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    {/* 雇保種別 */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="inline-block h-2 w-2 rounded-full bg-blue-400" />
-                          <span className="text-xs font-semibold text-slate-700">雇保種別</span>
-                        </div>
-                        <span className="text-xs text-slate-400">合計 <span className="font-bold text-slate-700 tabular-nums">{empTotal}</span> 名</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {empEntries.map(([grade, count]) => {
-                          const pct = Math.round((count / empTotal) * 100);
-                          return (
-                            <div key={grade}>
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span className="text-[11px] font-medium text-blue-700">{grade}</span>
-                                <span className="text-xs font-bold tabular-nums text-blue-800">{count}<span className="text-[10px] font-normal text-blue-400 ml-0.5">名</span></span>
-                              </div>
-                              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                                <div className="h-full rounded-full bg-blue-300 transition-all" style={{ width: `${pct}%` }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <ChipSection
+                      title="健康保険（一般）" total={genTotal} entries={healthGeneral}
+                      headerCls="bg-slate-50 text-slate-600"
+                      chipCls="bg-slate-50 border-slate-200 text-slate-700"
+                      emptyDot="text-slate-300"
+                    />
+                    <ChipSection
+                      title="健康保険（介護含）" total={nurTotal} entries={healthNursing}
+                      headerCls="bg-amber-50 text-amber-700"
+                      chipCls="bg-amber-50 border-amber-200 text-amber-800"
+                      emptyDot="text-amber-200"
+                    />
+                    <ChipSection
+                      title="雇用保険" total={empTotal} entries={empEntries}
+                      headerCls="bg-blue-50 text-blue-700"
+                      chipCls="bg-blue-50 border-blue-200 text-blue-800"
+                      emptyDot="text-blue-200"
+                    />
                   </div>
                 );
               })()}

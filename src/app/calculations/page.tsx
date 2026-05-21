@@ -878,7 +878,7 @@ export default function CalculationsPage() {
                             ) : <span className="text-slate-300">—</span>;
                           })()}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-slate-600">
+                        <TableCell className="whitespace-nowrap text-xs text-blue-700">
                           {workerInsuranceMap[result.workerName]?.employmentInsuranceGrade ?? (
                             <span className="text-slate-300">—</span>
                           )}

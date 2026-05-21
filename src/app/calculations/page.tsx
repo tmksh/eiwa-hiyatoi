@@ -37,7 +37,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { StatusBadge, Status } from "@/components/ui/status-badge";
+import { Status } from "@/components/ui/status-badge";
 import {
   Dialog,
   DialogContent,
@@ -719,7 +719,7 @@ export default function CalculationsPage() {
               {/* 日雇/常勤/繰越 チェックボックスフィルター */}
               <div className="mb-3 flex items-center gap-4">
                 {([
-                  { type: "日雇" as const, bg: "bg-rose-500", border: "border-rose-500", text: "text-rose-600" },
+                  { type: "日雇" as const, bg: "bg-sky-500", border: "border-sky-500", text: "text-sky-600" },
                   { type: "常勤" as const, bg: "bg-violet-500", border: "border-violet-500", text: "text-violet-600" },
                   { type: "繰越" as const, bg: "bg-orange-500", border: "border-orange-500", text: "text-orange-600" },
                 ]).map(({ type, bg, border, text }) => {
@@ -805,7 +805,7 @@ export default function CalculationsPage() {
               )}
               <div className="rounded-md border overflow-auto max-h-[440px]">
                 <table className="w-full caption-bottom text-sm">
-                  <TableHeader className="sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)] [&_th]:bg-white">
+                  <TableHeader className="sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)] [&_th]:bg-slate-50 [&_th]:text-xs [&_th]:font-medium [&_th]:text-slate-500">
                     <TableRow>
                       <TableHead className="w-[50px]">
                         <Checkbox checked={selectedIds.length === filteredResults.length && filteredResults.length > 0} onCheckedChange={handleSelectAll} />
@@ -824,10 +824,16 @@ export default function CalculationsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredResults.map((result) => (
+                    {filteredResults.map((result) => {
+                      const workerNameCls =
+                        result.workerType === "日雇" ? "font-medium text-sky-600"
+                        : result.workerType === "常勤" ? "font-medium text-violet-600"
+                        : result.workerType === "繰越" ? "font-medium text-orange-600"
+                        : "font-medium text-slate-800";
+                      return (
                       <TableRow
                         key={result.id}
-                        className={cn("cursor-pointer", result.hasWarning && "bg-blue-50")}
+                        className="cursor-pointer hover:bg-slate-50/80"
                         onClick={() => {
                           setSelectedEditId(result.id);
                           setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
@@ -845,49 +851,50 @@ export default function CalculationsPage() {
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox checked={selectedIds.includes(result.id)} onCheckedChange={(checked) => handleSelect(result.id, checked as boolean)} />
                         </TableCell>
-                        <TableCell><StatusBadge status={result.status} /></TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{result.workerName}</span>
-                            {result.workerType === "常勤" && (
-                              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-violet-500 text-[9px] font-bold text-violet-600 leading-none">常</span>
-                            )}
-                            {result.hasWarning && <AlertTriangle className="h-4 w-4 text-blue-500" />}
-                          </div>
-                          {result.hasWarning && <p className="text-xs text-blue-600">{result.warningMessage}</p>}
+                        <TableCell className="whitespace-nowrap">
+                          <span className={cn(
+                            "text-xs",
+                            result.status === "confirmed" ? "text-slate-500" : "text-slate-700"
+                          )}>
+                            {result.status === "confirmed" ? "暫定" : "計算済み"}
+                          </span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
+                          <span className={workerNameCls}>{result.workerName}</span>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-xs text-slate-600">
                           {(() => {
                             const w = workerInsuranceMap[result.workerName];
                             return w ? (
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${w.socialInsuranceGrade.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>
-                                {w.socialInsuranceGrade}
-                              </span>
-                            ) : <span className="text-slate-300 text-xs">—</span>;
+                              w.socialInsuranceGrade.includes("介護あり") ? (
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                                  {w.socialInsuranceGrade}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-transparent text-amber-700 ring-1 ring-amber-200">
+                                  {w.socialInsuranceGrade}
+                                </span>
+                              )
+                            ) : <span className="text-slate-300">—</span>;
                           })()}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {(() => {
-                            const w = workerInsuranceMap[result.workerName];
-                            return w ? (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">
-                                {w.employmentInsuranceGrade}
-                              </span>
-                            ) : <span className="text-slate-300 text-xs">—</span>;
-                          })()}
+                        <TableCell className="whitespace-nowrap text-xs text-slate-600">
+                          {workerInsuranceMap[result.workerName]?.employmentInsuranceGrade ?? (
+                            <span className="text-slate-300">—</span>
+                          )}
                         </TableCell>
-                        <TableCell>{result.company}</TableCell>
-                        <TableCell>{result.vehicleType}</TableCell>
-                        <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">{formatCurrency(result.baseWage)}</TableCell>
+                        <TableCell className="text-slate-600 whitespace-nowrap">{result.company}</TableCell>
+                        <TableCell className="text-slate-600 whitespace-nowrap">{result.vehicleType}</TableCell>
+                        <TableCell className="text-right font-mono tabular-nums text-slate-800 whitespace-nowrap">{formatCurrency(result.baseWage)}</TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                          {result.overtimeWage > 0 ? <span className="text-blue-700">{formatCurrency(result.overtimeWage)}</span> : <span className="text-slate-300">—</span>}
+                          {result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : <span className="text-slate-300">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                          {result.weeklyOvertimeWage > 0 ? <span className="text-amber-700">{formatCurrency(result.weeklyOvertimeWage)}</span> : <span className="text-slate-300">—</span>}
+                          {result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : <span className="text-slate-300">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <button
-                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-blue-50 transition-colors"
+                            className="inline-flex items-center gap-0.5 text-xs hover:underline text-slate-500"
                             onClick={() => {
                               setSelectedEditId(result.id);
                               setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
@@ -903,15 +910,15 @@ export default function CalculationsPage() {
                             }}
                           >
                             {result.adjustment > 0 ? (
-                              <span className="text-slate-600 font-mono">+{formatCurrency(result.adjustment)}</span>
+                              <>+{formatCurrency(result.adjustment)}</>
                             ) : (
-                              <span className="text-blue-400 flex items-center gap-0.5"><Plus className="h-3 w-3" />追加</span>
+                              <>+ 追加</>
                             )}
                           </button>
                         </TableCell>
-                        <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
+                        <TableCell className="text-right font-mono font-semibold tabular-nums text-slate-900 whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
                       </TableRow>
-                    ))}
+                    );})}
                   </TableBody>
                 </table>
               </div>

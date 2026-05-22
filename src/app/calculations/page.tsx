@@ -96,16 +96,16 @@ interface CalculationResult {
 }
 
 const mockResults = [
-  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "A運輸", vehicleType: "4t", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 2.5, weeklyOvertimeHours: 1.0, baseWage: 11000, overtimeWage: 3750, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 16250, status: "confirmed" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "A運輸", vehicleType: "2t", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 2, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 2800, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12800, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "B物流", vehicleType: "10t", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 4.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 6750, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 23500, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "A運輸", vehicleType: "4t", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 3, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 4200, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 16300, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "6", workDate: new Date("2024-01-28"), workerName: "伊藤 健太", company: "A運輸", vehicleType: "4t", startTime: "08:00", endTime: "18:00", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 1500, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "7", workDate: new Date("2024-01-28"), workerName: "渡辺 翼", company: "B物流", vehicleType: "10t", startTime: "05:30", endTime: "19:00", workHours: 12, overtimeHours: 4, weeklyOvertimeHours: 2, baseWage: 13000, overtimeWage: 6000, weeklyOvertimeWage: 3000, adjustment: 0, adjustReason: "", totalWage: 22000, status: "calculated" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "8", workDate: new Date("2024-01-28"), workerName: "中村 拓也", company: "C配送", vehicleType: "2t", startTime: "09:00", endTime: "20:00", workHours: 10, overtimeHours: 2, weeklyOvertimeHours: 1, baseWage: 10000, overtimeWage: 2800, weeklyOvertimeWage: 1400, adjustment: 0, adjustReason: "", totalWage: 14200, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "9", workDate: new Date("2024-01-28"), workerName: "小林 未来", company: "A運輸", vehicleType: "4t", startTime: "07:30", endTime: "17:00", workHours: 8.5, overtimeHours: 0.5, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 750, weeklyOvertimeWage: 0, adjustment: 1000, adjustReason: "応援対応", totalWage: 12750, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "10", workDate: new Date("2024-01-28"), workerName: "加藤 真理", company: "D輸送", vehicleType: "2t", startTime: "08:30", endTime: "18:30", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1400, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11400, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "千代田清掃事務所第一分室", vehicleType: "0402", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 1.5, weeklyOvertimeHours: 1.0, baseWage: 11000, overtimeWage: 2000, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 14500, status: "confirmed" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "千代田清掃事務所", vehicleType: "0201", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1950, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11950, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "品川区清掃事務所", vehicleType: "1005", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 1.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 2100, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 18850, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "千代田清掃事務所", vehicleType: "0401", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "目黒区清掃事務所", vehicleType: "0203", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 1.5, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 1950, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 14050, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "6", workDate: new Date("2024-01-28"), workerName: "伊藤 健太", company: "千代田清掃事務所", vehicleType: "401", startTime: "08:00", endTime: "18:00", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 1500, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "7", workDate: new Date("2024-01-28"), workerName: "渡辺 翼", company: "品川区清掃事務所", vehicleType: "1010", startTime: "05:30", endTime: "19:00", workHours: 12, overtimeHours: 1.5, weeklyOvertimeHours: 2, baseWage: 13000, overtimeWage: 2050, weeklyOvertimeWage: 3000, adjustment: 0, adjustReason: "", totalWage: 18050, status: "calculated" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "8", workDate: new Date("2024-01-28"), workerName: "中村 拓也", company: "目黒区清掃事務所", vehicleType: "0202", startTime: "09:00", endTime: "20:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 2050, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12050, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "9", workDate: new Date("2024-01-28"), workerName: "小林 未来", company: "千代田清掃事務所", vehicleType: "0403", startTime: "07:30", endTime: "17:00", workHours: 8.5, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 2000, weeklyOvertimeWage: 0, adjustment: 1000, adjustReason: "応援対応", totalWage: 14000, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "10", workDate: new Date("2024-01-28"), workerName: "加藤 真理", company: "栄和清運株式会社", vehicleType: "201", startTime: "08:30", endTime: "18:30", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1400, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11400, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
 ];
 
 function formatCurrency(value: number): string {
@@ -203,6 +203,71 @@ const workerStampMap: Record<string, { grade: string; empGrade: string }> = {
   "小林 未来": { grade: "2級", empGrade: "第2種(146円)" },
   "加藤 真理": { grade: "3級", empGrade: "第1種(176円)" },
 };
+
+const workerTypeMap: Record<string, "日雇" | "常勤" | "繰越"> = {
+  "山田 太郎": "常勤",
+  "鈴木 一郎": "日雇",
+  "佐藤 花子": "常勤",
+  "高橋 健二": "日雇",
+  "田中 美咲": "常勤",
+  "伊藤 健太": "日雇",
+  "渡辺 翼": "常勤",
+  "中村 拓也": "日雇",
+  "小林 未来": "常勤",
+  "加藤 真理": "日雇",
+};
+
+function workerNameColorCls(workerType?: "日雇" | "常勤" | "繰越") {
+  return workerType === "日雇" ? "font-medium text-sky-600"
+    : workerType === "常勤" ? "font-medium text-violet-600"
+    : workerType === "繰越" ? "font-medium text-orange-600"
+    : "font-medium text-slate-800";
+}
+
+function paymentWorkerNameColorCls(subTab: PaymentSubTab) {
+  if (subTab === "キャッシュマシン") return "font-medium text-sky-600";
+  if (subTab === "振込") return "font-medium text-violet-600";
+  return "font-medium text-slate-800";
+}
+
+type CalcPeriodType = "day" | "3day" | "week" | "month" | "custom";
+
+function truncateDisplayText(text: string, maxLen = 8) {
+  return text.length > maxLen ? `${text.slice(0, maxLen)}...` : text;
+}
+
+function getSelectedPeriodLabel(
+  calcPeriodType: CalcPeriodType,
+  dates: {
+    day?: Date;
+    threeDay?: Date;
+    week?: Date;
+    month?: Date;
+    customFrom?: Date;
+    customTo?: Date;
+  },
+): string {
+  switch (calcPeriodType) {
+    case "day":
+      return dates.day ? format(dates.day, "yyyy年M月d日") : "—";
+    case "3day":
+      return dates.threeDay
+        ? `${format(dates.threeDay, "yyyy/MM/dd")} 〜 ${format(new Date(dates.threeDay.getTime() + 2 * 86400000), "MM/dd")}`
+        : "—";
+    case "week":
+      return dates.week
+        ? `${format(dates.week, "yyyy/MM/dd")} 〜 ${format(new Date(dates.week.getTime() + 6 * 86400000), "MM/dd")}`
+        : "—";
+    case "month":
+      return dates.month ? format(dates.month, "yyyy年M月") : "—";
+    case "custom":
+      if (dates.customFrom && dates.customTo) {
+        return `${format(dates.customFrom, "yyyy/MM/dd")} 〜 ${format(dates.customTo, "yyyy/MM/dd")}`;
+      }
+      if (dates.customFrom) return `${format(dates.customFrom, "yyyy/MM/dd")} 〜`;
+      return "—";
+  }
+}
 
 function calcDenom(amount: number) {
   const man = Math.floor(amount / 10000);
@@ -326,11 +391,11 @@ const mockWorkerDetail = [
   { name: "三浦 瑞",     destination: "クリーン労働組合",     vehicleType: "作業員", days: 1, dailyRate: 13700, total: 13700 },
 ];
 const vehicleUtilization = [
-  { vehicleNumber: "品川 100 あ 1234", vehicleType: "4t",  workDays: 20, totalDays: 22, hours: 185.5, maxHours: 220, trips: 42 },
-  { vehicleNumber: "品川 200 い 5678", vehicleType: "10t", workDays: 22, totalDays: 22, hours: 220.0, maxHours: 220, trips: 65 },
-  { vehicleNumber: "品川 300 う 9012", vehicleType: "2t",  workDays: 18, totalDays: 22, hours: 144.0, maxHours: 220, trips: 25 },
-  { vehicleNumber: "品川 100 え 3456", vehicleType: "4t",  workDays: 19, totalDays: 22, hours: 171.0, maxHours: 220, trips: 38 },
-  { vehicleNumber: "品川 200 お 7890", vehicleType: "10t", workDays: 21, totalDays: 22, hours: 210.0, maxHours: 220, trips: 60 },
+  { vehicleNumber: "品川 100 あ 1234", vehicleType: "0402",  workDays: 20, totalDays: 22, hours: 185.5, maxHours: 220, trips: 42 },
+  { vehicleNumber: "品川 200 い 5678", vehicleType: "1005", workDays: 22, totalDays: 22, hours: 220.0, maxHours: 220, trips: 65 },
+  { vehicleNumber: "品川 300 う 9012", vehicleType: "0201",  workDays: 18, totalDays: 22, hours: 144.0, maxHours: 220, trips: 25 },
+  { vehicleNumber: "品川 100 え 3456", vehicleType: "0402",  workDays: 19, totalDays: 22, hours: 171.0, maxHours: 220, trips: 38 },
+  { vehicleNumber: "品川 200 お 7890", vehicleType: "1005", workDays: 21, totalDays: 22, hours: 210.0, maxHours: 220, trips: 60 },
 ];
 const driverUtilization = [
   { name: "山田 太郎", employeeNo: "E001", workDays: 22, totalDays: 22, hours: 198.0, trips: 45, overtime: 18.0 },
@@ -520,15 +585,23 @@ export default function CalculationsPage() {
   });
 
   // 期間タイプに応じて金額・稼働日数を調整した表示用データ
-  const periodDays: Record<typeof calcPeriodType, number> = { day: 1, "3day": 3, week: 7, month: 30, custom: 30 };
-  const periodLabel: Record<typeof calcPeriodType, string> = { day: "日払い", "3day": "3日払い", week: "週払い", month: "月払い", custom: "任意期間" };
+  const periodDays: Record<CalcPeriodType, number> = { day: 1, "3day": 3, week: 7, month: 30, custom: 30 };
+  const selectedPeriodLabel = getSelectedPeriodLabel(calcPeriodType, {
+    day: periodDateDay,
+    threeDay: periodDate3day,
+    week: periodDateWeek,
+    month: periodDateMonth,
+    customFrom: periodDateCustomFrom,
+    customTo: periodDateCustomTo,
+  });
   const adjustedPayment = filteredPayment.map((row) => {
-    if (calcPeriodType === "month") return row;
+    const withPeriod = { ...row, period: selectedPeriodLabel };
+    if (calcPeriodType === "month") return withPeriod;
     const days = periodDays[calcPeriodType];
     const ratio = days / 30;
     const workDays = Math.max(1, Math.round(row.totalWork * ratio));
     return {
-      ...row,
+      ...withPeriod,
       totalWork: workDays,
       dailyWage: Math.round(row.dailyWage * ratio),
       overtimeWage: Math.round(row.overtimeWage * ratio),
@@ -536,7 +609,6 @@ export default function CalculationsPage() {
       grossPay: Math.round(row.grossPay * ratio),
       deductions: Math.round(row.deductions * ratio),
       netPay: Math.round(row.netPay * ratio),
-      period: `${row.period}（${periodLabel[calcPeriodType]}）`,
     };
   });
   const filteredTransfers = transfersData.filter((row) => row.name.includes(transferSearch) || row.bank.includes(transferSearch));
@@ -784,7 +856,7 @@ export default function CalculationsPage() {
                   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
                   doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
                   doc.setFontSize(9);
-                  const headers = ["氏名", "会社", "車種", "基本日当", "残業", "週40h割増", "特別手当", "合計", "状態"];
+                  const headers = ["氏名", "会社", "車種コード", "基本日当", "残業", "週40h割増", "特別手当", "合計", "状態"];
                   headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
                   filteredResults.forEach((r, j) => {
                     const y = 32 + j * 7;
@@ -815,7 +887,7 @@ export default function CalculationsPage() {
                       <TableHead className="whitespace-nowrap">健保等級</TableHead>
                       <TableHead className="whitespace-nowrap">雇保種別</TableHead>
                       <TableHead className="whitespace-nowrap">会社</TableHead>
-                      <TableHead className="whitespace-nowrap">車種</TableHead>
+                      <TableHead className="whitespace-nowrap">車種コード</TableHead>
                       <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">残業</TableHead>
                       <TableHead className="text-right whitespace-nowrap">週40h割増</TableHead>
@@ -825,11 +897,7 @@ export default function CalculationsPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredResults.map((result) => {
-                      const workerNameCls =
-                        result.workerType === "日雇" ? "font-medium text-sky-600"
-                        : result.workerType === "常勤" ? "font-medium text-violet-600"
-                        : result.workerType === "繰越" ? "font-medium text-orange-600"
-                        : "font-medium text-slate-800";
+                      const workerNameCls = workerNameColorCls(result.workerType);
                       return (
                       <TableRow
                         key={result.id}
@@ -867,11 +935,11 @@ export default function CalculationsPage() {
                             const w = workerInsuranceMap[result.workerName];
                             return w ? (
                               w.socialInsuranceGrade.includes("介護あり") ? (
-                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-slate-200 text-slate-800 ring-1 ring-slate-300">
                                   {w.socialInsuranceGrade}
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-transparent text-amber-700 ring-1 ring-amber-200">
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-transparent text-slate-600 ring-1 ring-slate-200">
                                   {w.socialInsuranceGrade}
                                 </span>
                               )
@@ -883,7 +951,9 @@ export default function CalculationsPage() {
                             <span className="text-slate-300">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-slate-600 whitespace-nowrap">{result.company}</TableCell>
+                        <TableCell className="text-slate-600 whitespace-nowrap" title={result.company.length > 8 ? result.company : undefined}>
+                          {truncateDisplayText(result.company)}
+                        </TableCell>
                         <TableCell className="text-slate-600 whitespace-nowrap">{result.vehicleType}</TableCell>
                         <TableCell className="text-right font-mono tabular-nums text-slate-800 whitespace-nowrap">{formatCurrency(result.baseWage)}</TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
@@ -916,7 +986,7 @@ export default function CalculationsPage() {
                             )}
                           </button>
                         </TableCell>
-                        <TableCell className="text-right font-mono font-semibold tabular-nums text-slate-900 whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
+                        <TableCell className="text-right font-mono font-semibold tabular-nums text-blue-700 whitespace-nowrap">{formatCurrency(result.totalWage)}</TableCell>
                       </TableRow>
                     );})}
                   </TableBody>
@@ -977,14 +1047,14 @@ export default function CalculationsPage() {
                     <ChipSection
                       title="健康保険（一般）" total={genTotal} entries={healthGeneral}
                       headerCls="bg-slate-50 text-slate-600"
-                      chipCls="bg-slate-50 border-slate-200 text-slate-700"
+                      chipCls="bg-transparent border-slate-200 text-slate-600"
                       emptyDot="text-slate-300"
                     />
                     <ChipSection
                       title="健康保険（介護含）" total={nurTotal} entries={healthNursing}
-                      headerCls="bg-amber-50 text-amber-700"
-                      chipCls="bg-amber-50 border-amber-200 text-amber-800"
-                      emptyDot="text-amber-200"
+                      headerCls="bg-slate-200 text-slate-800"
+                      chipCls="bg-slate-200 border-slate-300 text-slate-800"
+                      emptyDot="text-slate-300"
                     />
                     <ChipSection
                       title="雇用保険" total={empTotal} entries={empEntries}
@@ -1506,57 +1576,6 @@ export default function CalculationsPage() {
               }, {} as Record<string, number>);
               return (
                 <div className="space-y-3">
-                  {/* 印紙管理 サマリー */}
-                  <div className="rounded-xl border border-slate-200/60 bg-white p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex items-center rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">印紙管理</span>
-                      <span className="text-xs text-slate-500">各等級ごとの配付枚数</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
-                        <p className="text-[11px] font-medium text-slate-500 mb-2">健保等級</p>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.keys(gradeCounts).length === 0 ? (
-                            <span className="text-xs text-slate-300">—</span>
-                          ) : (
-                            Object.entries(gradeCounts)
-                              .sort(([a], [b]) => a.localeCompare(b))
-                              .map(([g, n]) => (
-                                <span key={g} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                                  {g}
-                                  <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
-                                </span>
-                              ))
-                          )}
-                        </div>
-                      </div>
-                      <div className="hidden sm:block w-px bg-slate-200" />
-                      <div className="flex-1">
-                        <p className="text-[11px] font-medium text-slate-500 mb-2">雇保種別</p>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.keys(empGradeCounts).length === 0 ? (
-                            <span className="text-xs text-slate-300">—</span>
-                          ) : (
-                            Object.entries(empGradeCounts)
-                              .sort(([a], [b]) => a.localeCompare(b))
-                              .map(([g, n]) => {
-                                const cls = g === "第1種(176円)"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : g === "第2種(146円)"
-                                  ? "bg-amber-50 text-amber-700"
-                                  : "bg-slate-100 text-slate-600";
-                                return (
-                                  <span key={g} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>
-                                    {g}
-                                    <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
-                                  </span>
-                                );
-                              })
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -1587,20 +1606,14 @@ export default function CalculationsPage() {
                                 checked={selectedPaymentIds.includes(row.id)}
                                 onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
                             </td>
-                            <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{row.name}</td>
+                            <td className={cn("px-3 py-3 whitespace-nowrap", paymentWorkerNameColorCls("キャッシュマシン"))}>{row.name}</td>
                             <td className="px-3 py-3 whitespace-nowrap">
                               {row.grade !== "—" ? (
-                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{row.grade}</span>
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{row.grade}</span>
                               ) : <span className="text-slate-300 text-xs">—</span>}
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap">
-                              {row.empGrade !== "—" ? (
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                  row.empGrade === "第1種(176円)" ? "bg-emerald-50 text-emerald-700"
-                                  : row.empGrade === "第2種(146円)" ? "bg-amber-50 text-amber-700"
-                                  : "bg-slate-100 text-slate-600"
-                                }`}>{row.empGrade}</span>
-                              ) : <span className="text-slate-300 text-xs">—</span>}
+                            <td className="px-3 py-3 whitespace-nowrap text-xs text-blue-700">
+                              {row.empGrade !== "—" ? row.empGrade : <span className="text-slate-300">—</span>}
                             </td>
                             {DENOMS.map(([, key]) => (
                               <td key={key} className="px-2 py-3 text-right tabular-nums whitespace-nowrap">
@@ -1714,6 +1727,50 @@ export default function CalculationsPage() {
                     </table>
                   </div>
                 </div>
+                  {/* 印紙管理 サマリー */}
+                  <div className="rounded-xl border border-slate-200/60 bg-white p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center rounded-md bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-600">印紙管理</span>
+                      <span className="text-xs text-slate-500">各等級ごとの配付枚数</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1">
+                        <p className="text-[11px] font-medium text-slate-500 mb-2">健保等級</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.keys(gradeCounts).length === 0 ? (
+                            <span className="text-xs text-slate-300">—</span>
+                          ) : (
+                            Object.entries(gradeCounts)
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([g, n]) => (
+                                <span key={g} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                  {g}
+                                  <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
+                                </span>
+                              ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="hidden sm:block w-px bg-slate-200" />
+                      <div className="flex-1">
+                        <p className="text-[11px] font-medium text-slate-500 mb-2">雇保種別</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.keys(empGradeCounts).length === 0 ? (
+                            <span className="text-xs text-slate-300">—</span>
+                          ) : (
+                            Object.entries(empGradeCounts)
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([g, n]) => (
+                                  <span key={g} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                    {g}
+                                    <span className="rounded bg-white/70 px-1 text-[10px] font-semibold tabular-nums">{n}枚</span>
+                                  </span>
+                              ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })()}
@@ -1739,7 +1796,7 @@ export default function CalculationsPage() {
                               checked={selectedPaymentIds.length === rows.length && rows.length > 0}
                               onChange={(e) => setSelectedPaymentIds(e.target.checked ? rows.map(r => r.id) : [])} />
                           </th>
-                          {[["氏名","left"],["対象期間","left"],["日当合計","right"],["残業手当","right"],["特別手当","right"],["総計","right"],["振込ステータス","left"],["PDF","left"]].map(([h, align]) => (
+                          {[["氏名","left"],["日当合計","right"],["残業手当","right"],["特別手当","right"],["総計","right"],["振込ステータス","left"],["PDF","left"]].map(([h, align]) => (
                             <th key={h} className={`px-3 py-3 text-xs font-medium text-slate-500 whitespace-nowrap text-${align}`}>{h}</th>
                           ))}
                         </tr>
@@ -1753,12 +1810,11 @@ export default function CalculationsPage() {
                                 checked={selectedPaymentIds.includes(row.id)}
                                 onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
                             </td>
-                            <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{row.name}</td>
-                            <td className="px-3 py-3 text-slate-500 whitespace-nowrap text-xs">{row.period}</td>
+                            <td className={cn("px-3 py-3 whitespace-nowrap", paymentWorkerNameColorCls("振込"))}>{row.name}</td>
                             <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-slate-800">¥{row.dailyWage.toLocaleString()}</td>
-                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-blue-700">¥{row.overtimeWage.toLocaleString()}</td>
-                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-amber-700">¥{row.specialAllowance.toLocaleString()}</td>
-                            <td className="px-3 py-3 text-right font-mono font-bold tabular-nums whitespace-nowrap text-slate-900">¥{row.netPay.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-slate-900">¥{row.overtimeWage.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono tabular-nums whitespace-nowrap text-slate-900">¥{row.specialAllowance.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-right font-mono font-bold tabular-nums whitespace-nowrap text-blue-700">¥{row.netPay.toLocaleString()}</td>
                             <td className="px-3 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.fbStatus === "生成済" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}>{row.fbStatus}</span>
                             </td>
@@ -1781,11 +1837,10 @@ export default function CalculationsPage() {
                         <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
                           <td className="px-3 py-3" />
                           <td className="px-3 py-3 text-xs font-bold text-slate-600">合計</td>
-                          <td />
                           <td className="px-3 py-3 text-right font-mono font-bold text-slate-800 tabular-nums">¥{totalDaily.toLocaleString()}</td>
-                          <td className="px-3 py-3 text-right font-mono font-bold text-blue-700 tabular-nums">¥{totalOT.toLocaleString()}</td>
-                          <td className="px-3 py-3 text-right font-mono font-bold text-amber-700 tabular-nums">¥{totalSpecial.toLocaleString()}</td>
-                          <td className="px-3 py-3 text-right font-mono font-bold text-slate-900 tabular-nums">¥{totalNet.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-slate-900 tabular-nums">¥{totalOT.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-slate-900 tabular-nums">¥{totalSpecial.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-right font-mono font-bold text-blue-700 tabular-nums">¥{totalNet.toLocaleString()}</td>
                           <td colSpan={2} />
                         </tr>
                       </tbody>

@@ -95,17 +95,32 @@ interface CalculationResult {
   errors: { workerName: string; reason: string }[];
 }
 
+type PaymentCycle = "day" | "3day" | "week" | "month";
+
+const vehicleAbbrevMap: Record<string, string> = {
+  "0402": "コプレ", "0201": "2t", "1005": "10t", "0401": "4t", "0203": "2t",
+  "401": "4t", "1010": "10t", "0202": "2t", "0403": "4t", "201": "2t",
+};
+
+function vehicleAbbrev(code: string) {
+  return vehicleAbbrevMap[code] ?? code;
+}
+
+function formatGradeLabel(grade: string) {
+  return grade.replace(/（/g, "(").replace(/）/g, ")");
+}
+
 const mockResults = [
-  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "千代田清掃事務所第一分室", vehicleType: "0402", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 1.5, weeklyOvertimeHours: 1.0, baseWage: 11000, overtimeWage: 2000, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 14500, status: "confirmed" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "千代田清掃事務所", vehicleType: "0201", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1950, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11950, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "品川区清掃事務所", vehicleType: "1005", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 1.5, weeklyOvertimeHours: 2.5, baseWage: 13000, overtimeWage: 2100, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 18850, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "千代田清掃事務所", vehicleType: "0401", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "目黒区清掃事務所", vehicleType: "0203", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 1.5, weeklyOvertimeHours: 1.5, baseWage: 10000, overtimeWage: 1950, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 14050, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "6", workDate: new Date("2024-01-28"), workerName: "伊藤 健太", company: "千代田清掃事務所", vehicleType: "401", startTime: "08:00", endTime: "18:00", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 1500, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12500, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "7", workDate: new Date("2024-01-28"), workerName: "渡辺 翼", company: "品川区清掃事務所", vehicleType: "1010", startTime: "05:30", endTime: "19:00", workHours: 12, overtimeHours: 1.5, weeklyOvertimeHours: 2, baseWage: 13000, overtimeWage: 2050, weeklyOvertimeWage: 3000, adjustment: 0, adjustReason: "", totalWage: 18050, status: "calculated" as Status, hasWarning: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "8", workDate: new Date("2024-01-28"), workerName: "中村 拓也", company: "目黒区清掃事務所", vehicleType: "0202", startTime: "09:00", endTime: "20:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 2050, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12050, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
-  { id: "9", workDate: new Date("2024-01-28"), workerName: "小林 未来", company: "千代田清掃事務所", vehicleType: "0403", startTime: "07:30", endTime: "17:00", workHours: 8.5, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 11000, overtimeWage: 2000, weeklyOvertimeWage: 0, adjustment: 1000, adjustReason: "応援対応", totalWage: 14000, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", workerType: "常勤" as "日雇" | "常勤" | "繰越" },
-  { id: "10", workDate: new Date("2024-01-28"), workerName: "加藤 真理", company: "栄和清運株式会社", vehicleType: "201", startTime: "08:30", endTime: "18:30", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 10000, overtimeWage: 1400, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11400, status: "confirmed" as Status, hasWarning: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "1", workDate: new Date("2024-01-28"), workerName: "山田 太郎", company: "新運転", vehicleType: "0402", startTime: "08:00", endTime: "19:30", workHours: 10.5, overtimeHours: 1.5, weeklyOvertimeHours: 1.0, baseWage: 11000, earlyOvertimeWage: 800, overtimeWage: 2000, weeklyOvertimeWage: 1500, adjustment: 0, adjustReason: "", totalWage: 14500, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "2", workDate: new Date("2024-01-28"), workerName: "鈴木 一郎", company: "クリーン労働組合", vehicleType: "0201", startTime: "07:00", endTime: "18:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, earlyOvertimeWage: 650, overtimeWage: 1950, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11950, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "3", workDate: new Date("2024-01-28"), workerName: "佐藤 花子", company: "直雇用", vehicleType: "1005", startTime: "06:00", endTime: "20:00", workHours: 12.5, overtimeHours: 1.5, weeklyOvertimeHours: 2.5, baseWage: 13000, earlyOvertimeWage: 700, overtimeWage: 2100, weeklyOvertimeWage: 3750, adjustment: 0, adjustReason: "", totalWage: 18850, status: "calculated" as Status, hasWarning: true, warningMessage: "拘束14時間超", gradeChanged: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "4", workDate: new Date("2024-01-28"), workerName: "高橋 健二", company: "クリーン労働組合", vehicleType: "0401", startTime: "08:30", endTime: "17:30", workHours: 8, overtimeHours: 0, weeklyOvertimeHours: 0, baseWage: 11000, earlyOvertimeWage: 0, overtimeWage: 0, weeklyOvertimeWage: 0, adjustment: 500, adjustReason: "途中帰宅・特例対応", totalWage: 11500, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "5", workDate: new Date("2024-01-28"), workerName: "田中 美咲", company: "新運転", vehicleType: "0203", startTime: "09:00", endTime: "21:00", workHours: 11, overtimeHours: 1.5, weeklyOvertimeHours: 1.5, baseWage: 10000, earlyOvertimeWage: 650, overtimeWage: 1950, weeklyOvertimeWage: 2100, adjustment: 0, adjustReason: "", totalWage: 14050, status: "calculated" as Status, hasWarning: true, warningMessage: "健保等級変動", gradeChanged: true, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "6", workDate: new Date("2024-01-28"), workerName: "伊藤 健太", company: "クリーン労働組合", vehicleType: "401", startTime: "08:00", endTime: "18:00", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 11000, earlyOvertimeWage: 500, overtimeWage: 1500, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12500, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "7", workDate: new Date("2024-01-28"), workerName: "渡辺 翼", company: "直雇用", vehicleType: "1010", startTime: "05:30", endTime: "19:00", workHours: 12, overtimeHours: 1.5, weeklyOvertimeHours: 2, baseWage: 13000, earlyOvertimeWage: 680, overtimeWage: 2050, weeklyOvertimeWage: 3000, adjustment: 0, adjustReason: "", totalWage: 18050, status: "calculated" as Status, hasWarning: false, gradeChanged: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "8", workDate: new Date("2024-01-28"), workerName: "中村 拓也", company: "新運転", vehicleType: "0202", startTime: "09:00", endTime: "20:00", workHours: 10, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 10000, earlyOvertimeWage: 680, overtimeWage: 2050, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 12050, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
+  { id: "9", workDate: new Date("2024-01-28"), workerName: "小林 未来", company: "クリーン労働組合", vehicleType: "0403", startTime: "07:30", endTime: "17:00", workHours: 8.5, overtimeHours: 1.5, weeklyOvertimeHours: 0, baseWage: 11000, earlyOvertimeWage: 667, overtimeWage: 2000, weeklyOvertimeWage: 0, adjustment: 1000, adjustReason: "応援対応", totalWage: 14000, status: "calculated" as Status, hasWarning: true, warningMessage: "手動調整あり", gradeChanged: false, workerType: "常勤" as "日雇" | "常勤" | "繰越" },
+  { id: "10", workDate: new Date("2024-01-28"), workerName: "加藤 真理", company: "直雇用", vehicleType: "201", startTime: "08:30", endTime: "18:30", workHours: 9, overtimeHours: 1, weeklyOvertimeHours: 0, baseWage: 10000, earlyOvertimeWage: 467, overtimeWage: 1400, weeklyOvertimeWage: 0, adjustment: 0, adjustReason: "", totalWage: 11400, status: "confirmed" as Status, hasWarning: false, gradeChanged: false, workerType: "日雇" as "日雇" | "常勤" | "繰越" },
 ];
 
 function formatCurrency(value: number): string {
@@ -153,11 +168,11 @@ const PAYMENT_SUBTABS = ["計算結果", "キャッシュマシン", "振込"] a
 type PaymentSubTab = (typeof PAYMENT_SUBTABS)[number];
 
 const paymentData = [
-  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, dailyWage: 242000, overtimeWage: 46000, specialAllowance: 20000, grossPay: 308000, deductions: 46200, netPay: 261800, status: "確定", paymentMethod: "キャッシュマシン" },
-  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, dailyWage: 220000, overtimeWage: 30000, specialAllowance: 10000, grossPay: 260000, deductions: 39000, netPay: 221000, status: "確定", paymentMethod: "キャッシュマシン" },
-  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, dailyWage: 276000, overtimeWage: 52000, specialAllowance: 17000, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中", paymentMethod: "振り込み" },
-  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, dailyWage: 198000, overtimeWage: 28000, specialAllowance: 8000, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中", paymentMethod: "振り込み" },
-  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, dailyWage: 231000, overtimeWage: 14000, specialAllowance: 7000, grossPay: 252000, deductions: 37800, netPay: 214200, status: "確定", paymentMethod: "キャッシュマシン" },
+  { id: 1, name: "山田 太郎", period: "2024年1月", totalWork: 22, dailyWage: 242000, overtimeWage: 46000, specialAllowance: 20000, grossPay: 308000, deductions: 46200, netPay: 8727, status: "確定", paymentMethod: "キャッシュマシン", paymentCycle: "day" as PaymentCycle, payDueToday: true },
+  { id: 2, name: "鈴木 一郎", period: "2024年1月", totalWork: 20, dailyWage: 220000, overtimeWage: 30000, specialAllowance: 10000, grossPay: 260000, deductions: 39000, netPay: 7367, status: "確定", paymentMethod: "キャッシュマシン", paymentCycle: "week" as PaymentCycle, payDueToday: false },
+  { id: 3, name: "佐藤 花子", period: "2024年1月", totalWork: 23, dailyWage: 276000, overtimeWage: 52000, specialAllowance: 17000, grossPay: 345000, deductions: 51750, netPay: 293250, status: "確認中", paymentMethod: "振り込み", paymentCycle: "month" as PaymentCycle, payDueToday: false },
+  { id: 4, name: "高橋 健二", period: "2024年1月", totalWork: 18, dailyWage: 198000, overtimeWage: 28000, specialAllowance: 8000, grossPay: 234000, deductions: 35100, netPay: 198900, status: "確認中", paymentMethod: "振り込み", paymentCycle: "month" as PaymentCycle, payDueToday: false },
+  { id: 5, name: "田中 美咲", period: "2024年1月", totalWork: 21, dailyWage: 231000, overtimeWage: 14000, specialAllowance: 7000, grossPay: 252000, deductions: 37800, netPay: 7140, status: "確定", paymentMethod: "キャッシュマシン", paymentCycle: "day" as PaymentCycle, payDueToday: true },
 ];
 
 const transfersData = [
@@ -168,11 +183,11 @@ const transfersData = [
 ];
 
 const denominationData = [
-  { id: 1, name: "山田 太郎", netPay: 261800, man: 26, gosen: 0, sen: 1, gohyaku: 1, hyaku: 3, goju: 0, ju: 0, go: 0, ichi: 0, status: "支払済み", updatedAt: "2024/01/31 18:23" },
-  { id: 2, name: "鈴木 一郎", netPay: 221000, man: 22, gosen: 0, sen: 1, gohyaku: 0, hyaku: 0, goju: 0, ju: 0, go: 0, ichi: 0, status: "支払済み", updatedAt: "2024/01/31 18:23" },
+  { id: 1, name: "山田 太郎", netPay: 8727, man: 0, gosen: 1, sen: 3, gohyaku: 1, hyaku: 2, goju: 0, ju: 2, go: 1, ichi: 2, status: "支払済み", updatedAt: "2024/01/31 18:23" },
+  { id: 2, name: "鈴木 一郎", netPay: 7367, man: 0, gosen: 1, sen: 2, gohyaku: 0, hyaku: 3, goju: 1, ju: 1, go: 1, ichi: 2, status: "支払済み", updatedAt: "2024/01/31 18:23" },
   { id: 3, name: "佐藤 花子", netPay: 293250, man: 29, gosen: 0, sen: 3, gohyaku: 0, hyaku: 2, goju: 1, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/30 14:05" },
   { id: 4, name: "高橋 健二", netPay: 198900, man: 19, gosen: 1, sen: 3, gohyaku: 1, hyaku: 4, goju: 0, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/30 14:05" },
-  { id: 5, name: "田中 美咲", netPay: 214200, man: 21, gosen: 0, sen: 4, gohyaku: 0, hyaku: 2, goju: 0, ju: 0, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/29 09:41" },
+  { id: 5, name: "田中 美咲", netPay: 7140, man: 0, gosen: 1, sen: 2, gohyaku: 0, hyaku: 1, goju: 0, ju: 4, go: 0, ichi: 0, status: "報酬確定", updatedAt: "2024/01/29 09:41" },
 ];
 
 const denomTotals = { netPay: 974950, man: 96, gosen: 1, sen: 8, gohyaku: 2, hyaku: 9, goju: 1, ju: 0, go: 0, ichi: 0 };
@@ -218,15 +233,15 @@ const workerTypeMap: Record<string, "日雇" | "常勤" | "繰越"> = {
 };
 
 function workerNameColorCls(workerType?: "日雇" | "常勤" | "繰越") {
-  return workerType === "日雇" ? "font-medium text-sky-600"
-    : workerType === "常勤" ? "font-medium text-violet-600"
-    : workerType === "繰越" ? "font-medium text-orange-600"
+  return workerType === "日雇" ? "font-semibold text-blue-700"
+    : workerType === "常勤" ? "font-semibold text-amber-600"
+    : workerType === "繰越" ? "font-semibold text-amber-700"
     : "font-medium text-slate-800";
 }
 
 function paymentWorkerNameColorCls(subTab: PaymentSubTab) {
-  if (subTab === "キャッシュマシン") return "font-medium text-sky-600";
-  if (subTab === "振込") return "font-medium text-violet-600";
+  if (subTab === "キャッシュマシン") return "font-semibold text-blue-700";
+  if (subTab === "振込") return "font-semibold text-amber-600";
   return "font-medium text-slate-800";
 }
 
@@ -462,6 +477,11 @@ export default function CalculationsPage() {
   const [periodDateCustomTo, setPeriodDateCustomTo] = useState<Date | undefined>(undefined);
   const [periodCalOpen, setPeriodCalOpen] = useState<Record<string, boolean>>({});
   const [selectedPaymentIds, setSelectedPaymentIds] = useState<number[]>([]);
+  const [paymentCycleFilter, setPaymentCycleFilter] = useState<PaymentCycle | "all">("all");
+  const [forcePaymentIds, setForcePaymentIds] = useState<Set<number>>(new Set());
+  const [overtimeBreakdownOpen, setOvertimeBreakdownOpen] = useState<Record<string, boolean>>({});
+  const [stampChangeDialog, setStampChangeDialog] = useState<{ workerName: string; oldGrade: string; newGrade: string } | null>(null);
+  const [confirmedResultIds, setConfirmedResultIds] = useState<Set<string>>(new Set());
 
   // 集計・分析 states
   const [aggSearchQuery, setAggSearchQuery] = useState("");
@@ -537,6 +557,38 @@ export default function CalculationsPage() {
 
   const handleConfirmSelected = () => {
     if (selectedIds.length === 0) { toast.error("確定する項目を選択してください"); return; }
+    const selected = mockResults.filter(r => selectedIds.includes(r.id));
+    const dayLaborers = selected.filter(r => r.workerType === "日雇");
+    const others = selected.filter(r => r.workerType !== "日雇");
+
+    if (dayLaborers.length === 1 && others.length === 0) {
+      const worker = dayLaborers[0];
+      setConfirmedResultIds(prev => new Set([...prev, worker.id]));
+      if (worker.gradeChanged) {
+        const w = workerInsuranceMap[worker.workerName];
+        setStampChangeDialog({
+          workerName: worker.workerName,
+          oldGrade: w?.socialInsuranceGrade ?? "—",
+          newGrade: "7等級(介護なし)",
+        });
+      }
+      toast.success(`${worker.workerName}を確定しました`);
+      setSelectedIds([]);
+      setPaymentSubTab("キャッシュマシン");
+      return;
+    }
+
+    selected.forEach(r => {
+      if (r.gradeChanged) {
+        const w = workerInsuranceMap[r.workerName];
+        setStampChangeDialog({
+          workerName: r.workerName,
+          oldGrade: w?.socialInsuranceGrade ?? "—",
+          newGrade: "7等級(介護なし)",
+        });
+      }
+    });
+    setConfirmedResultIds(prev => new Set([...prev, ...selected.map(r => r.id)]));
     toast.success(`${selectedIds.length}件を確定しました`);
     setSelectedIds([]);
   };
@@ -581,8 +633,12 @@ export default function CalculationsPage() {
     const matchesSearch = row.name.includes(paymentSearch);
     const matchesMonth = !monthFilter || row.period.includes(monthFilter.replace("-", "年").replace(/(\d{2})$/, "$1月"));
     const matchesTab = paymentSubTab === "キャッシュマシン" ? row.paymentMethod === "キャッシュマシン" : paymentSubTab === "振込" ? row.paymentMethod === "振り込み" : true;
-    return matchesSearch && (monthFilter ? matchesMonth : true) && matchesTab;
+    const matchesCycle = paymentCycleFilter === "all" || row.paymentCycle === paymentCycleFilter;
+    return matchesSearch && (monthFilter ? matchesMonth : true) && matchesTab && matchesCycle;
   });
+
+  const isPaymentPayable = (row: typeof paymentData[0]) =>
+    row.payDueToday || forcePaymentIds.has(row.id);
 
   // 期間タイプに応じて金額・稼働日数を調整した表示用データ
   const periodDays: Record<CalcPeriodType, number> = { day: 1, "3day": 3, week: 7, month: 30, custom: 30 };
@@ -696,6 +752,13 @@ export default function CalculationsPage() {
                     <button key={val} onClick={() => setCalcPeriodType(val)} className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${calcPeriodType === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
                   ))}
                 </div>
+                <span className="text-xs text-slate-300">|</span>
+                <span className="text-xs text-slate-500 font-medium">サイクル絞込</span>
+                <div className="flex gap-1 rounded-lg bg-slate-50 border border-slate-200 p-1 w-fit flex-wrap">
+                  {([["all","すべて"],["day","日払い"],["3day","3日払い"],["week","週払い"],["month","月払い"]] as const).map(([val, label]) => (
+                    <button key={val} onClick={() => setPaymentCycleFilter(val)} className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${paymentCycleFilter === val ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>{label}</button>
+                  ))}
+                </div>
                 {/* 日払い：単日選択 */}
                 {calcPeriodType === "day" && (
                   <Popover open={periodCalOpen["day"]} onOpenChange={(o) => setPeriodCalOpen(p => ({...p, day: o}))}>
@@ -791,9 +854,9 @@ export default function CalculationsPage() {
               {/* 日雇/常勤/繰越 チェックボックスフィルター */}
               <div className="mb-3 flex items-center gap-4">
                 {([
-                  { type: "日雇" as const, bg: "bg-sky-500", border: "border-sky-500", text: "text-sky-600" },
-                  { type: "常勤" as const, bg: "bg-violet-500", border: "border-violet-500", text: "text-violet-600" },
-                  { type: "繰越" as const, bg: "bg-orange-500", border: "border-orange-500", text: "text-orange-600" },
+                  { type: "日雇" as const, bg: "bg-blue-600", border: "border-blue-600", text: "text-blue-700" },
+                  { type: "常勤" as const, bg: "bg-amber-500", border: "border-amber-500", text: "text-amber-600" },
+                  { type: "繰越" as const, bg: "bg-amber-600", border: "border-amber-600", text: "text-amber-700" },
                 ]).map(({ type, bg, border, text }) => {
                   const isChecked = workerTypeFilter.has(type);
                   return (
@@ -841,7 +904,7 @@ export default function CalculationsPage() {
                 </Popover>
                 <div className="relative flex-1 min-w-0 sm:max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="作業員名・会社名で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+                  <Input placeholder="作業員名・所属名で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="ステータス" /></SelectTrigger>
@@ -856,12 +919,12 @@ export default function CalculationsPage() {
                   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
                   doc.setFontSize(14); doc.text("計算結果一覧", 148, 15, { align: "center" });
                   doc.setFontSize(9);
-                  const headers = ["氏名", "会社", "車種コード", "基本日当", "残業", "週40h割増", "特別手当", "合計", "状態"];
+                  const headers = ["氏名", "所属", "車両", "基本日当", "残業", "週40h割増", "特別手当", "合計", "状態"];
                   headers.forEach((h, i) => doc.text(h, 10 + i * 30, 25));
                   filteredResults.forEach((r, j) => {
                     const y = 32 + j * 7;
                     if (y > 195) return;
-                    [r.workerName, r.company, r.vehicleType, `¥${r.baseWage.toLocaleString()}`, `¥${r.overtimeWage.toLocaleString()}`, `¥${r.weeklyOvertimeWage.toLocaleString()}`, r.adjustment ? `¥${r.adjustment.toLocaleString()}` : "—", `¥${r.totalWage.toLocaleString()}`, r.status === "confirmed" ? "暫定" : "計算済み"].forEach((v, i) => doc.text(String(v), 10 + i * 30, y));
+                    [r.workerName, r.company, vehicleAbbrev(r.vehicleType), `¥${r.baseWage.toLocaleString()}`, `¥${r.overtimeWage.toLocaleString()}`, `¥${r.weeklyOvertimeWage.toLocaleString()}`, r.adjustment ? `${r.adjustment >= 0 ? "+" : ""}¥${r.adjustment.toLocaleString()}` : "—", `¥${r.totalWage.toLocaleString()}`, r.status === "confirmed" ? "暫定" : "計算済み"].forEach((v, i) => doc.text(String(v), 10 + i * 30, y));
                   });
                   doc.save("計算結果一覧.pdf");
                 }} className="w-full sm:w-auto">
@@ -871,8 +934,11 @@ export default function CalculationsPage() {
               {selectedIds.length > 0 && (
                 <div className="mb-4 flex items-center gap-2 rounded-lg bg-muted p-3">
                   <span className="text-sm font-medium">{selectedIds.length}件選択中</span>
-                  <Button size="sm" onClick={handleConfirmSelected}><CheckCircle className="mr-2 h-4 w-4" />一括確定</Button>
+                  <Button size="sm" onClick={handleConfirmSelected}><CheckCircle className="mr-2 h-4 w-4" />{selectedIds.length === 1 ? "確定" : "一括確定"}</Button>
                   <Button size="sm" variant="outline" onClick={handleRecalculateSelected}><RefreshCw className="mr-2 h-4 w-4" />再計算</Button>
+                  {selectedIds.length === 1 && (
+                    <span className="text-xs text-slate-500">日雇は1件ずつ確定→日雇タブへ遷移</span>
+                  )}
                 </div>
               )}
               <div className="rounded-md border overflow-auto max-h-[440px]">
@@ -886,8 +952,8 @@ export default function CalculationsPage() {
                       <TableHead className="whitespace-nowrap">氏名</TableHead>
                       <TableHead className="whitespace-nowrap">健保等級</TableHead>
                       <TableHead className="whitespace-nowrap">雇保種別</TableHead>
-                      <TableHead className="whitespace-nowrap">会社</TableHead>
-                      <TableHead className="whitespace-nowrap">車種コード</TableHead>
+                      <TableHead className="whitespace-nowrap">所属</TableHead>
+                      <TableHead className="whitespace-nowrap">車両</TableHead>
                       <TableHead className="text-right whitespace-nowrap">基本日当</TableHead>
                       <TableHead className="text-right whitespace-nowrap">残業</TableHead>
                       <TableHead className="text-right whitespace-nowrap">週40h割増</TableHead>
@@ -901,10 +967,13 @@ export default function CalculationsPage() {
                       return (
                       <TableRow
                         key={result.id}
-                        className="cursor-pointer hover:bg-slate-50/80"
+                        className={cn(
+                          "cursor-pointer hover:bg-slate-50/80",
+                          result.gradeChanged && result.status === "calculated" && "bg-red-50/60"
+                        )}
                         onClick={() => {
                           setSelectedEditId(result.id);
-                          setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
+                          setEditAdjustAmount(result.adjustment !== 0 ? String(result.adjustment) : "");
                           setEditAdjustReason(result.adjustReason || "");
                           setEditAllowances([]);
                           setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 });
@@ -928,19 +997,23 @@ export default function CalculationsPage() {
                           </span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <span className={workerNameCls}>{result.workerName}</span>
+                          <span className={cn(workerNameCls, result.gradeChanged && result.status === "calculated" && "text-red-700")}>{result.workerName}</span>
+                          {result.gradeChanged && result.status === "calculated" && (
+                            <span className="ml-1.5 inline-flex items-center rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700">等級変動</span>
+                          )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-xs text-slate-600">
                           {(() => {
                             const w = workerInsuranceMap[result.workerName];
-                            return w ? (
-                              w.socialInsuranceGrade.includes("介護あり") ? (
+                            const label = w ? formatGradeLabel(w.socialInsuranceGrade) : null;
+                            return label ? (
+                              label.includes("介護あり") ? (
                                 <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-slate-200 text-slate-800 ring-1 ring-slate-300">
-                                  {w.socialInsuranceGrade}
+                                  {label}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center rounded-full px-2 py-0.5 font-medium bg-transparent text-slate-600 ring-1 ring-slate-200">
-                                  {w.socialInsuranceGrade}
+                                  {label}
                                 </span>
                               )
                             ) : <span className="text-slate-300">—</span>;
@@ -951,13 +1024,28 @@ export default function CalculationsPage() {
                             <span className="text-slate-300">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-slate-600 whitespace-nowrap" title={result.company.length > 8 ? result.company : undefined}>
-                          {truncateDisplayText(result.company)}
-                        </TableCell>
-                        <TableCell className="text-slate-600 whitespace-nowrap">{result.vehicleType}</TableCell>
+                        <TableCell className="text-slate-700 whitespace-nowrap text-xs font-medium">{result.company}</TableCell>
+                        <TableCell className="text-slate-700 whitespace-nowrap text-xs font-medium">{vehicleAbbrev(result.vehicleType)}</TableCell>
                         <TableCell className="text-right font-mono tabular-nums text-slate-800 whitespace-nowrap">{formatCurrency(result.baseWage)}</TableCell>
-                        <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                          {result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : <span className="text-slate-300">—</span>}
+                        <TableCell className="text-right font-mono tabular-nums whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          {result.overtimeWage > 0 ? (
+                            <div className="inline-flex flex-col items-end gap-0.5">
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-0.5 text-xs hover:underline text-slate-700"
+                                onClick={() => setOvertimeBreakdownOpen(prev => ({ ...prev, [result.id]: !prev[result.id] }))}
+                              >
+                                {formatCurrency(result.overtimeWage)}
+                                <span className="text-[10px] text-slate-400">{overtimeBreakdownOpen[result.id] ? "▲" : "▼"}</span>
+                              </button>
+                              {overtimeBreakdownOpen[result.id] && (
+                                <div className="text-[10px] text-slate-500 text-right space-y-0.5">
+                                  <div>早出 {formatCurrency(result.earlyOvertimeWage ?? 0)}</div>
+                                  <div>残業 {formatCurrency(result.overtimeWage - (result.earlyOvertimeWage ?? 0))}</div>
+                                </div>
+                              )}
+                            </div>
+                          ) : <span className="text-slate-300">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
                           {result.weeklyOvertimeWage > 0 ? formatCurrency(result.weeklyOvertimeWage) : <span className="text-slate-300">—</span>}
@@ -967,7 +1055,7 @@ export default function CalculationsPage() {
                             className="inline-flex items-center gap-0.5 text-xs hover:underline text-slate-500"
                             onClick={() => {
                               setSelectedEditId(result.id);
-                              setEditAdjustAmount(result.adjustment > 0 ? String(result.adjustment) : "");
+                              setEditAdjustAmount(result.adjustment !== 0 ? String(result.adjustment) : "");
                               setEditAdjustReason(result.adjustReason || "");
                               setEditAllowances([]);
                               setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 });
@@ -979,8 +1067,8 @@ export default function CalculationsPage() {
                               setEditKurikoshi(restored);
                             }}
                           >
-                            {result.adjustment > 0 ? (
-                              <>+{formatCurrency(result.adjustment)}</>
+                            {result.adjustment !== 0 ? (
+                              <>{result.adjustment > 0 ? "+" : ""}{formatCurrency(result.adjustment)}</>
                             ) : (
                               <>+ 追加</>
                             )}
@@ -1177,7 +1265,7 @@ export default function CalculationsPage() {
                 <DialogHeader>
                   <DialogTitle>{result.workerName} — 賃金調整</DialogTitle>
                   <DialogDescription>
-                    {format(result.workDate, "yyyy/MM/dd")} · {result.company} · {result.vehicleType}
+                    {format(result.workDate, "yyyy/MM/dd")} · {result.company} · {vehicleAbbrev(result.vehicleType)}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-2">
@@ -1188,6 +1276,15 @@ export default function CalculationsPage() {
                     <div className="flex justify-between items-center text-slate-600">
                       <div className="flex items-center gap-1.5">
                         <span>残業手当</span>
+                        {result.overtimeWage > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setOvertimeBreakdownOpen(prev => ({ ...prev, [`dlg-${result.id}`]: !prev[`dlg-${result.id}`] }))}
+                            className="text-[10px] text-slate-400 hover:text-slate-600"
+                          >
+                            {overtimeBreakdownOpen[`dlg-${result.id}`] ? "▲" : "▼"}
+                          </button>
+                        )}
                         {result.overtimeWage > 0 && (
                           <button
                             type="button"
@@ -1203,9 +1300,17 @@ export default function CalculationsPage() {
                           </button>
                         )}
                       </div>
-                      <span className={cn("font-mono tabular-nums", editKurikoshi.has("overtime") ? "text-slate-300 line-through" : "text-blue-700")}>
-                        {result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : "—"}
-                      </span>
+                      <div className="text-right">
+                        <span className={cn("font-mono tabular-nums block", editKurikoshi.has("overtime") ? "text-slate-300 line-through" : "text-blue-700")}>
+                          {result.overtimeWage > 0 ? formatCurrency(result.overtimeWage) : "—"}
+                        </span>
+                        {overtimeBreakdownOpen[`dlg-${result.id}`] && result.overtimeWage > 0 && (
+                          <div className="text-[10px] text-slate-500 mt-0.5">
+                            <div>早出 {formatCurrency(result.earlyOvertimeWage ?? 0)}</div>
+                            <div>残業 {formatCurrency(result.overtimeWage - (result.earlyOvertimeWage ?? 0))}</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-between items-center text-slate-600">
                       <div className="flex items-center gap-1.5">
@@ -1311,18 +1416,18 @@ export default function CalculationsPage() {
                   </div>
                   <div className="space-y-3">
                     <div className="grid gap-1.5">
-                      <Label>調整額（＋加算）</Label>
+                      <Label>調整額（＋／－）</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">¥</span>
                         <Input
                           type="number"
-                          min="0"
-                          placeholder="0"
+                          placeholder="0（マイナス可）"
                           value={editAdjustAmount}
                           onChange={(e) => setEditAdjustAmount(e.target.value)}
                           className="pl-7 font-mono"
                         />
                       </div>
+                      <p className="text-[10px] text-slate-400">減額はマイナス値で入力（例: -1000）</p>
                     </div>
                     <div className="grid gap-1.5">
                       <Label>調整理由</Label>
@@ -1399,6 +1504,11 @@ export default function CalculationsPage() {
                 <DialogFooter>
                   <Button variant="outline" onClick={() => { setSelectedEditId(null); setEditAllowances([]); setEditSpecialAllowances({ holiday: 0, sunday: 0, other: 0 }); setEditSpecialKurikoshi(new Set()); setSpecialAllowanceOpen(false); setEditKurikoshi(new Set()); }}>キャンセル</Button>
                   <Button onClick={() => {
+                    const adjustVal = parseInt(editAdjustAmount || "0") || 0;
+                    if (adjustVal !== 0 && !editAdjustReason.trim()) {
+                      toast.error("調整理由を入力してください");
+                      return;
+                    }
                     const kurikoshiAmounts = {
                       overtime: editKurikoshi.has("overtime") ? result.overtimeWage : 0,
                       weeklyOvertime: editKurikoshi.has("weeklyOvertime") ? result.weeklyOvertimeWage : 0,
@@ -1421,6 +1531,36 @@ export default function CalculationsPage() {
             </Dialog>
           );
         })()}
+
+        {/* 印紙（健保等級）変更ポップアップ */}
+        {stampChangeDialog && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setStampChangeDialog(null); }}>
+            <DialogContent className="sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle className="text-red-700">印紙変更のお知らせ</DialogTitle>
+                <DialogDescription>
+                  {stampChangeDialog.workerName} — 残業により健保等級が変動しました
+                </DialogDescription>
+              </DialogHeader>
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">変更前</span>
+                  <span className="font-medium text-slate-800">{formatGradeLabel(stampChangeDialog.oldGrade)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">変更後</span>
+                  <span className="font-bold text-red-700">{formatGradeLabel(stampChangeDialog.newGrade)}</span>
+                </div>
+                <p className="text-xs text-red-600 pt-2 border-t border-red-200">
+                  確定後、該当する印紙の張替えを行ってください。
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setStampChangeDialog(null)}>確認しました</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
 
         {activeTab === "賃金" && (paymentSubTab === "キャッシュマシン" || paymentSubTab === "振込") && (
@@ -1598,15 +1738,32 @@ export default function CalculationsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {rows.map((row) => (
-                          <tr key={row.id} className={`hover:bg-blue-50/30 transition-colors cursor-pointer ${selectedPaymentIds.includes(row.id) ? "bg-blue-50/50" : ""}`}
-                            onClick={() => setSelectedPaymentRow(row)}>
+                        {rows.map((row) => {
+                          const payable = isPaymentPayable(row);
+                          const forced = forcePaymentIds.has(row.id);
+                          return (
+                          <tr key={row.id} className={cn(
+                            "transition-colors cursor-pointer",
+                            !payable && "bg-slate-100/80 text-slate-400",
+                            payable && "hover:bg-blue-50/30",
+                            selectedPaymentIds.includes(row.id) && payable && "bg-blue-50/50"
+                          )}
+                            onClick={() => payable && setSelectedPaymentRow(row)}>
                             <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer disabled:opacity-40"
+                                disabled={!payable}
                                 checked={selectedPaymentIds.includes(row.id)}
                                 onChange={(e) => setSelectedPaymentIds(prev => e.target.checked ? [...prev, row.id] : prev.filter(id => id !== row.id))} />
                             </td>
-                            <td className={cn("px-3 py-3 whitespace-nowrap", paymentWorkerNameColorCls("キャッシュマシン"))}>{row.name}</td>
+                            <td className={cn("px-3 py-3 whitespace-nowrap", payable ? paymentWorkerNameColorCls("キャッシュマシン") : "text-slate-400")}>
+                              {row.name}
+                              {!payable && !forced && (
+                                <span className="ml-1.5 text-[10px] text-slate-400">（支払日未到達）</span>
+                              )}
+                              {forced && !row.payDueToday && (
+                                <span className="ml-1.5 text-[10px] text-amber-600">（強制出金）</span>
+                              )}
+                            </td>
                             <td className="px-3 py-3 whitespace-nowrap">
                               {row.grade !== "—" ? (
                                 <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{row.grade}</span>
@@ -1691,9 +1848,25 @@ export default function CalculationsPage() {
                                 );
                               })()}
                             </td>
-                            <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">{row.updatedAt}</td>
+                            <td className="px-3 py-3 text-xs text-slate-400 whitespace-nowrap">
+                              {row.updatedAt}
+                              {!payable && (
+                                <button
+                                  type="button"
+                                  className="ml-2 text-[10px] text-amber-700 underline hover:text-amber-900"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setForcePaymentIds(prev => new Set([...prev, row.id]));
+                                    toast.success(`${row.name}を強制出金対象にしました`);
+                                  }}
+                                >
+                                  強制出金
+                                </button>
+                              )}
+                            </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                         {/* 合計行（末尾） */}
                         <tr className="bg-slate-50 font-semibold border-t-2 border-slate-200">
                           <td className="px-3 py-3" />

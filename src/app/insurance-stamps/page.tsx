@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { MainLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -157,11 +157,11 @@ const SUB_TABS: Record<MainTab, string[]> = {
 interface WorkerAllowance { id: string; name: string; amount: number; isContinuous: boolean; }
 
 const mockWorkers = [
-  { id: "1", employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", phone: "090-1234-5678", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "6等級（介護なし）", employmentInsuranceGrade: "4等級", allowances: [{ id: "a1", name: "皆勤手当", amount: 5000, isContinuous: true }, { id: "a2", name: "リーダー手当", amount: 3000, isContinuous: true }] as WorkerAllowance[] },
-  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", phone: "090-2345-6789", isActive: true, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級", allowances: [{ id: "a3", name: "資格手当", amount: 2000, isContinuous: true }] as WorkerAllowance[] },
-  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", phone: "090-3456-7890", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi", socialInsuranceGrade: "10等級（介護あり）", employmentInsuranceGrade: "7等級", allowances: [] as WorkerAllowance[] },
-  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", phone: "090-4567-8901", isActive: true, paymentMethod: "振り込み", employeeType: "furikomi", socialInsuranceGrade: "6等級（介護あり）", employmentInsuranceGrade: "5等級", allowances: [{ id: "a4", name: "早出手当（固定）", amount: 1500, isContinuous: false }] as WorkerAllowance[] },
-  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", phone: "090-5678-9012", isActive: false, paymentMethod: "キャッシュマシン", employeeType: "hiyatoi", socialInsuranceGrade: "3等級（介護なし）", employmentInsuranceGrade: "2等級", allowances: [] as WorkerAllowance[] },
+  { id: 1, employeeCode: "E001", name: "山田 太郎", nameKana: "ヤマダ タロウ", defaultCompany: "A運輸株式会社", affiliation: "新運転", phone: "090-1234-5678", isActive: true, paymentMethod: "キャッシュマシン", paymentCycle: "day" as "day" | "3day" | "week" | "month", workHours: 8, employeeType: "hiyatoi", socialInsuranceGrade: "6等級(介護なし)", employmentInsuranceGrade: "4等級", allowances: [{ id: "a1", name: "皆勤手当", amount: 5000, isContinuous: true }, { id: "a2", name: "リーダー手当", amount: 3000, isContinuous: true }] as WorkerAllowance[] },
+  { id: "2", employeeCode: "E002", name: "鈴木 一郎", nameKana: "スズキ イチロウ", defaultCompany: "A運輸株式会社", affiliation: "クリーン労働組合", phone: "090-2345-6789", isActive: true, paymentMethod: "キャッシュマシン", paymentCycle: "week" as "day" | "3day" | "week" | "month", workHours: 7, employeeType: "hiyatoi", socialInsuranceGrade: "3等級(介護なし)", employmentInsuranceGrade: "2等級", allowances: [{ id: "a3", name: "資格手当", amount: 2000, isContinuous: true }] as WorkerAllowance[] },
+  { id: "3", employeeCode: "E003", name: "佐藤 花子", nameKana: "サトウ ハナコ", defaultCompany: "B物流株式会社", affiliation: "直雇用", phone: "090-3456-7890", isActive: true, paymentMethod: "振り込み", paymentCycle: "month" as "day" | "3day" | "week" | "month", workHours: 8, employeeType: "furikomi", socialInsuranceGrade: "10等級(介護あり)", employmentInsuranceGrade: "7等級", allowances: [] as WorkerAllowance[] },
+  { id: "4", employeeCode: "E004", name: "高橋 健二", nameKana: "タカハシ ケンジ", defaultCompany: "A運輸株式会社", affiliation: "クリーン労働組合", phone: "090-4567-8901", isActive: true, paymentMethod: "振り込み", paymentCycle: "month" as "day" | "3day" | "week" | "month", workHours: 8, employeeType: "furikomi", socialInsuranceGrade: "6等級(介護あり)", employmentInsuranceGrade: "5等級", allowances: [{ id: "a4", name: "早出手当(固定)", amount: 1500, isContinuous: false }] as WorkerAllowance[] },
+  { id: "5", employeeCode: "E005", name: "田中 美咲", nameKana: "タナカ ミサキ", defaultCompany: "C配送センター", affiliation: "新運転", phone: "090-5678-9012", isActive: false, paymentMethod: "キャッシュマシン", paymentCycle: "day" as "day" | "3day" | "week" | "month", workHours: 7, employeeType: "hiyatoi", socialInsuranceGrade: "3等級(介護なし)", employmentInsuranceGrade: "2等級", allowances: [] as WorkerAllowance[] },
 ];
 
 // --- Companies ---
@@ -187,12 +187,12 @@ const mockVehicleTypes = [
 
 // --- Wage Rules ---
 const mockWageRules = [
-  { id: "1", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "2tトラック", baseDailyWage: 10000, baseHours: 8, overtimeRateNormal: 1400, overtimeRateLate: 1750, overtimeRateHoliday: 1750, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
-  { id: "2", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "4tトラック", baseDailyWage: 11000, baseHours: 8, overtimeRateNormal: 1500, overtimeRateLate: 1875, overtimeRateHoliday: 1875, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
-  { id: "3", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "10tトラック", baseDailyWage: 13000, baseHours: 8, overtimeRateNormal: 1800, overtimeRateLate: 2250, overtimeRateHoliday: 2250, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
-  { id: "4", companyId: "2", companyName: "B物流株式会社", vehicleTypeName: "2tトラック", baseDailyWage: 9500, baseHours: 8, overtimeRateNormal: 1300, overtimeRateLate: 1625, overtimeRateHoliday: 1625, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
-  { id: "5", companyId: "2", companyName: "B物流株式会社", vehicleTypeName: "4tトラック", baseDailyWage: 10500, baseHours: 8, overtimeRateNormal: 1450, overtimeRateLate: 1815, overtimeRateHoliday: 1815, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
-  { id: "6", companyId: "3", companyName: "C配送センター", vehicleTypeName: "2tトラック", baseDailyWage: 9000, baseHours: 8, overtimeRateNormal: 1250, overtimeRateLate: 1565, overtimeRateHoliday: 1565, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "1", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "2tトラック", baseDailyWage: 10000, vehicleAllowance: 500, baseHours: 8, overtimeRateNormal: 1400, overtimeRateLate: 1750, overtimeRateHoliday: 1750, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "2", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "4tトラック", baseDailyWage: 11000, vehicleAllowance: 800, baseHours: 8, overtimeRateNormal: 1500, overtimeRateLate: 1875, overtimeRateHoliday: 1875, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "3", companyId: "1", companyName: "A運輸株式会社", vehicleTypeName: "10tトラック", baseDailyWage: 13000, vehicleAllowance: 1200, baseHours: 8, overtimeRateNormal: 1800, overtimeRateLate: 2250, overtimeRateHoliday: 2250, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "4", companyId: "2", companyName: "B物流株式会社", vehicleTypeName: "2tトラック", baseDailyWage: 9500, vehicleAllowance: 400, baseHours: 8, overtimeRateNormal: 1300, overtimeRateLate: 1625, overtimeRateHoliday: 1625, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "5", companyId: "2", companyName: "B物流株式会社", vehicleTypeName: "4tトラック", baseDailyWage: 10500, vehicleAllowance: 600, baseHours: 8, overtimeRateNormal: 1450, overtimeRateLate: 1815, overtimeRateHoliday: 1815, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
+  { id: "6", companyId: "3", companyName: "C配送センター", vehicleTypeName: "2tトラック", baseDailyWage: 9000, vehicleAllowance: 300, baseHours: 8, overtimeRateNormal: 1250, overtimeRateLate: 1565, overtimeRateHoliday: 1565, effectiveFrom: new Date("2024-01-01"), effectiveTo: null, isActive: true },
 ];
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 }).format(value);
@@ -288,12 +288,13 @@ const mockPaidLeave = [
 ];
 
 // --- アルバイト ---
+const PART_TIME_TAX_RATES = { incomeTaxRate: 0.03063, employmentInsuranceRate: 0.006 };
 const mockPartTimeWorkers = [
-  { id: 1, name: "木村 翔太",   hourlyRate: 1200, workDays: 15, totalHours: 90.0,  overtime: 5.0,  grossPay: 114000, month: "2024/01", status: "確定" },
-  { id: 2, name: "松本 さくら", hourlyRate: 1150, workDays: 12, totalHours: 72.0,  overtime: 0,    grossPay: 82800,  month: "2024/01", status: "確定" },
-  { id: 3, name: "小林 大輝",   hourlyRate: 1300, workDays: 18, totalHours: 108.0, overtime: 8.0,  grossPay: 153400, month: "2024/01", status: "未確定" },
-  { id: 4, name: "中村 愛",     hourlyRate: 1200, workDays: 10, totalHours: 60.0,  overtime: 2.0,  grossPay: 75000,  month: "2024/01", status: "確定" },
-  { id: 5, name: "加藤 隆",     hourlyRate: 1100, workDays: 20, totalHours: 120.0, overtime: 10.0, grossPay: 145750, month: "2024/01", status: "未確定" },
+  { id: 1, name: "木村 翔太",   dailyAllowance: 10000, paymentMethod: "現金", workDays: 15, totalHours: 90.0,  overtime: 5.0,  grossPay: 150000, incomeTax: 4595, employmentInsurance: 900, netPay: 144505, month: "2024/01", status: "確定" },
+  { id: 2, name: "松本 さくら", dailyAllowance: 9500,  paymentMethod: "振込", workDays: 12, totalHours: 72.0,  overtime: 0,    grossPay: 114000, incomeTax: 3492, employmentInsurance: 684, netPay: 109824, month: "2024/01", status: "確定" },
+  { id: 3, name: "小林 大輝",   dailyAllowance: 11000, paymentMethod: "現金", workDays: 18, totalHours: 108.0, overtime: 8.0,  grossPay: 198000, incomeTax: 6065, employmentInsurance: 1188, netPay: 190747, month: "2024/01", status: "未確定" },
+  { id: 4, name: "中村 愛",     dailyAllowance: 10000, paymentMethod: "振込", workDays: 10, totalHours: 60.0,  overtime: 2.0,  grossPay: 100000, incomeTax: 3063, employmentInsurance: 600, netPay: 96337, month: "2024/01", status: "確定" },
+  { id: 5, name: "加藤 隆",     dailyAllowance: 9000,  paymentMethod: "現金", workDays: 20, totalHours: 120.0, overtime: 10.0, grossPay: 180000, incomeTax: 5513, employmentInsurance: 1080, netPay: 173407, month: "2024/01", status: "未確定" },
 ];
 
 // --- 仕訳 ---
@@ -466,6 +467,17 @@ export default function InsuranceStampsPage() {
   const [isEditingAllowances, setIsEditingAllowances] = useState(false);
   const [journalSearch, setJournalSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [journals, setJournals] = useState(mockJournals);
+  const [journalLastRefreshed, setJournalLastRefreshed] = useState<string>("");
+  const [journalExportDate, setJournalExportDate] = useState<Date | undefined>(new Date());
+
+  // 仕訳タブ再表示時に最新データを反映
+  useEffect(() => {
+    if (activeSubTab === "仕訳") {
+      setJournals([...mockJournals]);
+      setJournalLastRefreshed(new Date().toLocaleString("ja-JP"));
+    }
+  }, [activeSubTab, activeMainTab]);
 
   const filteredStamps = stampsData.filter((d) => {
     const matchesSearch = d.name.includes(searchQuery);
@@ -496,7 +508,7 @@ export default function InsuranceStampsPage() {
 
   const filteredPaidLeave = mockPaidLeave.filter((d) => d.name.includes(paidLeaveSearch));
   const filteredPartTimeWorkers = mockPartTimeWorkers.filter((w) => w.name.includes(partTimeSearch));
-  const filteredJournals = mockJournals.filter((j) => {
+  const filteredJournals = journals.filter((j) => {
     const matchesSearch = j.description.includes(journalSearch) || j.debitAccount.includes(journalSearch) || j.creditAccount.includes(journalSearch);
     const matchesCategory = categoryFilter === "all" || j.category === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -849,6 +861,9 @@ export default function InsuranceStampsPage() {
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">氏名</td><td className="px-4 py-2.5 text-slate-900 font-medium">{worker.name}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">フリガナ</td><td className="px-4 py-2.5 text-slate-700 text-xs">{worker.nameKana}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">所属先</td><td className="px-4 py-2.5 text-slate-900">{worker.defaultCompany}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">所属区分</td><td className="px-4 py-2.5"><span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{worker.affiliation ?? "—"}</span></td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">支払サイクル</td><td className="px-4 py-2.5 text-slate-900 text-xs">{worker.paymentCycle === "day" ? "日払い" : worker.paymentCycle === "3day" ? "3日払い" : worker.paymentCycle === "week" ? "週払い" : "月払い"}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">所定労働時間</td><td className="px-4 py-2.5 text-slate-900 font-mono">{worker.workHours ?? 8}h</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">電話番号</td><td className="px-4 py-2.5 text-slate-700">{worker.phone}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">支払い方法</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${worker.paymentMethod === "振り込み" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"}`}>{worker.paymentMethod}</span></td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">社会保険等級</td><td className="px-4 py-2.5"><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${worker.socialInsuranceGrade.includes("介護あり") ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200" : "bg-slate-100 text-slate-600"}`}>{worker.socialInsuranceGrade}</span></td></tr>
@@ -1558,7 +1573,11 @@ export default function InsuranceStampsPage() {
         {/* ── アルバイト ── */}
         {activeSubTab === "アルバイト" && (
           <>
-            <p className="text-sm text-slate-500">時給制アルバイトの勤怠・賃金管理</p>
+            <p className="text-sm text-slate-500">日額ベースのアルバイト賃金管理（印紙非該当・所得税・雇用一般保険のみ控除）</p>
+            <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-4 py-2.5 text-xs text-blue-800">
+              料率（年次更新）: 所得税 {(PART_TIME_TAX_RATES.incomeTaxRate * 100).toFixed(3)}% / 雇用一般保険 {(PART_TIME_TAX_RATES.employmentInsuranceRate * 100).toFixed(1)}%
+              — 現金払い→日雇タブ、振込→常勤タブへ自動振分け
+            </div>
             <div className="grid gap-4 sm:grid-cols-4">
               {[
                 { label: "登録人数",     value: "5名",       icon: Users,        bg: "bg-blue-50",   ic: "text-blue-600" },
@@ -1591,8 +1610,8 @@ export default function InsuranceStampsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                      {["氏名","時給","出勤日数","総時間","残業","支給額","対象月","ステータス"].map((h) => (
-                        <th key={h} className={`px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["時給","出勤日数","総時間","残業","支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
+                      {["氏名","日当","支払方法","出勤日数","総時間","残業","支給額","差引支給額","対象月","ステータス"].map((h) => (
+                        <th key={h} className={`px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap ${["日当","出勤日数","総時間","残業","支給額","差引支給額"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -1600,11 +1619,15 @@ export default function InsuranceStampsPage() {
                     {filteredPartTimeWorkers.map((row) => (
                       <tr key={row.id} className="hover:bg-blue-50/40 transition-colors cursor-pointer" onClick={() => { setSelectedPartTime(row); setPartTimeDetailTab("basic"); }}>
                         <td className="px-4 py-3 text-slate-900 font-medium whitespace-nowrap">{row.name}</td>
-                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.hourlyRate.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">¥{row.dailyAllowance.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.paymentMethod === "現金" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"}`}>{row.paymentMethod}</span>
+                        </td>
                         <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.workDays}</td>
                         <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.totalHours.toFixed(1)}</td>
                         <td className="px-4 py-3 text-right text-slate-700 font-mono tabular-nums whitespace-nowrap">{row.overtime.toFixed(1)}</td>
                         <td className="px-4 py-3 text-right text-slate-900 font-mono font-medium tabular-nums whitespace-nowrap">¥{row.grossPay.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-blue-700 font-mono font-semibold tabular-nums whitespace-nowrap">¥{row.netPay.toLocaleString()}</td>
                         <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{row.month}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${row.status === "確定" ? "bg-slate-100 text-slate-700" : "bg-blue-50 text-blue-700"}`}>{row.status}</span>
@@ -1648,7 +1671,11 @@ export default function InsuranceStampsPage() {
                             <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                               <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs w-32">対象月</td><td className="px-4 py-2.5 text-slate-900">{selectedPartTime.month}</td></tr>
-                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">時給</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{selectedPartTime.hourlyRate.toLocaleString()}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">日当</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{selectedPartTime.dailyAllowance.toLocaleString()}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">支払方法</td><td className="px-4 py-2.5">{selectedPartTime.paymentMethod}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">所得税</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{selectedPartTime.incomeTax.toLocaleString()}</td></tr>
+                                <tr><td className="px-4 py-2.5 text-slate-500 text-xs">雇用一般保険</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{selectedPartTime.employmentInsurance.toLocaleString()}</td></tr>
+                                <tr className="bg-blue-50"><td className="px-4 py-2.5 text-slate-700 font-medium text-xs">差引支給額</td><td className="px-4 py-2.5 text-blue-700 font-mono font-semibold">¥{selectedPartTime.netPay.toLocaleString()}</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">出勤日数</td><td className="px-4 py-2.5 text-slate-900 font-mono">{selectedPartTime.workDays}日</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">総労働時間</td><td className="px-4 py-2.5 text-slate-900 font-mono">{selectedPartTime.totalHours.toFixed(1)}h</td></tr>
                                 <tr><td className="px-4 py-2.5 text-slate-500 text-xs">残業時間</td><td className="px-4 py-2.5 text-slate-900 font-mono">{selectedPartTime.overtime.toFixed(1)}h</td></tr>
@@ -1733,10 +1760,10 @@ export default function InsuranceStampsPage() {
         {/* ── 仕訳 ── */}
         {activeSubTab === "仕訳" && (
           <>
-            <p className="text-sm text-slate-500">仕訳・預り金テーブル管理</p>
+            <p className="text-sm text-slate-500">仕訳・預り金テーブル管理{journalLastRefreshed && <span className="ml-2 text-xs text-slate-400">最終更新: {journalLastRefreshed}</span>}</p>
             <div className="grid gap-4 sm:grid-cols-3">
               {[
-                { label: "仕訳件数", value: `${mockJournals.length}件`, icon: BookOpen,   bg: "bg-blue-50",   ic: "text-blue-600" },
+                { label: "仕訳件数", value: `${journals.length}件`, icon: BookOpen,   bg: "bg-blue-50",   ic: "text-blue-600" },
                 { label: "借方合計", value: "¥1,381,700",               icon: Calculator, bg: "bg-slate-100", ic: "text-slate-600" },
                 { label: "貸方合計", value: "¥526,700",                 icon: ArrowRight, bg: "bg-slate-100", ic: "text-slate-600" },
               ].map(({ label, value, icon: Icon, bg, ic }) => (
@@ -1763,6 +1790,27 @@ export default function InsuranceStampsPage() {
               </div>
               <button className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
                 <Plus className="h-4 w-4" />仕訳追加
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                onClick={() => {
+                  const dateStr = journalExportDate ? format(journalExportDate, "yyyy/MM/dd") : format(new Date(), "yyyy/MM/dd");
+                  const dayLaborRows = [
+                    ["日付", "氏名", "所属", "健保等級", "印紙代", "日当", "残業", "控除合計", "差引支給額"],
+                    ["2024/01/28", "鈴木 一郎", "クリーン労働組合", "3等級(介護なし)", "146", "10000", "1950", "1324", "7367"],
+                    ["2024/01/28", "高橋 健二", "クリーン労働組合", "6等級(介護あり)", "176", "11000", "0", "1876", "8724"],
+                    ["2024/01/28", "田中 美咲", "新運転", "3等級(介護なし)", "146", "10000", "1950", "1286", "7140"],
+                  ];
+                  const blob = new Blob([dayLaborRows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `日雇仕訳_${dateStr.replace(/\//g, "")}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success(`日雇いメンバーの仕訳CSVを出力しました (${dateStr})`);
+                }}
+              >
+                <Download className="h-4 w-4" />日雇仕訳CSV
               </button>
               <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                 <Download className="h-4 w-4" />エクスポート
@@ -1967,6 +2015,10 @@ export default function InsuranceStampsPage() {
                                       <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span><Input type="number" defaultValue={editingWageRule2.baseDailyWage} className="h-9 pl-7 text-sm font-mono" /></div>
                                     </div>
                                     <div className="grid gap-1.5">
+                                      <Label className="text-xs text-slate-500">車両手当</Label>
+                                      <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span><Input type="number" defaultValue={editingWageRule2.vehicleAllowance ?? 0} className="h-9 pl-7 text-sm font-mono" /></div>
+                                    </div>
+                                    <div className="grid gap-1.5">
                                       <Label className="text-xs text-slate-500">基準時間</Label>
                                       <Input type="number" defaultValue={editingWageRule2.baseHours} className="h-9 text-sm" />
                                     </div>
@@ -1998,6 +2050,7 @@ export default function InsuranceStampsPage() {
                                   <div className="rounded-xl border border-slate-200/60 bg-white overflow-clip">
                                     <table className="w-full text-sm"><tbody className="divide-y divide-slate-100">
                                       <tr className="bg-blue-50/30"><td className="px-4 py-2.5 text-slate-500 text-xs w-36">基本日当</td><td className="px-4 py-2.5 text-blue-700 font-mono font-bold">¥{wage.baseDailyWage.toLocaleString()}</td></tr>
+                                      <tr><td className="px-4 py-2.5 text-slate-500 text-xs">車両手当</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{(wage.vehicleAllowance ?? 0).toLocaleString()}<span className="ml-2 text-[10px] text-slate-400">※計算への反映方法は別途確定</span></td></tr>
                                       <tr><td className="px-4 py-2.5 text-slate-500 text-xs">基準時間</td><td className="px-4 py-2.5 text-slate-900 font-mono">{wage.baseHours}h</td></tr>
                                       <tr><td className="px-4 py-2.5 text-slate-500 text-xs">残業単価（通常）</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{wage.overtimeRateNormal.toLocaleString()}/h</td></tr>
                                       <tr><td className="px-4 py-2.5 text-slate-500 text-xs">残業単価（深夜）</td><td className="px-4 py-2.5 text-slate-900 font-mono">¥{wage.overtimeRateLate.toLocaleString()}/h</td></tr>
@@ -2322,8 +2375,31 @@ export default function InsuranceStampsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>時給</Label>
-                <Input type="number" placeholder="1200" />
+                <Label>日当</Label>
+                <Input type="number" placeholder="10000" />
+              </div>
+              <div className="grid gap-2">
+                <Label>支払方法</Label>
+                <Select defaultValue="cash">
+                  <SelectTrigger><SelectValue placeholder="選択" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">現金（日雇タブへ振分け）</SelectItem>
+                    <SelectItem value="transfer">振込（常勤タブへ振分け）</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>所属区分</Label>
+                <Select defaultValue="clean">
+                  <SelectTrigger><SelectValue placeholder="選択" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="clean">クリーン労働組合</SelectItem>
+                    <SelectItem value="shinten">新運転</SelectItem>
+                    <SelectItem value="direct">直雇用</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label>雇用形態</Label>
@@ -2391,6 +2467,10 @@ export default function InsuranceStampsPage() {
                 <div className="grid gap-2">
                   <Label>基本日当</Label>
                   <Input type="number" placeholder="11000" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>車両手当</Label>
+                  <Input type="number" placeholder="500" />
                 </div>
                 <div className="grid gap-2">
                   <Label>基準時間（h）</Label>
